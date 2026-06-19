@@ -44,11 +44,13 @@ export default function SPPPage() {
       
       const hjYearFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic', { year: 'numeric' });
       const hjYearStr = hjYearFormatter.format(now);
-      const year = parseInt(hjYearStr.replace(/[^0-9]/g, ''));
+      const hYear = parseInt(hjYearStr.replace(/[^0-9]/g, ''));
       
-      if (hjMonth >= 10) return `${year}/${year + 1} H`;
-      return `${year - 1}/${year} H`;
-    } catch { return "1445/1446 H"; }
+      const startHijri = hjMonth >= 10 ? hYear : hYear - 1;
+      const startGreg = startHijri + 579;
+
+      return `${startGreg}-${startGreg + 1} | ${startHijri}-${startHijri + 1} H`;
+    } catch { return "2026-2027 | 1447-1448 H"; }
   }, []);
 
   const [academicYear, setAcademicYear] = useState(currentAutoYear);
@@ -56,8 +58,18 @@ export default function SPPPage() {
 
   // Generate Year List (History + Current + Next)
   const ACADEMIC_YEARS = useMemo(() => {
-    const startYear = parseInt(currentAutoYear.split("/")[0]);
-    return [`${startYear - 1}/${startYear} H`, currentAutoYear, `${startYear + 1}/${startYear + 2} H`];
+    try {
+      const startGreg = parseInt(currentAutoYear.split("-")[0]);
+      const startHijri = parseInt(currentAutoYear.split("|")[1].trim().split("-")[0]);
+      
+      return [
+        `${startGreg - 1}-${startGreg} | ${startHijri - 1}-${startHijri} H`,
+        currentAutoYear,
+        `${startGreg + 1}-${startGreg + 2} | ${startHijri + 1}-${startHijri + 2} H`
+      ];
+    } catch {
+      return ["2025-2026 | 1446-1447 H", "2026-2027 | 1447-1448 H", "2027-2028 | 1448-1449 H"];
+    }
   }, [currentAutoYear]);
 
   const [searchQuery, setSearchQuery] = useState("");

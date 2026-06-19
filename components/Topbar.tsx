@@ -46,22 +46,20 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
   const academicYear = useMemo(() => {
     try {
       const now = new Date();
-      // Use islamic calendar to get Hijri month and year
       const hijriFormatter = new Intl.DateTimeFormat('id-ID-u-ca-islamic', { month: 'numeric' });
       const hijriMonth = parseInt(hijriFormatter.format(now));
       
       const hijriYearFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic', { year: 'numeric' });
       const hijriYearStr = hijriYearFormatter.format(now);
-      const year = parseInt(hijriYearStr.replace(/[^0-9]/g, ''));
+      const hYear = parseInt(hijriYearStr.replace(/[^0-9]/g, ''));
       
-      // If Hijri month is Syawal (10) or later
-      if (hijriMonth >= 10) {
-        return `${year}/${year + 1} H`;
-      } else {
-        return `${year - 1}/${year} H`;
-      }
+      // Academic year changes every Syawal (month 10)
+      const startHijri = hijriMonth >= 10 ? hYear : hYear - 1;
+      const startGreg = startHijri + 579;
+
+      return `${startGreg}-${startGreg + 1} | ${startHijri}-${startHijri + 1} H`;
     } catch (e) {
-      return "1445/1446 H"; 
+      return "2026-2027 | 1447-1448 H"; 
     }
   }, []);
 
@@ -127,7 +125,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
   };
 
   return (
-    <header className="flex-shrink-0 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3 relative z-[50]">
+    <header className="shrink-0 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3 relative z-50">
       <div className="flex items-center justify-between">
         {/* Left */}
         <div className="flex items-center gap-3">
@@ -141,10 +139,10 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
             </button>
           )}
           <div className="hidden sm:block">
-            <h1 className="text-base sm:text-lg font-black text-[#1e293b] tracking-tight">
+            <h1 className="text-base sm:text-lg font-black text-text-main tracking-tight">
               {session?.role === "Seksi Keuangan" ? "Sistem Pembayaran SPP" : `Selamat Datang, ${session?.name || "Ustadz"}`}
             </h1>
-            <p className="text-[10px] font-bold text-[#64748b] flex items-center gap-1.5 uppercase tracking-wider">
+            <p className="text-[10px] font-bold text-text-sub flex items-center gap-1.5 uppercase tracking-wider">
               <span>Pondok Pesantren Darussalam</span>
               <span className="w-1 h-1 rounded-full bg-slate-300" />
               {session?.role === "Seksi Keuangan" ? (
