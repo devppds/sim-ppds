@@ -5,23 +5,23 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#064e3b",
-  "theme_color": "#064e3b",
+  "background_color": "#021c14",
+  "theme_color": "#021c14",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/logopondok.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/logopondok.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/apple-touch-icon.png",
+      "src": "/logopondok.png",
       "sizes": "180x180",
       "type": "image/png"
     }

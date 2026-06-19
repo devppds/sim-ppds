@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, ArrowRight, Sparkles, Layers, Wallet, Shield, Shirt, Trash2, Users, BookOpen, Building2, Camera, HelpCircle, FileText, ChevronDown, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
+import { User, Lock, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const footerTexts = [
   "Sistem cerdas ini dikembangkan oleh alumni Pondok Pesantren Darussalam Lirboyo.",
@@ -12,29 +12,15 @@ const footerTexts = [
   "© 2026 DEVELZY"
 ];
 
-export default function LoginPage() {
-  const { showToast } = useToast();
-  const router = useRouter();
-  const [openSection, setOpenSection] = useState<string | null>("modul");
+export default function MasukPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [footerIndex, setFooterIndex] = useState(0);
   const [fade, setFade] = useState(true);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    // 1. Cek apakah PWA sudah di-install (Standalone mode)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-    if (isStandalone) {
-      router.replace('/login/masuk');
-    }
-
-    // 2. Tangkap event install PWA dari browser
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault(); // Mencegah prompt bawaan muncul
-      setDeferredPrompt(e); // Simpan event untuk dipanggil tombol khusus kita
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Animasi Footer
     const interval = setInterval(() => {
       setFade(false);
       setTimeout(() => {
@@ -42,261 +28,154 @@ export default function LoginPage() {
         setFade(true);
       }, 800);
     }, 5000);
-    
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, [router]);
+    return () => clearInterval(interval);
+  }, []);
 
-  const toggleSection = (section: string) => {
-    setOpenSection(openSection === section ? null : section);
-  };
+  const { showToast } = useToast();
+  const router = useRouter();
 
-  const handleDownload = () => {
-    showToast("Mempersiapkan unduhan APK SIM-PPDS...", "success");
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast("Login Berhasil. Selamat datang!", "success");
+        setTimeout(() => { router.push("/dashboard"); }, 800);
+      } else {
+        showToast(json.error || "Akses Ditolak", "error");
+      }
+    } catch {
+      showToast("Server tidak merespon", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#021c14] flex flex-col font-sans relative overflow-x-hidden selection:bg-amber-500/30">
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes blinkBtn {
-          0%, 100% { background: linear-gradient(to right, #10b981, #047857); box-shadow: 0 0 15px rgba(16,185,129,0.4); transform: scale(1); }
-          50% { background: linear-gradient(to right, #f59e0b, #10b981); box-shadow: 0 0 35px rgba(245,158,11,0.8); transform: scale(1.02); }
-        }
-        .btn-blink { animation: blinkBtn 1.5s infinite alternate; border: 1px solid rgba(245,158,11,0.4); }
-
-        @keyframes float3D {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-6px) scale(1.05); filter: drop-shadow(0 5px 8px rgba(245,158,11,0.4)); }
-        }
-        .icon-float-1 { animation: float3D 3s ease-in-out infinite; }
-        .icon-float-2 { animation: float3D 4s ease-in-out infinite 0.5s; }
-        .icon-float-3 { animation: float3D 3.5s ease-in-out infinite 1s; }
-        .icon-float-4 { animation: float3D 4.5s ease-in-out infinite 0.2s; }
-        .icon-float-5 { animation: float3D 3.2s ease-in-out infinite 0.8s; }
-        .icon-float-6 { animation: float3D 4.1s ease-in-out infinite 1.2s; }
-        .icon-float-7 { animation: float3D 3.8s ease-in-out infinite 0.3s; }
-        .icon-float-8 { animation: float3D 4.3s ease-in-out infinite 0.7s; }
-      `}} />
-      {/* Premium Texture / Orbs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-900/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-amber-900/10 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Top Navigation */}
-      <nav className="w-full px-4 sm:px-6 py-5 flex items-center justify-between max-w-5xl mx-auto relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#064e3b] to-[#022c22] shadow-[0_0_15px_rgba(245,158,11,0.1)] flex items-center justify-center p-1.5 border border-amber-500/20">
-            <img src="/logopondok.png" alt="Logo" className="w-full h-full object-contain" />
-          </div>
-          <span className="font-black text-white text-base md:text-lg tracking-wide uppercase">SIM-PPDS</span>
-        </div>
-        <Link 
-          href="/login/masuk" 
-          className="bg-amber-500 hover:bg-amber-400 text-[#021c14] px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-95"
-        >
-          Masuk <ArrowRight className="w-4 h-4" />
-        </Link>
-      </nav>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col items-center px-4 max-w-4xl mx-auto w-full pb-24 pt-8 md:pt-16 relative z-10">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `body { background-color: #021c14 !important; }` }} />
+      <div className="fixed inset-0 bg-[#021c14] overflow-y-auto selection:bg-amber-500/30">
+        <div className="min-h-full w-full flex items-center justify-center p-4 sm:p-6 relative font-sans">
         
-        {/* --- HERO SECTION --- */}
-        <div className="text-center w-full mb-16">
-          <div className="inline-flex items-center gap-2 bg-[#064e3b]/50 border border-amber-500/30 text-amber-400 px-4 py-2 rounded-full text-[11px] md:text-xs font-bold mb-8 shadow-sm backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span className="uppercase tracking-wider">Sistem Administrasi Eksklusif</span>
-          </div>
+        {/* Premium Background Orbs */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[120px] pointer-events-none" />
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-2">
-            Pesantren Digital
-          </h1>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-linear-to-r from-amber-300 via-amber-400 to-amber-600 tracking-tight leading-tight mb-6 drop-shadow-sm">
-            Darussalam Lirboyo
-          </h1>
-
-          <p className="text-emerald-100/70 text-sm md:text-base font-medium leading-relaxed max-w-2xl mx-auto mb-10">
-            Platform PWA enterprise untuk tata kelola administrasi, keuangan, akademik, hingga pengawasan secara realtime demi kenyamanan wali santri dan efisiensi pengurus.
-          </p>
-
-          {/* --- INSTALASI & DOWNLOAD SECTION --- */}
-          <div className="w-full bg-[#064e3b]/40 backdrop-blur-md border border-amber-500/20 rounded-3xl p-6 sm:p-8 shadow-2xl text-left transition-all duration-500 mb-8">
-            <div className="flex flex-col gap-6 items-start justify-between">
-              
-              <div className="w-full space-y-5">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Download className="w-5 h-5 text-amber-400" />
-                  {deferredPrompt ? "Install Aplikasi (Disarankan)" : "Cara Instalasi APK"}
-                </h2>
-                
-                {deferredPrompt ? (
-                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      </div>
-                      <span className="leading-relaxed">Perangkat Anda mendukung fitur <strong className="text-white">Progressive Web App</strong>.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      </div>
-                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Install Aplikasi</strong> di samping untuk memasang sistem langsung ke perangkat Anda.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      </div>
-                      <span className="leading-relaxed">Sistem akan otomatis muncul di layar utama tanpa perlu file APK.</span>
-                    </li>
-                  </ul>
-                ) : (
-                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Download APK</strong> untuk mengunduh.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                      <span className="leading-relaxed">Buka file <code className="bg-[#021c14] border border-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[11px] ml-1">SIM-PPDS.apk</code> yang berhasil diunduh.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                      <span className="leading-relaxed">Jika muncul peringatan, izinkan <strong className="text-white">&quot;Instal dari Sumber Tidak Dikenal&quot;</strong>.</span>
-                    </li>
-                  </ul>
-                )}
-              </div>
-
-              <div className="w-full flex flex-col items-center justify-center pt-6 shrink-0 border-t border-emerald-800/50">
-                {deferredPrompt ? (
-                  <button 
-                    onClick={async () => {
-                      deferredPrompt.prompt();
-                      const { outcome } = await deferredPrompt.userChoice;
-                      if (outcome === 'accepted') {
-                        setDeferredPrompt(null);
-                      }
-                    }}
-                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
-                  >
-                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-                    <span>Install Aplikasi</span>
-                  </button>
-                ) : (
-                  <a 
-                    href="/download/SIM-PPDS.apk" 
-                    download
-                    onClick={handleDownload}
-                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
-                  >
-                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-                    <span>Download APK</span>
-                  </a>
-                )}
-              </div>
-
-            </div>
-          </div>
+        {/* Top Bar for back navigation */}
+        <div className="absolute top-0 left-0 w-full p-4 sm:p-6 z-20">
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-2 text-emerald-400/70 hover:text-emerald-400 transition-colors bg-[#021c14]/50 backdrop-blur-md px-4 py-2 rounded-full border border-emerald-500/20"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-bold uppercase tracking-wider">Kembali</span>
+          </Link>
         </div>
 
-        {/* --- INFORMATION SECTION --- */}
-        <div className="w-full space-y-4">
+        {/* Main Card */}
+        <div className="w-full max-w-md bg-[#064e3b]/40 backdrop-blur-xl border border-amber-500/20 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.5)] shadow-amber-900/10 relative z-10 flex flex-col overflow-hidden">
           
-          {/* Modul Sistem */}
-          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)]">
-            <button onClick={() => toggleSection("modul")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Modul Sistem Terintegrasi</span>
+          <div className="p-8 sm:p-10 flex-1">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-linear-to-br from-[#064e3b] to-[#022c22] rounded-3xl flex items-center justify-center p-4 shadow-[0_0_20px_rgba(245,158,11,0.15)] border border-amber-500/30">
+                <img src="/logopondok.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "modul" ? "rotate-180" : ""}`} />
-            </button>
-            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openSection === "modul" ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"}`}>
-              <div className="px-6 pb-6 pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
-                {[
-                  { icon: <Wallet className="w-5 h-5 text-amber-400" />, title: "Keuangan & SPP", desc: "Manajemen SPP bulanan, tabungan santri, dan transaksi cashless." },
-                  { icon: <Shield className="w-5 h-5 text-amber-400" />, title: "Keamanan", desc: "Pencatatan pelanggaran, takzir, dan sistem perizinan santri." },
-                  { icon: <Shirt className="w-5 h-5 text-amber-400" />, title: "Layanan (PLP)", desc: "Tiket galon air minum, laundry, dan operasional logistik." },
-                  { icon: <Trash2 className="w-5 h-5 text-amber-400" />, title: "Kebersihan (KBR)", desc: "Monitoring jadwal piket, audit kebersihan, dan laporan fasilitas." },
-                  { icon: <Users className="w-5 h-5 text-amber-400" />, title: "Jam'iyyah", desc: "Struktur organisasi, arsip program kerja, dan presensi." },
-                  { icon: <BookOpen className="w-5 h-5 text-amber-400" />, title: "Takmir Masjid", desc: "Jadwal muazin, imam salat, dan perawatan fasilitas masjid." },
-                  { icon: <Building2 className="w-5 h-5 text-amber-400" />, title: "Pembangunan", desc: "Laporan progres proyek fisik dan serapan anggaran." },
-                  { icon: <Camera className="w-5 h-5 text-amber-400" />, title: "Media & Publikasi", desc: "Pengelolaan aset digital dan kontrol informasi pesantren." },
-                ].map((item, i) => (
-                  <div key={i} className="bg-[#021c14]/50 border border-emerald-800/50 rounded-xl p-4 hover:-translate-y-1 hover:border-amber-500/40 transition-all duration-300 group/card">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 bg-[#064e3b] rounded-lg shadow-sm border border-emerald-700/50 group-hover/card:border-amber-500/30 transition-colors icon-float-${(i % 8) + 1}`}>{item.icon}</div>
-                      <h3 className="font-bold text-white text-sm tracking-wide">{item.title}</h3>
-                    </div>
-                    <p className="text-[12px] text-emerald-100/60 leading-relaxed font-medium">{item.desc}</p>
+            </div>
+
+            {/* Title */}
+            <div className="text-center mb-10">
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">SIM-PPDS</h1>
+              <p className="text-xs font-bold uppercase tracking-widest text-amber-400">Sistem Informasi Manajemen</p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleLogin} className="space-y-6">
+              
+              {/* Username */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-emerald-100/70 ml-1 uppercase tracking-wider">Username</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500/50 group-focus-within:text-amber-400 transition-colors">
+                    <User className="w-5 h-5" />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Cara Penggunaan */}
-          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30">
-            <button onClick={() => toggleSection("cara")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
-                  <HelpCircle className="w-5 h-5" />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Contoh: admin, ustadz, wali"
+                    className="w-full bg-[#021c14] border border-emerald-800/50 focus:border-amber-400/50 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-white transition-all outline-none placeholder:text-emerald-700 focus:ring-1 focus:ring-amber-400/50 shadow-inner"
+                    required
+                  />
                 </div>
-                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Cara Penggunaan</span>
               </div>
-              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "cara" ? "rotate-180" : ""}`} />
-            </button>
-            <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openSection === "cara" ? "max-h-96 pb-6 opacity-100" : "max-h-0 opacity-0"}`}>
-              <div className="text-sm text-emerald-100/80 space-y-3 leading-relaxed font-medium bg-[#021c14]/50 p-5 rounded-xl border border-emerald-800/50">
-                <p>1. Masukkan <strong className="text-amber-400 font-bold">Username</strong> resmi yang telah didaftarkan oleh Pusat Data pesantren.</p>
-                <p>2. Ketikkan <strong className="text-amber-400 font-bold">Kata Sandi</strong> dengan benar. Jaga kerahasiaan kata sandi Anda.</p>
-                <p>3. Jika lupa akses, silakan hubungi pihak Sekretariat melalui layanan bantuan teknis di halaman login.</p>
-                <p>4. Akses ke modul dibatasi secara ketat berdasarkan tingkat kewenangan akun Anda.</p>
-              </div>
-            </div>
-          </div>
 
-          {/* Syarat & Ketentuan */}
-          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30">
-            <button onClick={() => toggleSection("syarat")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
-                  <FileText className="w-5 h-5" />
+              {/* Password */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-emerald-100/70 ml-1 uppercase tracking-wider">Password</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500/50 group-focus-within:text-amber-400 transition-colors">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-[#021c14] border border-emerald-800/50 focus:border-amber-400/50 rounded-2xl py-4 pl-12 pr-12 text-sm font-bold text-white transition-all outline-none placeholder:text-emerald-700 focus:ring-1 focus:ring-amber-400/50 shadow-inner"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/50 hover:text-amber-400 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
-                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Syarat & Ketentuan Pengguna</span>
               </div>
-              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "syarat" ? "rotate-180" : ""}`} />
-            </button>
-            <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openSection === "syarat" ? "max-h-96 pb-6 opacity-100" : "max-h-0 opacity-0"}`}>
-              <div className="text-sm text-emerald-100/80 space-y-3 leading-relaxed font-medium bg-[#021c14]/50 p-5 rounded-xl border border-emerald-800/50">
-                <p>• Aplikasi ini dikembangkan untuk <strong className="text-amber-400">penggunaan internal terbatas</strong> oleh struktural Ponpes Darussalam.</p>
-                <p>• Segala bentuk manipulasi data, atau percobaan peretasan akan tercatat dalam <em className="text-white">Audit Log</em> dan ditindaklanjuti secara hukum.</p>
-                <p>• Pengguna wajib bertanggung jawab terhadap aktivitas apa pun yang terjadi menggunakan kredensial miliknya.</p>
-                <p>• Pihak pengembang dan Yayasan berhak mencabut akses sewaktu-waktu jika terindikasi pelanggaran privasi data.</p>
+
+              {/* Remember Me & Help */}
+              <div className="flex items-center justify-between pt-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="w-5 h-5 rounded-md border-2 border-emerald-800 bg-[#021c14] flex items-center justify-center group-hover:border-amber-500/50 transition-colors">
+                     <div className="w-2.5 h-2.5 bg-amber-400 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <span className="text-xs font-bold text-emerald-100/70 group-hover:text-amber-100 transition-colors">Ingat Saya</span>
+                </label>
+                <a href="https://wa.me/6281527662023" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-amber-500 hover:text-amber-400 transition-colors underline decoration-amber-500/30 underline-offset-4">
+                  Bantuan Akses?
+                </a>
               </div>
-            </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-4 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#021c14] py-4 rounded-2xl text-sm font-black tracking-widest flex items-center justify-center gap-3 transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-95 uppercase"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Masuk ke Sistem"}
+              </button>
+
+            </form>
+          </div>
+          
+          {/* Footer in Card */}
+          <div className="flex flex-col items-center justify-center pb-8 pt-6 bg-[#021c14]/80 border-t border-amber-500/10 relative z-10 mt-auto backdrop-blur-md h-[100px] px-6 text-center">
+            <p className={`text-[10px] font-black text-amber-500/50 uppercase tracking-widest transition-opacity duration-700 leading-relaxed ${fade ? 'opacity-100' : 'opacity-0'}`}>
+              {footerTexts[footerIndex]}
+            </p>
           </div>
 
         </div>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="w-full text-center py-6 text-[11px] text-emerald-500/60 uppercase tracking-widest font-bold z-10 border-t border-emerald-900/50 h-[90px] flex items-center justify-center">
-        <p className={`transition-opacity duration-700 max-w-2xl px-4 leading-relaxed ${fade ? 'opacity-100' : 'opacity-0'}`}>
-          {footerTexts[footerIndex]}
-        </p>
-      </footer>
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

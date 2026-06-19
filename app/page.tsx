@@ -1,112 +1,300 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
-import StatCard from "@/components/StatCard";
-import SPPChart from "@/components/SPPChart";
-import ActivityFeed from "@/components/ActivityFeed";
-import SantriTable from "@/components/SantriTable";
-import { API_BASE_URL } from "@/lib/config";
+import { useState, useEffect } from "react";
+import { Download, ArrowRight, Sparkles, Layers, Wallet, Shield, Shirt, Trash2, Users, BookOpen, Building2, Camera, HelpCircle, FileText, ChevronDown, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/components/Toast";
+import { useRouter } from "next/navigation";
 
-// SVG paths for Lucide icons (inner paths only)
-const ICONS = {
-  users: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>`,
-  userCheck: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline>`,
-  wallet: `<path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>`,
-  alertCircle: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>`,
-};
+const footerTexts = [
+  "Sistem cerdas ini dikembangkan oleh alumni Pondok Pesantren Darussalam Lirboyo.",
+  "Semoga aplikasi ini menjadi jariyyah dan bermanfa'at bagi Pondok Pesantren Darussalam Lirboyo.",
+  "© 2026 DEVELZY"
+];
 
-export default function DashboardPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export default function LoginPage() {
+  const { showToast } = useToast();
+  const router = useRouter();
+  const [openSection, setOpenSection] = useState<string | null>("modul");
+  const [footerIndex, setFooterIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchAllData() {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/stats`);
-        const json = (await res.json()) as any;
-        if (json.success) {
-          setData(json.data);
-        }
-      } catch (error) {
-        console.error("Gagal ambil dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    if (isStandalone) {
+      router.replace('/login');
     }
-    fetchAllData();
-  }, []);
 
-  const stats = data?.stats || {
-    santri_aktif: 0,
-    tenaga_pengurus: 0,
-    spp_terkumpul: 0,
-    tunggakan_spp: 0,
-    spp_persentase: 0
+    // 2. Tangkap event install PWA dari browser
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault(); // Mencegah prompt bawaan muncul
+      setDeferredPrompt(e); // Simpan event untuk dipanggil tombol khusus kita
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Animasi Footer
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setFooterIndex((prev) => (prev + 1) % footerTexts.length);
+        setFade(true);
+      }, 800);
+    }, 5000);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, [router]);
+
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
   };
 
-  function formatCurrency(val: number) {
-    if (val >= 1000000) return `Rp ${(val / 1000000).toFixed(0)}jt`;
-    return `Rp ${val.toLocaleString()}`;
-  }
+  const handleDownload = () => {
+    showToast("Mempersiapkan unduhan APK SIM-PPDS...", "success");
+  };
 
   return (
-    <DashboardLayout>
-      {/* Stats Grid */}
-      <section
-        className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6"
-        aria-label="Statistik Utama"
-      >
-        <StatCard
-          iconBg="bg-emerald-50"
-          iconColor="text-emerald-600"
-          iconSvgPath={ICONS.users}
-          badge="+12%"
-          badgeColor="text-emerald-600 bg-emerald-50"
-          value={loading ? "..." : stats.santri_aktif.toString()}
-          label="Total Santri Aktif"
-          delay={1}
-        />
-        <StatCard
-          iconBg="bg-blue-50"
-          iconColor="text-blue-600"
-          iconSvgPath={ICONS.userCheck}
-          badge="+3"
-          badgeColor="text-blue-600 bg-blue-50"
-          value={loading ? "..." : stats.tenaga_pengurus.toString()}
-          label="Tenaga Pengurus"
-          delay={2}
-        />
-        <StatCard
-          iconBg="bg-amber-50"
-          iconColor="text-amber-600"
-          iconSvgPath={ICONS.wallet}
-          badge={`${stats.spp_persentase}%`}
-          badgeColor="text-amber-600 bg-amber-50"
-          value={loading ? "..." : formatCurrency(stats.spp_terkumpul)}
-          label="SPP Terkumpul"
-          delay={3}
-        />
-        <StatCard
-          iconBg="bg-rose-50"
-          iconColor="text-rose-600"
-          iconSvgPath={ICONS.alertCircle}
-          badge="Urgent"
-          badgeColor="text-rose-600 bg-rose-50"
-          value={loading ? "..." : stats.tunggakan_spp.toString()}
-          label="Tunggakan SPP"
-          delay={4}
-        />
-      </section>
+    <div className="min-h-screen bg-[#021c14] flex flex-col font-sans relative overflow-x-hidden selection:bg-amber-500/30">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes blinkBtn {
+          0%, 100% { background: linear-gradient(to right, #10b981, #047857); box-shadow: 0 0 15px rgba(16,185,129,0.4); transform: scale(1); }
+          50% { background: linear-gradient(to right, #f59e0b, #10b981); box-shadow: 0 0 35px rgba(245,158,11,0.8); transform: scale(1.02); }
+        }
+        .btn-blink { animation: blinkBtn 1.5s infinite alternate; border: 1px solid rgba(245,158,11,0.4); }
 
-      {/* Charts + Activity */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 mb-6">
-        <SPPChart data={data?.chart_data} />
-        <ActivityFeed activities={data?.activities} />
-      </section>
+        @keyframes float3D {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-6px) scale(1.05); filter: drop-shadow(0 5px 8px rgba(245,158,11,0.4)); }
+        }
+        .icon-float-1 { animation: float3D 3s ease-in-out infinite; }
+        .icon-float-2 { animation: float3D 4s ease-in-out infinite 0.5s; }
+        .icon-float-3 { animation: float3D 3.5s ease-in-out infinite 1s; }
+        .icon-float-4 { animation: float3D 4.5s ease-in-out infinite 0.2s; }
+        .icon-float-5 { animation: float3D 3.2s ease-in-out infinite 0.8s; }
+        .icon-float-6 { animation: float3D 4.1s ease-in-out infinite 1.2s; }
+        .icon-float-7 { animation: float3D 3.8s ease-in-out infinite 0.3s; }
+        .icon-float-8 { animation: float3D 4.3s ease-in-out infinite 0.7s; }
+      `}} />
+      {/* Premium Texture / Orbs */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-900/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-amber-900/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Santri Table */}
-      <SantriTable data={data?.recent_santri} />
-    </DashboardLayout>
+      {/* Top Navigation */}
+      <nav className="w-full px-4 sm:px-6 py-5 flex items-center justify-between max-w-5xl mx-auto relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#064e3b] to-[#022c22] shadow-[0_0_15px_rgba(245,158,11,0.1)] flex items-center justify-center p-1.5 border border-amber-500/20">
+            <img src="/logopondok.png" alt="Logo" className="w-full h-full object-contain" />
+          </div>
+          <span className="font-black text-white text-base md:text-lg tracking-wide uppercase">SIM-PPDS</span>
+        </div>
+        <Link href="/login" passHref>
+          <button className="bg-amber-500 hover:bg-amber-400 text-[#021c14] px-6 py-2.5 rounded-full text-sm font-black tracking-widest flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] active:scale-95 uppercase">
+            Masuk <ArrowRight className="w-4 h-4" />
+          </button>
+        </Link>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col items-center px-4 max-w-4xl mx-auto w-full pb-24 pt-8 md:pt-16 relative z-10">
+        
+        {/* --- HERO SECTION --- */}
+        <div className="text-center w-full mb-16">
+          <div className="inline-flex items-center gap-2 bg-[#064e3b]/50 border border-amber-500/30 text-amber-400 px-4 py-2 rounded-full text-[11px] md:text-xs font-bold mb-8 shadow-sm backdrop-blur-sm">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="uppercase tracking-wider">Sistem Administrasi Eksklusif</span>
+          </div>
+
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-2">
+            Pesantren Digital
+          </h1>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-linear-to-r from-amber-300 via-amber-400 to-amber-600 tracking-tight leading-tight mb-6 drop-shadow-sm">
+            Darussalam Lirboyo
+          </h1>
+
+          <p className="text-emerald-100/70 text-sm md:text-base font-medium leading-relaxed max-w-2xl mx-auto mb-10">
+            Platform PWA enterprise untuk tata kelola administrasi, keuangan, akademik, hingga pengawasan secara realtime demi kenyamanan wali santri dan efisiensi pengurus.
+          </p>
+
+          {/* --- INSTALASI & DOWNLOAD SECTION --- */}
+          <div className="w-full bg-[#064e3b]/40 backdrop-blur-md border border-amber-500/20 rounded-3xl p-6 sm:p-8 shadow-2xl text-left transition-all duration-500 mb-8">
+            <div className="flex flex-col gap-6 items-start justify-between">
+              
+              <div className="w-full space-y-5">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Download className="w-5 h-5 text-amber-400" />
+                  {deferredPrompt ? "Install Aplikasi (Disarankan)" : "Cara Instalasi APK"}
+                </h2>
+                
+                {deferredPrompt ? (
+                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      </div>
+                      <span className="leading-relaxed">Perangkat Anda mendukung fitur <strong className="text-white">Progressive Web App</strong>.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      </div>
+                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Install Aplikasi</strong> di samping untuk memasang sistem langsung ke perangkat Anda.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      </div>
+                      <span className="leading-relaxed">Sistem akan otomatis muncul di layar utama tanpa perlu file APK.</span>
+                    </li>
+                  </ul>
+                ) : (
+                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Download APK</strong> untuk mengunduh.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      <span className="leading-relaxed">Buka file <code className="bg-[#021c14] border border-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[11px] ml-1">SIM-PPDS.apk</code> yang berhasil diunduh.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      <span className="leading-relaxed">Jika muncul peringatan, izinkan <strong className="text-white">&quot;Instal dari Sumber Tidak Dikenal&quot;</strong>.</span>
+                    </li>
+                  </ul>
+                )}
+              </div>
+
+              <div className="w-full flex flex-col items-center justify-center pt-6 shrink-0 border-t border-emerald-800/50">
+                {deferredPrompt ? (
+                  <button 
+                    onClick={async () => {
+                      deferredPrompt.prompt();
+                      const { outcome } = await deferredPrompt.userChoice;
+                      if (outcome === 'accepted') {
+                        setDeferredPrompt(null);
+                      }
+                    }}
+                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
+                  >
+                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                    <span>Install Aplikasi</span>
+                  </button>
+                ) : (
+                  <a 
+                    href="/download/SIM-PPDS.apk" 
+                    download
+                    onClick={handleDownload}
+                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
+                  >
+                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                    <span>Download APK</span>
+                  </a>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* --- INFORMATION SECTION --- */}
+        <div className="w-full space-y-4">
+          
+          {/* Modul Sistem */}
+          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)]">
+            <button onClick={() => toggleSection("modul")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Modul Sistem Terintegrasi</span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "modul" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openSection === "modul" ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="px-6 pb-6 pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+                {[
+                  { icon: <Wallet className="w-5 h-5 text-amber-400" />, title: "Keuangan & SPP", desc: "Manajemen SPP bulanan, tabungan santri, dan transaksi cashless." },
+                  { icon: <Shield className="w-5 h-5 text-amber-400" />, title: "Keamanan", desc: "Pencatatan pelanggaran, takzir, dan sistem perizinan santri." },
+                  { icon: <Shirt className="w-5 h-5 text-amber-400" />, title: "Layanan (PLP)", desc: "Tiket galon air minum, laundry, dan operasional logistik." },
+                  { icon: <Trash2 className="w-5 h-5 text-amber-400" />, title: "Kebersihan (KBR)", desc: "Monitoring jadwal piket, audit kebersihan, dan laporan fasilitas." },
+                  { icon: <Users className="w-5 h-5 text-amber-400" />, title: "Jam'iyyah", desc: "Struktur organisasi, arsip program kerja, dan presensi." },
+                  { icon: <BookOpen className="w-5 h-5 text-amber-400" />, title: "Takmir Masjid", desc: "Jadwal muazin, imam salat, dan perawatan fasilitas masjid." },
+                  { icon: <Building2 className="w-5 h-5 text-amber-400" />, title: "Pembangunan", desc: "Laporan progres proyek fisik dan serapan anggaran." },
+                  { icon: <Camera className="w-5 h-5 text-amber-400" />, title: "Media & Publikasi", desc: "Pengelolaan aset digital dan kontrol informasi pesantren." },
+                ].map((item, i) => (
+                  <div key={i} className="bg-[#021c14]/50 border border-emerald-800/50 rounded-xl p-4 hover:-translate-y-1 hover:border-amber-500/40 transition-all duration-300 group/card">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`p-2 bg-[#064e3b] rounded-lg shadow-sm border border-emerald-700/50 group-hover/card:border-amber-500/30 transition-colors icon-float-${(i % 8) + 1}`}>{item.icon}</div>
+                      <h3 className="font-bold text-white text-sm tracking-wide">{item.title}</h3>
+                    </div>
+                    <p className="text-[12px] text-emerald-100/60 leading-relaxed font-medium">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Cara Penggunaan */}
+          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30">
+            <button onClick={() => toggleSection("cara")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
+                  <HelpCircle className="w-5 h-5" />
+                </div>
+                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Cara Penggunaan</span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "cara" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openSection === "cara" ? "max-h-96 pb-6 opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="text-sm text-emerald-100/80 space-y-3 leading-relaxed font-medium bg-[#021c14]/50 p-5 rounded-xl border border-emerald-800/50">
+                <p>1. Masukkan <strong className="text-amber-400 font-bold">Username</strong> resmi yang telah didaftarkan oleh Pusat Data pesantren.</p>
+                <p>2. Ketikkan <strong className="text-amber-400 font-bold">Kata Sandi</strong> dengan benar. Jaga kerahasiaan kata sandi Anda.</p>
+                <p>3. Jika lupa akses, silakan hubungi pihak Sekretariat melalui layanan bantuan teknis di halaman login.</p>
+                <p>4. Akses ke modul dibatasi secara ketat berdasarkan tingkat kewenangan akun Anda.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Syarat & Ketentuan */}
+          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30">
+            <button onClick={() => toggleSection("syarat")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Syarat & Ketentuan Pengguna</span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "syarat" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openSection === "syarat" ? "max-h-96 pb-6 opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="text-sm text-emerald-100/80 space-y-3 leading-relaxed font-medium bg-[#021c14]/50 p-5 rounded-xl border border-emerald-800/50">
+                <p>• Aplikasi ini dikembangkan untuk <strong className="text-amber-400">penggunaan internal terbatas</strong> oleh struktural Ponpes Darussalam.</p>
+                <p>• Segala bentuk manipulasi data, atau percobaan peretasan akan tercatat dalam <em className="text-white">Audit Log</em> dan ditindaklanjuti secara hukum.</p>
+                <p>• Pengguna wajib bertanggung jawab terhadap aktivitas apa pun yang terjadi menggunakan kredensial miliknya.</p>
+                <p>• Pihak pengembang dan Yayasan berhak mencabut akses sewaktu-waktu jika terindikasi pelanggaran privasi data.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full text-center py-6 text-[11px] text-emerald-500/60 uppercase tracking-widest font-bold z-10 border-t border-emerald-900/50 h-[90px] flex items-center justify-center">
+        <p className={`transition-opacity duration-700 max-w-2xl px-4 leading-relaxed ${fade ? 'opacity-100' : 'opacity-0'}`}>
+          {footerTexts[footerIndex]}
+        </p>
+      </footer>
+    </div>
   );
 }

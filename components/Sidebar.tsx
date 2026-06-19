@@ -163,7 +163,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     navGroups.push({
       label: "Menu Utama",
       items: [
-        { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+        { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         {
           href: "/santri",
           icon: Users,

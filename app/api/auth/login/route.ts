@@ -56,9 +56,9 @@ export async function POST(request: Request) {
 
     // Look up the user in D1 with their access level
     const user = await env.DB.prepare(
-      `SELECT u.id, u.username, u.name, u.role, u.status, j.akses_level as role_level 
+      `SELECT u.id, u.username, u.full_name as name, u.role, u.is_active, j.level as role_level, j.akses
        FROM users u 
-       LEFT JOIN jabatan j ON u.role = j.nama 
+       LEFT JOIN jabatan j ON u.role = j.name 
        WHERE u.username = ? AND u.password = ?`
     ).bind(username, hashedPassword).first() as any;
 
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Username atau Password salah" }, { status: 401 });
     }
 
-    if (user.status !== "Aktif") {
+    if (user.is_active !== 1) {
       return NextResponse.json({ success: false, error: "Akun dinonaktifkan" }, { status: 403 });
     }
 

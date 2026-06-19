@@ -14,9 +14,12 @@ export function middleware(request: NextRequest) {
     pathname.includes("/favicon.ico") || 
     pathname.startsWith("/public") ||
     pathname.startsWith("/api/auth") || 
-    pathname === "/login" ||
-    pathname === "/login/masuk"
+    pathname === "/" ||
+    pathname === "/login"
   ) {
+    if (session && (pathname === "/" || pathname === "/login")) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
     return NextResponse.next();
   }
 
@@ -35,12 +38,12 @@ export function middleware(request: NextRequest) {
 
       // 1. Pusat Kontrol: ROOT Only (Super Admin)
       if (pathname.startsWith("/pusat-kontrol") && level !== 'ROOT') {
-         return NextResponse.redirect(new URL("/", request.url));
+         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       // 2. Pengaturan: ROOT or SEKRETARIAT
       if (pathname.startsWith("/pengaturan") && !(level === 'ROOT' || level === 'SEKRETARIAT')) {
-         return NextResponse.redirect(new URL("/", request.url));
+         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       // 3. Seksi Keuangan: Limited access to /spp only
@@ -52,12 +55,12 @@ export function middleware(request: NextRequest) {
 
       // 4. Eksekutif: ROOT, VIEW_ALL, SEKRETARIAT, KEUANGAN
       if (pathname.startsWith("/eksekutif") && !(level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT' || level === 'KEUANGAN')) {
-         return NextResponse.redirect(new URL("/", request.url));
+         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       // 5. Clearance: ROOT, VIEW_ALL, SEKRETARIAT
       if (pathname.startsWith("/clearance") && !(level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT')) {
-         return NextResponse.redirect(new URL("/", request.url));
+         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
      
      return NextResponse.next();
