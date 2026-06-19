@@ -21,8 +21,12 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: {
-    icon: "/logopondok.png",
-    apple: "/logopondok.png",
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+    shortcut: "/icon-192.png",
   },
 };
 
@@ -35,9 +39,11 @@ export default function RootLayout({
     <html lang="id" className="h-full">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0f172a" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#064e3b" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="SIM-PPDS" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${plusJakartaSans.variable} h-full antialiased`}>
