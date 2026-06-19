@@ -1,373 +1,302 @@
 "use client";
 
-import { useState } from "react";
-import { LogIn, ShieldCheck, Lock, User, Loader2, Eye, EyeOff, FileText, HelpCircle, ArrowRight, MessageCircle, Layers, Wallet, Shirt, Trash2, Users, Building2, Camera, BookOpen, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download, ArrowRight, Sparkles, Layers, Wallet, Shield, Shirt, Trash2, Users, BookOpen, Building2, Camera, HelpCircle, FileText, ChevronDown, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  
-  // Accordion states for the informational panel
-  const [openSection, setOpenSection] = useState<string | null>(null);
+const footerTexts = [
+  "Sistem cerdas ini dikembangkan oleh alumni Pondok Pesantren Darussalam Lirboyo.",
+  "Semoga aplikasi ini menjadi jariyyah dan bermanfa'at bagi Pondok Pesantren Darussalam Lirboyo.",
+  "© 2026 DEVELZY"
+];
 
+export default function LoginPage() {
   const { showToast } = useToast();
   const router = useRouter();
+  const [openSection, setOpenSection] = useState<string | null>("modul");
+  const [footerIndex, setFooterIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const json = await res.json() as any;
-
-      if (json.success) {
-        showToast("Login Berhasil. Selamat datang!", "success");
-        setTimeout(() => {
-          router.push("/");
-        }, 800);
-      } else {
-        showToast(json.error || "Akses Ditolak", "error");
-      }
-    } catch (err) {
-      showToast("Server tidak merespon", "error");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    // 1. Cek apakah PWA sudah di-install (Standalone mode)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    if (isStandalone) {
+      router.replace('/login/masuk');
     }
-  };
+
+    // 2. Tangkap event install PWA dari browser
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault(); // Mencegah prompt bawaan muncul
+      setDeferredPrompt(e); // Simpan event untuk dipanggil tombol khusus kita
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Animasi Footer
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setFooterIndex((prev) => (prev + 1) % footerTexts.length);
+        setFade(true);
+      }, 800);
+    }, 5000);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, [router]);
 
   const toggleSection = (section: string) => {
     setOpenSection(openSection === section ? null : section);
   };
 
+  const handleDownload = () => {
+    showToast("Mempersiapkan unduhan APK SIM-PPDS...", "success");
+  };
+
   return (
-    <div className="h-screen bg-slate-100 flex items-center justify-center p-4 md:p-0 relative overflow-hidden font-sans">
-      {/* Abstract Background 3D Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-300/30 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-300/30 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-[#021c14] flex flex-col font-sans relative overflow-x-hidden selection:bg-amber-500/30">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes blinkBtn {
+          0%, 100% { background: linear-gradient(to right, #10b981, #047857); box-shadow: 0 0 15px rgba(16,185,129,0.4); transform: scale(1); }
+          50% { background: linear-gradient(to right, #f59e0b, #10b981); box-shadow: 0 0 35px rgba(245,158,11,0.8); transform: scale(1.02); }
+        }
+        .btn-blink { animation: blinkBtn 1.5s infinite alternate; border: 1px solid rgba(245,158,11,0.4); }
 
-      {/* Main Container Card */}
-      <div className="w-full max-w-6xl md:max-w-none bg-white rounded-2xl md:rounded-none shadow-2xl shadow-slate-300/50 flex flex-col md:flex-row overflow-hidden relative z-10 h-auto md:h-full">
+        @keyframes float3D {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-6px) scale(1.05); filter: drop-shadow(0 5px 8px rgba(245,158,11,0.4)); }
+        }
+        .icon-float-1 { animation: float3D 3s ease-in-out infinite; }
+        .icon-float-2 { animation: float3D 4s ease-in-out infinite 0.5s; }
+        .icon-float-3 { animation: float3D 3.5s ease-in-out infinite 1s; }
+        .icon-float-4 { animation: float3D 4.5s ease-in-out infinite 0.2s; }
+        .icon-float-5 { animation: float3D 3.2s ease-in-out infinite 0.8s; }
+        .icon-float-6 { animation: float3D 4.1s ease-in-out infinite 1.2s; }
+        .icon-float-7 { animation: float3D 3.8s ease-in-out infinite 0.3s; }
+        .icon-float-8 { animation: float3D 4.3s ease-in-out infinite 0.7s; }
+      `}} />
+      {/* Premium Texture / Orbs */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-900/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-amber-900/10 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Top Navigation */}
+      <nav className="w-full px-4 sm:px-6 py-5 flex items-center justify-between max-w-5xl mx-auto relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#064e3b] to-[#022c22] shadow-[0_0_15px_rgba(245,158,11,0.1)] flex items-center justify-center p-1.5 border border-amber-500/20">
+            <img src="/logopondok.png" alt="Logo" className="w-full h-full object-contain" />
+          </div>
+          <span className="font-black text-white text-base md:text-lg tracking-wide uppercase">SIM-PPDS</span>
+        </div>
+        <Link 
+          href="/login/masuk" 
+          className="bg-amber-500 hover:bg-amber-400 text-[#021c14] px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-95"
+        >
+          Masuk <ArrowRight className="w-4 h-4" />
+        </Link>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col items-center px-4 max-w-4xl mx-auto w-full pb-24 pt-8 md:pt-16 relative z-10">
         
-        {/* LEFT PANEL - Informational (Scrollable but hidden scrollbar) */}
-        <div className="w-full md:w-[50%] lg:w-[55%] relative p-8 md:p-12 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none bg-linear-to-br from-emerald-900 via-slate-900 to-slate-950 text-white flex flex-col justify-start">
-          
-          {/* Glassmorphism Overlay Texture */}
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none mix-blend-overlay"></div>
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/20 rounded-full blur-[60px] pointer-events-none"></div>
-
-          <div className="relative z-10 flex-1">
-            {/* Header / Logo */}
-            <div className="flex items-center gap-4 mb-10">
-              <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/20 shadow-xl">
-                <img src="/logopondok.png" alt="Logo PPDS" className="w-full h-full object-contain" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-black tracking-tight text-white">SIM-PPDS</h1>
-                <p className="text-emerald-400 font-bold tracking-widest text-[10px] uppercase">Sistem Informasi Manajemen</p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <h2 className="text-4xl md:text-5xl font-black leading-tight text-transparent bg-clip-text bg-linear-to-r from-white to-slate-400">
-                Selamat Datang di Portal Terpadu
-              </h2>
-              <p className="text-slate-300 leading-relaxed text-sm md:text-base font-medium">
-                Pondok Pesantren Darussalam kini hadir dengan inovasi digital untuk mempermudah tata kelola administrasi, keuangan, akademik, hingga pengawasan secara *real-time* demi kenyamanan wali santri dan efisiensi pengurus.
-              </p>
-
-              {/* Informational Accordions (Glassmorphism 3D Style) */}
-              <div className="mt-8 space-y-4">
-                
-                {/* Modul & Fungsionalitas Sistem */}
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-                  <button 
-                    onClick={() => toggleSection('modul')}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400 shadow-inner">
-                        <Layers className="w-5 h-5" />
-                      </div>
-                      <span className="font-bold text-white text-sm">Modul Sistem Terintegrasi</span>
-                    </div>
-                    <ArrowRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${openSection === 'modul' ? 'rotate-90' : ''}`} />
-                  </button>
-                  <div className={`overflow-hidden transition-all duration-500 ${openSection === 'modul' ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      
-                      {/* Card Keuangan */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Wallet className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-emerald-100 text-xs uppercase tracking-wider">Keuangan & SPP</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Manajemen pembayaran SPP bulanan, tabungan santri, dan sistem transaksi <em>cashless</em> terpadu menggunakan ID Card.</p>
-                      </div>
-
-                      {/* Card Kesantrian & Keamanan */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-red-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Shield className="w-4 h-4 text-red-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-red-100 text-xs uppercase tracking-wider">Keamanan</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Pencatatan pelanggaran, poin takzir, sistem perizinan pulang/keluar kompleks, dan pemantauan buku tamu otomatis.</p>
-                      </div>
-
-                      {/* Card PLP */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Shirt className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-blue-100 text-xs uppercase tracking-wider">Layanan (PLP)</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Sistem tiket dan kuota untuk layanan galon air minum, <em>laundry</em> pakaian santri, dan operasional logistik koperasi.</p>
-                      </div>
-
-                      {/* Card KBR */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-teal-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Trash2 className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-teal-100 text-xs uppercase tracking-wider">Kebersihan (KBR)</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Monitoring jadwal piket asrama, audit kebersihan rutin, dan pelaporan/penanganan fasilitas sanitasi yang rusak.</p>
-                      </div>
-
-                      {/* Card Jam'iyyah */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Users className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-purple-100 text-xs uppercase tracking-wider">Jam'iyyah</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Manajemen struktur organisasi santri (OSPM), arsip program kerja tahunan, serta presensi kegiatan ekstrakurikuler.</p>
-                      </div>
-
-                      {/* Card Takmir */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <BookOpen className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-amber-100 text-xs uppercase tracking-wider">Takmir Masjid</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Penjadwalan muazin, imam salat, petugas kultum, hingga manajemen inventaris dan perawatan fasilitas masjid.</p>
-                      </div>
-
-                      {/* Card Pembangunan */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Building2 className="w-4 h-4 text-orange-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-orange-100 text-xs uppercase tracking-wider">Pembangunan</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Laporan progres proyek fisik pesantren, manajemen stok material bahan bangunan, dan serapan anggaran konstruksi.</p>
-                      </div>
-
-                      {/* Card Media */}
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-pink-900/50 group">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Camera className="w-4 h-4 text-pink-400 group-hover:scale-110 transition-transform" />
-                          <h3 className="font-bold text-pink-100 text-xs uppercase tracking-wider">Media & Publikasi</h3>
-                        </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed">Pengelolaan aset digital (foto/video), penjadwalan siaran radio/podcast, dan kontrol mading/informasi pesantren.</p>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Cara Penggunaan */}
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all duration-300">
-                  <button 
-                    onClick={() => toggleSection('cara')}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
-                        <HelpCircle className="w-5 h-5" />
-                      </div>
-                      <span className="font-bold text-white text-sm">Cara Penggunaan</span>
-                    </div>
-                    <ArrowRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${openSection === 'cara' ? 'rotate-90' : ''}`} />
-                  </button>
-                  <div className={`px-6 overflow-hidden transition-all duration-300 ${openSection === 'cara' ? 'max-h-96 pb-5 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
-                      <p>1. Masukkan <strong>Username</strong> resmi Anda yang telah didaftarkan oleh Pusat Data pesantren.</p>
-                      <p>2. Ketikkan <strong>Kata Sandi</strong> dengan benar. Jaga kerahasiaan kata sandi Anda.</p>
-                      <p>3. Jika Anda melupakan akses masuk, silakan hubungi pihak Sekretariat melalui layanan *helpdesk* atau WhatsApp pengurus yang tertera di panel kanan.</p>
-                      <p>4. Akses ke modul-modul (Keuangan, KBR, PLP, dll) dibatasi secara ketat berdasarkan tingkat kewenangan akun Anda.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Syarat & Ketentuan */}
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all duration-300">
-                  <button 
-                    onClick={() => toggleSection('syarat')}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <span className="font-bold text-white text-sm">Syarat & Ketentuan Pengguna</span>
-                    </div>
-                    <ArrowRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${openSection === 'syarat' ? 'rotate-90' : ''}`} />
-                  </button>
-                  <div className={`px-6 overflow-hidden transition-all duration-300 ${openSection === 'syarat' ? 'max-h-96 pb-5 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
-                      <p>• Aplikasi ini dikembangkan untuk <strong>penggunaan internal terbatas</strong> oleh struktural Ponpes Darussalam.</p>
-                      <p>• Segala bentuk manipulasi data, penyalahgunaan akses, atau percobaan peretasan akan tercatat dalam <em>Audit Log</em> dan ditindaklanjuti secara hukum.</p>
-                      <p>• Pengguna wajib bertanggung jawab terhadap aktivitas apa pun yang terjadi menggunakan kredensial akun miliknya.</p>
-                      <p>• <em>Developer (DEVELZY)</em> dan Yayasan berhak mencabut akses sewaktu-waktu apabila ditemukan indikasi pelanggaran kebijakan privasi data santri.</p>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
+        {/* --- HERO SECTION --- */}
+        <div className="text-center w-full mb-16">
+          <div className="inline-flex items-center gap-2 bg-[#064e3b]/50 border border-amber-500/30 text-amber-400 px-4 py-2 rounded-full text-[11px] md:text-xs font-bold mb-8 shadow-sm backdrop-blur-sm">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="uppercase tracking-wider">Sistem Administrasi Eksklusif</span>
           </div>
-          
-          <div className="mt-auto relative z-10 pt-6 border-t border-white/10 text-center">
-            <p className="text-[11px] text-slate-400 leading-relaxed italic">
-              Sistem cerdas ini dikembangkan oleh alumni Pondok Pesantren Darussalam Lirboyo.
-            </p>
-            <p className="text-[11px] text-slate-400 leading-relaxed italic mt-1">
-              Semoga aplikasi ini menjadi <strong className="text-emerald-400">jariyyah</strong> dan bermanfa'at bagi Pondok Pesantren Darussalam Lirboyo.
-            </p>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black mt-3">&copy; 2026 DEVELZY</p>
-          </div>
-        </div>
 
-        {/* RIGHT PANEL - Login Form (Fixed, No Scroll) */}
-        <div className="w-full md:w-[50%] lg:w-[45%] bg-white p-8 md:p-14 flex flex-col justify-center overflow-hidden">
-          
-          <div className="max-w-sm w-full mx-auto">
-            <div className="mb-10 text-center md:text-left">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner mx-auto md:mx-0">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Login Portal</h2>
-              <p className="text-slate-500 font-medium text-sm mt-2">Silakan masuk menggunakan kredensial Anda untuk melanjutkan ke Dasbor Utama.</p>
-            </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-2">
+            Pesantren Digital
+          </h1>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-linear-to-r from-amber-300 via-amber-400 to-amber-600 tracking-tight leading-tight mb-6 drop-shadow-sm">
+            Darussalam Lirboyo
+          </h1>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+          <p className="text-emerald-100/70 text-sm md:text-base font-medium leading-relaxed max-w-2xl mx-auto mb-10">
+            Platform PWA enterprise untuk tata kelola administrasi, keuangan, akademik, hingga pengawasan secara realtime demi kenyamanan wali santri dan efisiensi pengurus.
+          </p>
+
+          {/* --- INSTALASI & DOWNLOAD SECTION --- */}
+          <div className="w-full bg-[#064e3b]/40 backdrop-blur-md border border-amber-500/20 rounded-3xl p-6 sm:p-8 shadow-2xl text-left transition-all duration-500 mb-8">
+            <div className="flex flex-col gap-6 items-start justify-between">
               
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Username</label>
-                <div className="relative group">
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors">
-                    <User className="w-5 h-5" />
-                  </div>
-                  <input 
-                    type="text" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Masukkan Username"
-                    className="w-full bg-transparent border-b-2 border-slate-200 focus:border-emerald-500 outline-none py-3 pl-10 pr-4 text-sm font-bold text-slate-800 transition-all placeholder:text-slate-300 placeholder:font-medium"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Kata Sandi</label>
-                <div className="relative group">
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <input 
-                    type={showPassword ? "text" : "password"} 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-transparent border-b-2 border-slate-200 focus:border-emerald-500 outline-none py-3 pl-10 pr-10 text-sm font-bold text-slate-800 transition-all placeholder:text-slate-300 placeholder:font-medium"
-                    required
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className="w-4 h-4 rounded border-2 border-slate-300 group-hover:border-emerald-500 flex items-center justify-center transition-colors">
-                    {/* Fake Checkbox Logic UI */}
-                    <div className="w-2 h-2 bg-emerald-500 rounded-sm opacity-0 group-hover:opacity-50 transition-opacity" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-500">Ingat Saya</span>
-                </label>
-                <a href="https://wa.me/6281527662023" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
-                  Lupa Sandi?
-                </a>
-              </div>
-
-              <button 
-                type="submit"
-                disabled={loading}
-                className="w-full mt-8 bg-slate-900 hover:bg-emerald-600 text-white py-4 rounded-xl text-sm font-black flex items-center justify-center gap-3 transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95 group"
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+              <div className="w-full space-y-5">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Download className="w-5 h-5 text-amber-400" />
+                  {deferredPrompt ? "Install Aplikasi (Disarankan)" : "Cara Instalasi APK"}
+                </h2>
+                
+                {deferredPrompt ? (
+                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      </div>
+                      <span className="leading-relaxed">Perangkat Anda mendukung fitur <strong className="text-white">Progressive Web App</strong>.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      </div>
+                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Install Aplikasi</strong> di samping untuk memasang sistem langsung ke perangkat Anda.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      </div>
+                      <span className="leading-relaxed">Sistem akan otomatis muncul di layar utama tanpa perlu file APK.</span>
+                    </li>
+                  </ul>
                 ) : (
-                  <>
-                    LOG IN <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </>
+                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Download APK</strong> untuk mengunduh.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      <span className="leading-relaxed">Buka file <code className="bg-[#021c14] border border-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[11px] ml-1">SIM-PPDS.apk</code> yang berhasil diunduh.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      <span className="leading-relaxed">Jika muncul peringatan, izinkan <strong className="text-white">&quot;Instal dari Sumber Tidak Dikenal&quot;</strong>.</span>
+                    </li>
+                  </ul>
                 )}
-              </button>
-            </form>
+              </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-100 uppercase">
-              <div className="flex flex-col gap-4 text-center">
-                <p className="text-[10px] font-black text-slate-400 tracking-widest">
-                  Hubungi Bantuan Teknis
-                </p>
-                <div className="flex items-center justify-center gap-6">
-                  <a 
-                    href="https://wa.me/6281527662023" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center gap-1.5 group"
-                    title="Sekretaris Pondok"
+              <div className="w-full flex flex-col items-center justify-center pt-6 shrink-0 border-t border-emerald-800/50">
+                {deferredPrompt ? (
+                  <button 
+                    onClick={async () => {
+                      deferredPrompt.prompt();
+                      const { outcome } = await deferredPrompt.userChoice;
+                      if (outcome === 'accepted') {
+                        setDeferredPrompt(null);
+                      }
+                    }}
+                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
                   >
-                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
-                      <MessageCircle className="w-5 h-5 fill-current" />
-                    </div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter group-hover:text-emerald-600 transition-colors">Sekretaris</span>
-                  </a>
-
-                  <div className="w-px h-6 bg-slate-200" />
-
+                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                    <span>Install Aplikasi</span>
+                  </button>
+                ) : (
                   <a 
-                    href="https://wa.me/6285171542025" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center gap-1.5 group"
-                    title="Developer DEVELZY"
+                    href="/download/SIM-PPDS.apk" 
+                    download
+                    onClick={handleDownload}
+                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
                   >
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 group-hover:bg-slate-800 group-hover:text-white transition-all shadow-sm">
-                      <MessageCircle className="w-5 h-5 fill-current" />
-                    </div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter group-hover:text-slate-800 transition-colors">Developer</span>
+                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                    <span>Download APK</span>
                   </a>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* --- INFORMATION SECTION --- */}
+        <div className="w-full space-y-4">
+          
+          {/* Modul Sistem */}
+          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.05)]">
+            <button onClick={() => toggleSection("modul")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
+                  <Layers className="w-5 h-5" />
                 </div>
+                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Modul Sistem Terintegrasi</span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "modul" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openSection === "modul" ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="px-6 pb-6 pt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+                {[
+                  { icon: <Wallet className="w-5 h-5 text-amber-400" />, title: "Keuangan & SPP", desc: "Manajemen SPP bulanan, tabungan santri, dan transaksi cashless." },
+                  { icon: <Shield className="w-5 h-5 text-amber-400" />, title: "Keamanan", desc: "Pencatatan pelanggaran, takzir, dan sistem perizinan santri." },
+                  { icon: <Shirt className="w-5 h-5 text-amber-400" />, title: "Layanan (PLP)", desc: "Tiket galon air minum, laundry, dan operasional logistik." },
+                  { icon: <Trash2 className="w-5 h-5 text-amber-400" />, title: "Kebersihan (KBR)", desc: "Monitoring jadwal piket, audit kebersihan, dan laporan fasilitas." },
+                  { icon: <Users className="w-5 h-5 text-amber-400" />, title: "Jam'iyyah", desc: "Struktur organisasi, arsip program kerja, dan presensi." },
+                  { icon: <BookOpen className="w-5 h-5 text-amber-400" />, title: "Takmir Masjid", desc: "Jadwal muazin, imam salat, dan perawatan fasilitas masjid." },
+                  { icon: <Building2 className="w-5 h-5 text-amber-400" />, title: "Pembangunan", desc: "Laporan progres proyek fisik dan serapan anggaran." },
+                  { icon: <Camera className="w-5 h-5 text-amber-400" />, title: "Media & Publikasi", desc: "Pengelolaan aset digital dan kontrol informasi pesantren." },
+                ].map((item, i) => (
+                  <div key={i} className="bg-[#021c14]/50 border border-emerald-800/50 rounded-xl p-4 hover:-translate-y-1 hover:border-amber-500/40 transition-all duration-300 group/card">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`p-2 bg-[#064e3b] rounded-lg shadow-sm border border-emerald-700/50 group-hover/card:border-amber-500/30 transition-colors icon-float-${(i % 8) + 1}`}>{item.icon}</div>
+                      <h3 className="font-bold text-white text-sm tracking-wide">{item.title}</h3>
+                    </div>
+                    <p className="text-[12px] text-emerald-100/60 leading-relaxed font-medium">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Cara Penggunaan */}
+          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30">
+            <button onClick={() => toggleSection("cara")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
+                  <HelpCircle className="w-5 h-5" />
+                </div>
+                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Cara Penggunaan</span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "cara" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openSection === "cara" ? "max-h-96 pb-6 opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="text-sm text-emerald-100/80 space-y-3 leading-relaxed font-medium bg-[#021c14]/50 p-5 rounded-xl border border-emerald-800/50">
+                <p>1. Masukkan <strong className="text-amber-400 font-bold">Username</strong> resmi yang telah didaftarkan oleh Pusat Data pesantren.</p>
+                <p>2. Ketikkan <strong className="text-amber-400 font-bold">Kata Sandi</strong> dengan benar. Jaga kerahasiaan kata sandi Anda.</p>
+                <p>3. Jika lupa akses, silakan hubungi pihak Sekretariat melalui layanan bantuan teknis di halaman login.</p>
+                <p>4. Akses ke modul dibatasi secara ketat berdasarkan tingkat kewenangan akun Anda.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Syarat & Ketentuan */}
+          <div className="bg-[#064e3b]/30 backdrop-blur-sm border border-emerald-800/50 rounded-2xl overflow-hidden transition-all duration-300 group hover:border-amber-500/30">
+            <button onClick={() => toggleSection("syarat")} className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#021c14] rounded-lg text-amber-400 border border-amber-500/20">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <span className="font-bold text-emerald-50 text-sm md:text-base tracking-wide">Syarat & Ketentuan Pengguna</span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-amber-500/50 transition-transform duration-300 ${openSection === "syarat" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openSection === "syarat" ? "max-h-96 pb-6 opacity-100" : "max-h-0 opacity-0"}`}>
+              <div className="text-sm text-emerald-100/80 space-y-3 leading-relaxed font-medium bg-[#021c14]/50 p-5 rounded-xl border border-emerald-800/50">
+                <p>• Aplikasi ini dikembangkan untuk <strong className="text-amber-400">penggunaan internal terbatas</strong> oleh struktural Ponpes Darussalam.</p>
+                <p>• Segala bentuk manipulasi data, atau percobaan peretasan akan tercatat dalam <em className="text-white">Audit Log</em> dan ditindaklanjuti secara hukum.</p>
+                <p>• Pengguna wajib bertanggung jawab terhadap aktivitas apa pun yang terjadi menggunakan kredensial miliknya.</p>
+                <p>• Pihak pengembang dan Yayasan berhak mencabut akses sewaktu-waktu jika terindikasi pelanggaran privasi data.</p>
               </div>
             </div>
           </div>
 
         </div>
 
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full text-center py-6 text-[11px] text-emerald-500/60 uppercase tracking-widest font-bold z-10 border-t border-emerald-900/50 h-[90px] flex items-center justify-center">
+        <p className={`transition-opacity duration-700 max-w-2xl px-4 leading-relaxed ${fade ? 'opacity-100' : 'opacity-0'}`}>
+          {footerTexts[footerIndex]}
+        </p>
+      </footer>
     </div>
   );
 }
