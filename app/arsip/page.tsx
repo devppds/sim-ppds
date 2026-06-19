@@ -49,13 +49,31 @@ export default function ArsipPage() {
   async function fetchFiles() {
     setLoading(true);
     try {
-      const res = await fetch("/api/arsip");
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/arsip");
       const json = await res.json() as any;
       if (json.success) setFiles(json.data);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm("Apakah Anda yakin ingin menghapus arsip ini?")) return;
+    try {
+      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/arsip/${id}`, {
+        method: "DELETE"
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast("Arsip berhasil dihapus", "success");
+        fetchFiles();
+      } else {
+        showToast(json.error || "Gagal menghapus arsip", "error");
+      }
+    } catch (err) {
+      showToast("Kesalahan koneksi", "error");
     }
   }
 
@@ -245,7 +263,11 @@ export default function ArsipPage() {
                           >
                             <Printer className="w-4 h-4" />
                           </button>
-                          <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-all active:scale-95">
+                          <button 
+                            onClick={() => handleDelete(file.id)}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-all active:scale-95"
+                            title="Hapus"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

@@ -22,7 +22,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchAllData() {
       try {
-        const res = await fetch("/api/stats");
+        const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/stats");
         const json = (await res.json()) as any;
         if (json.success) {
           setData(json.data);

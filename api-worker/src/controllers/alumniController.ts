@@ -1,14 +1,10 @@
-import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
-import { CloudflareEnv } from "@/types/env";
+import { Context } from 'hono'
+import { Env } from '../index'
 
-export const runtime = "edge";
-
-// Helper to get current academic year (e.g., 2025/2026)
 function getCurrentAcademicYear() {
   const now = new Date();
   const year = now.getFullYear();
-  const month = now.getMonth() + 1; // 1-12
+  const month = now.getMonth() + 1;
   
   if (month >= 7) {
     return `${year}/${year + 1}`;
@@ -17,12 +13,10 @@ function getCurrentAcademicYear() {
   }
 }
 
-export async function GET(request: Request) {
+export const getAlumniList = async (c: Context<{ Bindings: Env }>) => {
   try {
-    const { env } = getRequestContext() as unknown as { env: CloudflareEnv };
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type");
-    const year = searchParams.get("year");
+    const type = c.req.query("type");
+    const year = c.req.query("year");
 
     if (type === "santri") {
       let query = "SELECT * FROM santri WHERE status = 'Alumni'";
@@ -35,8 +29,9 @@ export async function GET(request: Request) {
       
       query += " ORDER BY updated_at DESC";
       
-      const { results } = await env.DB.prepare(query).bind(...params).all();
-      return NextResponse.json({ success: true, data: results });
+      const { results } = await c.env.DB.prepare(query).bind(...params).all();
+      c.header('Cache-Control', 'public, max-age=15, s-maxage=15');
+      return c.json({ success: true, data: results });
     } else if (type === "pengurus") {
       let query = "SELECT * FROM ustadz WHERE status = 'Tidak Aktif'";
       const params: any[] = [];
@@ -48,40 +43,39 @@ export async function GET(request: Request) {
       
       query += " ORDER BY updated_at DESC";
       
-      const { results } = await env.DB.prepare(query).bind(...params).all();
-      return NextResponse.json({ success: true, data: results });
+      const { results } = await c.env.DB.prepare(query).bind(...params).all();
+      c.header('Cache-Control', 'public, max-age=15, s-maxage=15');
+      return c.json({ success: true, data: results });
     }
 
-    return NextResponse.json({ success: false, error: "Tipe tidak valid" }, { status: 400 });
+    return c.json({ success: false, error: "Tipe tidak valid" }, 400);
   } catch (error) {
     console.error("Error fetching alumni:", error);
-    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    return c.json({ success: false, error: "Internal Server Error" }, 500);
   }
 }
 
-export async function POST(request: Request) {
+export const createAlumni = async (c: Context<{ Bindings: Env }>) => {
   try {
-    const { env } = getRequestContext() as unknown as { env: CloudflareEnv };
-    const body = await request.json();
-    const { type, items, ...manualData } = body as any;
+    const body = await c.req.json() as any;
+    const { type, items, ...manualData } = body;
 
     const currentYear = getCurrentAcademicYear();
 
     if (items && Array.isArray(items)) {
-      // Bulk Import
       let count = 0;
       for (const item of items) {
         if (type === "santri") {
-          await env.DB.prepare(`
+          await c.env.DB.prepare(`
             INSERT INTO santri (name, nisn, nik, status, tahun_lulus, street, rt_rw, province, city, district, village, postal_code, photo_url, wali_wa, kelas, asrama)
             VALUES (?, ?, ?, 'Alumni', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '-', '-')
           `).bind(
             item.name, item.nisn, item.nik, item.tahun_lulus || currentYear,
             item.street, item.rt_rw, item.province, item.city, item.district, item.village, item.postal_code,
-            item.photo_url, item.phone, // phone mapped to wali_wa or similar
+            item.photo_url, item.phone
           ).run();
         } else {
-          await env.DB.prepare(`
+          await c.env.DB.prepare(`
             INSERT INTO ustadz (name, nik, status, tahun_purna, street, rt_rw, province, city, district, village, postal_code, photo_url, phone, jabatan)
             VALUES (?, ?, 'Tidak Aktif', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '-')
           `).bind(
@@ -92,11 +86,10 @@ export async function POST(request: Request) {
         }
         count++;
       }
-      return NextResponse.json({ success: true, count });
+      return c.json({ success: true, count });
     } else {
-      // Manual Single Input
       if (type === "santri") {
-        await env.DB.prepare(`
+        await c.env.DB.prepare(`
           INSERT INTO santri (name, nisn, nik, status, tahun_lulus, street, rt_rw, province, city, district, village, postal_code, photo_url, wali_wa, kelas, asrama)
           VALUES (?, ?, ?, 'Alumni', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '-', '-')
         `).bind(
@@ -105,7 +98,7 @@ export async function POST(request: Request) {
           manualData.photo_url, manualData.phone
         ).run();
       } else {
-        await env.DB.prepare(`
+        await c.env.DB.prepare(`
           INSERT INTO ustadz (name, nik, status, tahun_purna, street, rt_rw, province, city, district, village, postal_code, photo_url, phone, jabatan)
           VALUES (?, ?, 'Tidak Aktif', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '-')
         `).bind(
@@ -114,10 +107,10 @@ export async function POST(request: Request) {
           manualData.photo_url, manualData.phone
         ).run();
       }
-      return NextResponse.json({ success: true });
+      return c.json({ success: true });
     }
   } catch (error) {
     console.error("Error creating alumni:", error);
-    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    return c.json({ success: false, error: "Internal Server Error" }, 500);
   }
 }

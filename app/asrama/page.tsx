@@ -51,7 +51,7 @@ export default function AsramaPage() {
 
   async function fetchData() {
     try {
-      const res = await fetch("/api/asrama");
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/asrama");
       const json = await res.json() as any;
       if (json.success) {
         setData(json.data);

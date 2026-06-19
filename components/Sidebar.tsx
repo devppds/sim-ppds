@@ -74,7 +74,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   async function fetchStats() {
     try {
-      const res = await fetch("/api/stats/menu");
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/stats/menu");
       const json = (await res.json()) as any;
       if (json.success) {
         setStats(json.data);

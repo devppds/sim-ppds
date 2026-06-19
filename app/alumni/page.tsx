@@ -46,7 +46,7 @@ export default function AlumniPage() {
   async function fetchAlumni() {
     setLoading(true);
     try {
-      const url = `/api/alumni?type=${activeType}${yearFilter ? `&year=${encodeURIComponent(yearFilter)}` : ""}`;
+      const url = `https://api-worker.ppdslirboyo.workers.dev/api/alumni?type=${activeType}${yearFilter ? `&year=${encodeURIComponent(yearFilter)}` : ""}`;
       const res = await fetch(url);
       const json = await res.json() as any;
       if (json.success) setList(json.data);

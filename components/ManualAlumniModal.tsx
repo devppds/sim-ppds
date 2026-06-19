@@ -131,7 +131,7 @@ export default function ManualAlumniModal({ isOpen, onClose, onSuccess, type }: 
     setLoading(true);
 
     try {
-      const res = await fetch("/api/alumni", {
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/alumni", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, type }),

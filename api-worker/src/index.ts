@@ -1,6 +1,16 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import pengurusRoutes from './routes/pengurus'
+import santriRoutes from './routes/santri'
+import sppRoutes from './routes/spp'
+
+import { getDashboardStats, getMenuStats } from './controllers/statsController'
+import { getAsramaData } from './controllers/asramaController'
+import { getArsipList, createArsip, deleteArsip } from './controllers/arsipController'
+import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from './controllers/keuanganController'
+import { getNotifications, markNotificationsRead } from './controllers/notificationsController'
+import { getSearchResults } from './controllers/searchController'
+import { getAlumniList, createAlumni } from './controllers/alumniController'
 
 export type Env = {
   DB: D1Database
@@ -10,7 +20,7 @@ const app = new Hono<{ Bindings: Env }>()
 
 // Global CORS Middleware
 app.use('*', cors({
-  origin: '*', // Pada tahap produksi, ganti dengan domain Frontend Next.js Anda
+  origin: '*', 
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }))
 
@@ -19,10 +29,7 @@ app.get('/', (c) => {
   return c.json({ message: 'SIM-PPDS API Worker Running!', status: 'active' })
 })
 
-import santriRoutes from './routes/santri'
-import sppRoutes from './routes/spp'
-
-// Register Routes
+// Register Routed Routers
 app.route('/api/pengurus', pengurusRoutes)
 app.route('/api/santri', santriRoutes)
 app.route('/api/spp', sppRoutes)
@@ -63,5 +70,45 @@ app.post('/api/settings', async (c) => {
     return c.json({ success: false, error: "Gagal menyimpan pengaturan" }, 500);
   }
 });
+
+// Stats Endpoints
+app.get('/api/stats', getDashboardStats)
+app.get('/api/stats/menu', getMenuStats)
+
+// Asrama Endpoints
+app.get('/api/asrama', getAsramaData)
+
+// Arsip Endpoints
+app.get('/api/arsip', getArsipList)
+app.post('/api/arsip', createArsip)
+app.delete('/api/arsip/:id', deleteArsip)
+
+// Keuangan Endpoints
+app.get('/api/keuangan', getTransactions)
+app.post('/api/keuangan', createTransaction)
+app.put('/api/keuangan/:id', updateTransaction)
+app.delete('/api/keuangan/:id', deleteTransaction)
+app.post('/api/keuangan/restore', async (c) => {
+  try {
+    const id = c.req.query("id");
+    if (!id) return c.json({ success: false, error: "ID wajib ada" }, 400);
+    await c.env.DB.prepare("UPDATE transactions SET deleted_at = NULL WHERE id = ?").bind(id).run();
+    return c.json({ success: true, message: "Transaksi berhasil dipulihkan" });
+  } catch (error) {
+    console.error("Finance RESTORE Error:", error);
+    return c.json({ success: false, error: "Gagal memulihkan transaksi" }, 500);
+  }
+})
+
+// Notifications Endpoints
+app.get('/api/notifications', getNotifications)
+app.put('/api/notifications', markNotificationsRead)
+
+// Search Endpoints
+app.get('/api/search', getSearchResults)
+
+// Alumni Endpoints
+app.get('/api/alumni', getAlumniList)
+app.post('/api/alumni', createAlumni)
 
 export default app

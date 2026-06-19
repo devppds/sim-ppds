@@ -43,7 +43,7 @@ export default function KeuanganPage() {
   const fetchFinance = async (isTrashed = showTrashed) => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/keuangan?trashed=${isTrashed}`);
+      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/keuangan?trashed=${isTrashed}`);
       const json = (await res.json()) as any;
       if (json.success) {
         setData(json.data);
@@ -65,7 +65,7 @@ export default function KeuanganPage() {
     if (!confirm(isPermanent ? "Hapus permanen transaksi ini?" : "Pindah transaksi ini ke Recycle Bin?")) return;
     
     try {
-      const res = await fetch(`/api/keuangan?id=${id}&permanent=${isPermanent}`, { method: "DELETE" });
+      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/keuangan/${id}?permanent=${isPermanent}`, { method: "DELETE" });
       const json = (await res.json()) as any;
       if (json.success) {
         fetchFinance();
@@ -78,7 +78,7 @@ export default function KeuanganPage() {
 
   const handleRestore = async (id: number) => {
     try {
-      const res = await fetch(`/api/keuangan/restore?id=${id}`, { method: "POST" });
+      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/keuangan/restore?id=${id}`, { method: "POST" });
       const json = (await res.json()) as any;
       if (json.success) {
         fetchFinance();

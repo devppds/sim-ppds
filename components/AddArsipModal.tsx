@@ -72,7 +72,7 @@ export default function AddArsipModal({ isOpen, onClose, onSuccess }: AddArsipMo
 
     setLoading(true);
     try {
-      const res = await fetch("/api/arsip", {
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/arsip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

@@ -104,7 +104,7 @@ export default function ImportAlumniModal({ isOpen, onClose, onSuccess, type }: 
         postal_code: item["Kode Pos"]?.toString() || "",
       }));
 
-      const res = await fetch("/api/alumni", {
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/alumni", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type, items: formattedData })

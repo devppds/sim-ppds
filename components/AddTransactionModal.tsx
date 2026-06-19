@@ -66,7 +66,7 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
 
     setLoading(true);
     try {
-      const res = await fetch("/api/keuangan", {
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/keuangan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
