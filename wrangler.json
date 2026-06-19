@@ -1,0 +1,15 @@
+{
+  "name": "sim-ppds",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "pages_build_output_dir": ".vercel/output/static",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sim-ppds-db",
+      "database_id": "a3e061fa-af4a-4df8-80a0-a0d582a26af4"
+    }
+  ]
+}
