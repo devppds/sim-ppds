@@ -9,6 +9,7 @@ import ManualAlumniModal from "@/components/ManualAlumniModal";
 import ImportAlumniModal from "@/components/ImportAlumniModal";
 import * as XLSX from "xlsx";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface SantriAlumni {
   id: number;
@@ -46,7 +47,7 @@ export default function AlumniPage() {
   async function fetchAlumni() {
     setLoading(true);
     try {
-      const url = `https://api-worker.ppdslirboyo.workers.dev/api/alumni?type=${activeType}${yearFilter ? `&year=${encodeURIComponent(yearFilter)}` : ""}`;
+      const url = `${API_BASE_URL}/api/alumni?type=${activeType}${yearFilter ? `&year=${encodeURIComponent(yearFilter)}` : ""}`;
       const res = await fetch(url);
       const json = await res.json() as any;
       if (json.success) setList(json.data);

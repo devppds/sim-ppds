@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, Save, UserPlus, Loader2, Camera, Search, Check, Plus, GraduationCap, MapPin } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface AddSantriModalProps {
   isOpen: boolean;
@@ -194,7 +195,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
 
     setLoading(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/santri", {
+      const res = await fetch(`${API_BASE_URL}/api/santri`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, status: formData.status || "Biasa" }),

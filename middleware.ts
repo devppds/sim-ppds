@@ -48,9 +48,19 @@ export function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL("/spp", request.url));
          }
       }
+
+      // 4. Eksekutif: ROOT, VIEW_ALL, SEKRETARIAT, KEUANGAN
+      if (pathname.startsWith("/eksekutif") && !(level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT' || level === 'KEUANGAN')) {
+         return NextResponse.redirect(new URL("/", request.url));
+      }
+
+      // 5. Clearance: ROOT, VIEW_ALL, SEKRETARIAT
+      if (pathname.startsWith("/clearance") && !(level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT')) {
+         return NextResponse.redirect(new URL("/", request.url));
+      }
      
      return NextResponse.next();
-  } catch (e) {
+  } catch {
      // If session cookie is malformed, clear it and redirect to login
      const res = NextResponse.redirect(new URL("/login", request.url));
      res.cookies.delete("sim_ppds_session");

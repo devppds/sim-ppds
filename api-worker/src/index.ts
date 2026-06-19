@@ -3,6 +3,27 @@ import { cors } from 'hono/cors'
 import pengurusRoutes from './routes/pengurus'
 import santriRoutes from './routes/santri'
 import sppRoutes from './routes/spp'
+import keamananRoutes from './routes/keamanan'
+import pendidikanRoutes from './routes/pendidikan'
+import wajarRoutes from './routes/wajar'
+import fasilitasRoutes from './routes/fasilitas'
+import logistikRoutes from './routes/logistik'
+import klinikRoutes from './routes/klinik'
+import bumpRoutes from './routes/bump'
+import eksekutifRoutes from './routes/eksekutif'
+import clearanceRoutes from './routes/clearance'
+import takmirRoutes from './routes/takmir'
+
+import mediaRoutes from './routes/media'
+
+import pembangunanRoutes from './routes/pembangunan'
+
+import kbrRoutes from './routes/kbr'
+
+import plpRoutes from './routes/plp'
+
+import jamiyyahRoutes from './routes/jamiyyah'
+
 
 import { getDashboardStats, getMenuStats } from './controllers/statsController'
 import { getAsramaData } from './controllers/asramaController'
@@ -33,13 +54,34 @@ app.get('/', (c) => {
 app.route('/api/pengurus', pengurusRoutes)
 app.route('/api/santri', santriRoutes)
 app.route('/api/spp', sppRoutes)
+app.route('/api/keamanan', keamananRoutes)
+app.route('/api/pendidikan', pendidikanRoutes)
+app.route('/api/wajar', wajarRoutes)
+app.route('/api/fasilitas', fasilitasRoutes)
+app.route('/api/logistik', logistikRoutes)
+app.route('/api/klinik', klinikRoutes)
+app.route('/api/bump', bumpRoutes)
+app.route('/api/eksekutif', eksekutifRoutes)
+app.route('/api/clearance', clearanceRoutes)
+app.route('/api/takmir', takmirRoutes)
+
+app.route('/api/media', mediaRoutes)
+
+app.route('/api/pembangunan', pembangunanRoutes)
+
+app.route('/api/kbr', kbrRoutes)
+
+app.route('/api/plp', plpRoutes)
+
+app.route('/api/jamiyyah', jamiyyahRoutes)
+
 
 // Settings Endpoints (D1 Backed, 100% Real-time)
 app.get('/api/settings', async (c) => {
   try {
     const { results } = await c.env.DB.prepare("SELECT key, value FROM settings").all();
-    const configObj = results.reduce((acc: any, row: any) => {
-      acc[row.key] = row.value;
+    const configObj = results.reduce<Record<string, unknown>>((acc, row) => {
+      acc[String(row.key)] = row.value;
       return acc;
     }, {});
     c.header('Cache-Control', 'public, max-age=5, s-maxage=5');
@@ -52,7 +94,7 @@ app.get('/api/settings', async (c) => {
 
 app.post('/api/settings', async (c) => {
   try {
-    const body = await c.req.json() as Record<string, any>;
+    const body = await c.req.json() as Record<string, unknown>;
     if (!body || Object.keys(body).length === 0) {
       return c.json({ success: false, error: "Data kosong" }, 400);
     }

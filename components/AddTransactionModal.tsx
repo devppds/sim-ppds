@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { X, Save, Plus, Camera, Loader2, ArrowUpCircle, ArrowDownCircle, FileText, Calendar, Wallet } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -66,7 +67,7 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
 
     setLoading(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/keuangan", {
+      const res = await fetch(`${API_BASE_URL}/api/keuangan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

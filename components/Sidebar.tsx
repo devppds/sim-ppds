@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Users,
@@ -15,8 +16,21 @@ import {
   Settings,
   LogOut,
   ShieldAlert,
+  Wrench,
+  Package,
+  HeartPulse,
+  Store,
+  ShieldCheck,
+  Calendar,
+  Music,
+  Zap,
+  Trash2,
+  Hammer,
+  Video,
+  MoonStar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/config";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,9 +48,24 @@ interface SessionData {
   id: number;
   username: string;
   role: string;
-  role_level: string; // Add this
+  role_level: string;
   name: string;
   timestamp: number;
+}
+
+interface NavItem {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  badge?: React.ReactNode;
+  customBadge?: React.ReactNode;
+  dot?: boolean;
+  premium?: boolean;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
 }
 
 function Badge({ count, color, animate }: { count: number | null, color: string, animate?: boolean }) {
@@ -44,7 +73,7 @@ function Badge({ count, color, animate }: { count: number | null, color: string,
   
   return (
     <span
-      key={count} // Key change triggers re-render animation
+      key={count}
       className={`text-[9px] ${color} px-2 py-0.5 rounded-full font-black min-w-[20px] text-center ${animate ? 'animate-in zoom-in-75 duration-300' : ''}`}
     >
       {count}
@@ -58,11 +87,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [stats, setStats] = useState<MenuStats | null>(null);
   const [session, setSession] = useState<SessionData | null>(null);
 
-  // Fetch Session on Mount
   useEffect(() => {
     fetch("/api/auth/session")
-      .then(res => res.json())
-      .then((data: any) => {
+      .then(res => res.json() as Promise<{ success: boolean; session?: SessionData }>)
+      .then((data) => {
         if (data.success && data.session) {
           setSession(data.session);
         }
@@ -70,12 +98,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       .catch(e => console.error("Session fetch error", e));
   }, []);
 
-  if (session?.role === "Seksi Keuangan" || session?.role_level === "RESTRICTED_SPP") return null;
-
   async function fetchStats() {
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/stats/menu");
-      const json = (await res.json()) as any;
+      const res = await fetch(`${API_BASE_URL}/api/stats/menu`);
+      const json = (await res.json()) as { success: boolean; data: MenuStats };
       if (json.success) {
         setStats(json.data);
       }
@@ -85,12 +111,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   }
 
   useEffect(() => {
-    fetchStats();
+    const timer = setTimeout(() => {
+      fetchStats();
+    }, 0);
     
-    // Listen for custom update events
     window.addEventListener('santri-updated', fetchStats);
     window.addEventListener('pengurus-updated', fetchStats);
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('santri-updated', fetchStats);
       window.removeEventListener('pengurus-updated', fetchStats);
     };
@@ -102,7 +130,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     });
   };
 
-  const canAccess = (module: 'SEKRETARIAT' | 'KEUANGAN' | 'PENGATURAN' | 'PUSAT_KONTROL') => {
+  const canAccess = (module: 'SEKRETARIAT' | 'KEUANGAN' | 'PENGATURAN' | 'PUSAT_KONTROL' | 'OPERASIONAL') => {
     if (!session) return false;
     const level = session.role_level;
     if (level === 'ROOT') return true;
@@ -114,15 +142,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       return level === 'KEUANGAN' || level === 'RESTRICTED_SPP' || level === 'VIEW_ALL' || level === 'ROOT';
     }
     if (module === 'PENGATURAN') {
-      return level === 'SEKRETARIAT'; // Khusus Sekretaris
+      return level === 'SEKRETARIAT'; 
     }
     if (module === 'PUSAT_KONTROL') {
-      return level === 'ROOT'; // Khusus Super Admin
+      return level === 'ROOT'; 
+    }
+    if (module === 'OPERASIONAL') {
+      return level === 'STAFF' || level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT';
     }
     return false;
   };
 
-  const navGroups = [];
+  const isRestricted = session !== null && (session.role === "Seksi Keuangan" || session.role_level === "RESTRICTED_SPP");
+  if (isRestricted) return null;
+
+  const navGroups: NavGroup[] = [];
 
   // 1. Menu Utama (Sekretariat)
   if (canAccess('SEKRETARIAT')) {
@@ -149,7 +183,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           customBadge: stats ? (
             <div className="flex gap-1">
               <Badge count={stats.alumni_santri} color="bg-amber-500/20 text-amber-400" animate />
-              <div className="w-[1px] h-3 bg-white/10 self-center" />
+              <div className="w-px h-3 bg-white/10 self-center" />
               <Badge count={stats.alumni_pengurus} color="bg-rose-500/20 text-rose-400" animate />
             </div>
           ) : <Badge count={null} color="" />
@@ -186,8 +220,60 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     });
   }
 
-  // 4. Konfigurasi
-  const configItems = [];
+  // 4. Operasional Dasar (Keamanan, Pendidikan, Wajar)
+  if (canAccess('OPERASIONAL')) {
+    navGroups.push({
+      label: "Operasional",
+      items: [
+        { href: "/keamanan", icon: ShieldAlert, label: "Keamanan" },
+        { href: "/pendidikan", icon: UserCheck, label: "Pendidikan" },
+        { href: "/wajar", icon: LayoutDashboard, label: "Wajib Belajar" },
+      ]
+    });
+
+    navGroups.push({
+      label: "Operasional (Lanjutan)",
+      items: [
+        { href: "/jamiyyah", icon: Music, label: "Jam'iyyah" },
+        { href: "/plp", icon: Zap, label: "Listrik & Air (PLP)" },
+        { href: "/kebersihan", icon: Trash2, label: "Kebersihan (KBR)" },
+        { href: "/pembangunan", icon: Hammer, label: "Pembangunan" },
+        { href: "/media", icon: Video, label: "Media & Lab" },
+        { href: "/takmir", icon: MoonStar, label: "Takmir Masjid" },
+      ]
+    });
+
+    navGroups.push({
+      label: "Layanan & Usaha",
+      items: [
+        { href: "/fasilitas", icon: Wrench, label: "Fasilitas & Sarpras" },
+        { href: "/logistik", icon: Package, label: "Logistik & Kebersihan" },
+        { href: "/klinik", icon: HeartPulse, label: "Pos Kesehatan (UKP)" },
+        { href: "/bump", icon: Store, label: "Unit Usaha BUMP" },
+      ]
+    });
+  }
+
+  // 5. Eksekutif & Integrasi
+  if (session) {
+    const level = session.role_level;
+    const eksekutifItems = [];
+    if (level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT' || level === 'KEUANGAN') {
+      eksekutifItems.push({ href: "/eksekutif", icon: ShieldCheck, label: "Dasbor Eksekutif" });
+    }
+    if (level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT') {
+      eksekutifItems.push({ href: "/clearance", icon: Calendar, label: "E-Clearance Boyong" });
+    }
+    if (eksekutifItems.length > 0) {
+      navGroups.push({
+        label: "Eksekutif & Integrasi",
+        items: eksekutifItems
+      });
+    }
+  }
+
+  // 6. Konfigurasi
+  const configItems: NavItem[] = [];
   if (canAccess('PENGATURAN')) {
     configItems.push({ href: "/pengaturan", icon: Settings, label: "Pengaturan" });
   }
@@ -222,7 +308,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={`
-          fixed lg:static z-50 w-64 h-full flex-shrink-0
+          fixed lg:static z-50 w-64 h-full shrink-0
           bg-sidebar text-white flex flex-col
           transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
@@ -231,10 +317,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         <div className="px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
-              <img 
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0 relative">
+              <Image 
                 src="/logopondok.png" 
                 alt="Logo PPDS" 
+                width={40}
+                height={40}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -247,7 +335,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         </div>
 
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto custom-scrollbar">
           {navGroups.map((group) => (
             <div key={group.label}>
               <div className="px-3 mb-2 mt-4 first:mt-0 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
@@ -255,7 +343,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               </div>
               {group.items.map((item) => {
                 const isActive = pathname === item.href;
-                //@ts-ignore
                 const Icon = item.icon;
                 return (
                   <Link
@@ -268,21 +355,19 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                       flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold
                       transition-all duration-200
                       ${
-                        //@ts-ignore
-                        item.premium ? "bg-gradient-to-r from-rose-500/10 to-transparent border-l-2 border-rose-500 text-rose-400" : ""
+                        item.premium ? "bg-linear-to-r from-rose-500/10 to-transparent border-l-2 border-rose-500 text-rose-400" : ""
                       }
                       ${
                         isActive
                           ? "bg-white/5 border-r-[3px] border-emerald-400 text-white"
-                          : "text-slate-300 hover:bg-white/8"
+                          : "text-slate-300 hover:bg-white/5"
                       }
                     `}
                   >
                     <Icon
-                      className={`w-[18px] h-[18px] flex-shrink-0 
+                      className={`w-[18px] h-[18px] shrink-0 
                         ${isActive ? "text-emerald-400" : ""}
-                        ${//@ts-ignore
-                         item.premium && !isActive ? "text-rose-500" : ""}
+                        ${item.premium && !isActive ? "text-rose-500" : ""}
                       `}
                     />
                     <span className="flex-1">{item.label}</span>
@@ -300,7 +385,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         <div className="px-4 py-4 border-t border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[11px] font-black flex-shrink-0 border border-white/10 shadow-lg">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[11px] font-black shrink-0 border border-white/10 shadow-lg">
               {session ? getInitials(session.name) : "..."}
             </div>
             <div className="flex-1 min-w-0">

@@ -6,6 +6,7 @@ import StatCard from "@/components/StatCard";
 import SPPChart from "@/components/SPPChart";
 import ActivityFeed from "@/components/ActivityFeed";
 import SantriTable from "@/components/SantriTable";
+import { API_BASE_URL } from "@/lib/config";
 
 // SVG paths for Lucide icons (inner paths only)
 const ICONS = {
@@ -22,7 +23,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchAllData() {
       try {
-        const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/stats");
+        const res = await fetch(`${API_BASE_URL}/api/stats`);
         const json = (await res.json()) as any;
         if (json.success) {
           setData(json.data);

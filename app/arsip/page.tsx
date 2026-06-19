@@ -22,6 +22,7 @@ import {
 import { useToast } from "@/components/Toast";
 import AddArsipModal from "@/components/AddArsipModal";
 import FilePreviewModal from "@/components/FilePreviewModal";
+import { API_BASE_URL } from "@/lib/config";
 
 interface ArchiveFile {
   id: number;
@@ -49,7 +50,7 @@ export default function ArsipPage() {
   async function fetchFiles() {
     setLoading(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/arsip");
+      const res = await fetch(`${API_BASE_URL}/api/arsip`);
       const json = await res.json() as any;
       if (json.success) setFiles(json.data);
     } catch (err) {
@@ -62,7 +63,7 @@ export default function ArsipPage() {
   async function handleDelete(id: number) {
     if (!confirm("Apakah Anda yakin ingin menghapus arsip ini?")) return;
     try {
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/arsip/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/arsip/${id}`, {
         method: "DELETE"
       });
       const json = await res.json() as any;

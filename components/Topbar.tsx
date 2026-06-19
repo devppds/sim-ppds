@@ -5,6 +5,7 @@ import { Bell, Menu, Plus, Search, User, Ghost, GraduationCap, X, LogOut, Shield
 import AddSantriModal from "./AddSantriModal";
 import NotificationModal from "./NotificationModal";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/config";
 
 interface TopbarProps {
   onMenuToggle: () => void;
@@ -67,7 +68,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
       if (searchQuery.length > 1) {
         setIsSearching(true);
         try {
-          const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/search?q=${encodeURIComponent(searchQuery)}`);
+          const res = await fetch(`${API_BASE_URL}/api/search?q=${encodeURIComponent(searchQuery)}`);
           const json = await res.json() as { success: boolean, results: any[] };
           if (json.success) setSearchResults(json.results);
         } catch (e) {
@@ -98,7 +99,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
 
   const fetchUnread = async () => {
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/notifications");
+      const res = await fetch(`${API_BASE_URL}/api/notifications`);
       const json = (await res.json()) as any;
       if (json.success) setUnreadCount(json.unreadCount);
     } catch (e) {

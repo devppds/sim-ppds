@@ -16,6 +16,7 @@ import { useToast } from "./Toast";
 import ConfirmModal from "./ConfirmModal";
 import EditSantriModal from "./EditSantriModal";
 import PromoteToPengurusModal from "./PromoteToPengurusModal";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Santri {
   id: number;
@@ -76,7 +77,7 @@ export default function SantriDetailModal({ santri, isOpen, onClose, onUpdate }:
         ? `${now.getFullYear()}/${now.getFullYear() + 1}`
         : `${now.getFullYear() - 1}/${now.getFullYear()}`;
 
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/santri/${santri?.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/santri/${santri?.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -105,7 +106,7 @@ export default function SantriDetailModal({ santri, isOpen, onClose, onUpdate }:
   async function handleDeletePermanen() {
     setLoading(true);
     try {
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/santri/${santri?.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/santri/${santri?.id}`, {
         method: "DELETE"
       });
       const json = (await res.json()) as any;

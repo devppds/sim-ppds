@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/config";
 
 import { useState, useEffect } from "react";
 import { 
@@ -60,7 +61,7 @@ export default function TransactionDetailModal({
   const handleUpdate = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/keuangan/${formData.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/keuangan/${formData.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

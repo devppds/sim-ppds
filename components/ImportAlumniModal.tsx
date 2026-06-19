@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface ImportAlumniModalProps {
   isOpen: boolean;
@@ -104,7 +105,7 @@ export default function ImportAlumniModal({ isOpen, onClose, onSuccess, type }: 
         postal_code: item["Kode Pos"]?.toString() || "",
       }));
 
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/alumni", {
+      const res = await fetch(`${API_BASE_URL}/api/alumni`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type, items: formattedData })

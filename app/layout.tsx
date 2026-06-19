@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
+import { PwaRegistry } from "@/components/PwaRegistry";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -35,8 +36,12 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0f172a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${plusJakartaSans.variable} h-full antialiased`}>
+        <PwaRegistry />
         <ToastProvider>
           {children}
         </ToastProvider>
@@ -44,3 +49,4 @@ export default function RootLayout({
     </html>
   );
 }
+

@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/config";
 
 import { useEffect, useState } from "react";
 import { 
@@ -35,7 +36,7 @@ export default function NotificationModal({ isOpen, onClose, onRead }: Notificat
   const fetchNotifs = async () => {
     try {
       setLoading(true);
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/notifications");
+      const res = await fetch(`${API_BASE_URL}/api/notifications`);
       const json = (await res.json()) as any;
       if (json.success) {
         setNotifs(json.data);
@@ -55,7 +56,7 @@ export default function NotificationModal({ isOpen, onClose, onRead }: Notificat
 
   const markAsRead = async (id: number | 'all') => {
     try {
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/notifications?id=${id}`, { method: "PUT" });
+      const res = await fetch(`${API_BASE_URL}/api/notifications?id=${id}`, { method: "PUT" });
       const json = (await res.json()) as any;
       if (json.success) {
         if (id === 'all') {

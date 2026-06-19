@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { X, Plus, FileText, Calendar, Hash, ArrowUpRight, ArrowDownLeft, Upload, Loader2 } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface AddArsipModalProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ export default function AddArsipModal({ isOpen, onClose, onSuccess }: AddArsipMo
 
     setLoading(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/arsip", {
+      const res = await fetch(`${API_BASE_URL}/api/arsip`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

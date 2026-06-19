@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Plus, User, Phone, Camera, Loader2, MapPin, Calendar, Save } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface ManualAlumniModalProps {
   isOpen: boolean;
@@ -131,7 +132,7 @@ export default function ManualAlumniModal({ isOpen, onClose, onSuccess, type }: 
     setLoading(true);
 
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/alumni", {
+      const res = await fetch(`${API_BASE_URL}/api/alumni`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, type }),

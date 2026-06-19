@@ -3,12 +3,13 @@
 import { useEffect, useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
-  CreditCard, Search, Filter, Calendar, CheckCircle2, 
+  CreditCard, Search, Calendar, 
   AlertCircle, Wallet, TrendingUp, User, ArrowRight, 
   Loader2, Receipt, Download, Settings, ChevronDown, Check
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/config";
 
 interface SantriSPP {
   id: number;
@@ -43,7 +44,7 @@ export default function SPPPage() {
       const year = now.getFullYear();
       if (hjMonth >= 10) return `${year}/${year + 1}`;
       return `${year - 1}/${year}`;
-    } catch (e) { return "2025/2026"; }
+    } catch { return "2025/2026"; }
   }, []);
 
   const [academicYear, setAcademicYear] = useState(currentAutoYear);
@@ -59,25 +60,44 @@ export default function SPPPage() {
   const [isProcessing, setIsProcessing] = useState<number | null>(null);
   const { showToast } = useToast();
 
-  const fetchSPPData = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/spp?period=${selectedPeriod}&academic_year=${academicYear}`);
-      const json = await res.json() as any;
-      if (json.success) {
-        setData(json.data);
-        setSummary(json.summary);
-      }
-    } catch (err) {
-      showToast("Gagal memuat data SPP", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let active = true;
+
+    const fetchSPPData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE_URL}/api/spp?period=${selectedPeriod}&academic_year=${academicYear}`);
+        const json = await res.json() as { success: boolean, data: SantriSPP[], summary: { paid_count: number, total_count: number, total_amount: number } };
+        if (json.success && active) {
+          setData(json.data);
+          setSummary(json.summary);
+        }
+      } catch {
+        if (active) showToast("Gagal memuat data SPP", "error");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
     fetchSPPData();
-  }, [selectedPeriod, academicYear]);
+    return () => { active = false; };
+  }, [selectedPeriod, academicYear, showToast]);
+
+  const fetchSPPDataForce = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE_URL}/api/spp?period=${selectedPeriod}&academic_year=${academicYear}`);
+        const json = await res.json() as { success: boolean, data: SantriSPP[], summary: { paid_count: number, total_count: number, total_amount: number } };
+        if (json.success) {
+          setData(json.data);
+          setSummary(json.summary);
+        }
+      } catch {
+        showToast("Gagal memuat data SPP", "error");
+      } finally {
+        setLoading(false);
+      }
+  };
 
   const handlePay = async (santri: SantriSPP) => {
     setIsProcessing(santri.id);
@@ -90,12 +110,12 @@ export default function SPPPage() {
           entryMonth = new Date(santri.tahun_masuk).getMonth() + 1;
       }
 
-      const configRes = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/spp/config?status=${encodeURIComponent(santri.santri_status)}&kelas=${encodeURIComponent(santri.kelas)}&madrasah=${santri.madrasah || 'MHM'}&period=${selectedPeriod}${entryMonth ? `&entry_month=${entryMonth}` : ''}`);
-      const configJson = await configRes.json() as any;
+      const configRes = await fetch(`${API_BASE_URL}/api/spp/config?status=${encodeURIComponent(santri.santri_status)}&kelas=${encodeURIComponent(santri.kelas)}&madrasah=${santri.madrasah || 'MHM'}&period=${selectedPeriod}${entryMonth ? `&entry_month=${entryMonth}` : ''}`);
+      const configJson = await configRes.json() as { amount?: number };
       const amount = configJson.amount || 1000000;
 
       // 2. Perform payment
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/spp", {
+      const res = await fetch(`${API_BASE_URL}/api/spp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -107,14 +127,14 @@ export default function SPPPage() {
         }),
       });
 
-      const json = await res.json() as any;
+      const json = await res.json() as { success: boolean, error?: string };
       if (json.success) {
         showToast(`Syahriah ${santri.name} (${selectedPeriod}) berhasil!`, "success");
-        fetchSPPData();
+        fetchSPPDataForce();
       } else {
         showToast(json.error || "Gagal mencatat pembayaran", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("Gagal memproses pembayaran", "error");
     } finally {
       setIsProcessing(null);
@@ -176,7 +196,7 @@ export default function SPPPage() {
               <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center rotate-3 shadow-lg shadow-indigo-200">
                  <CreditCard className="w-6 h-6 text-white -rotate-3" />
               </div>
-              Syahriah Pesantren
+              Seksi Keuangan (Syahriah)
             </h1>
             <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-[0.2em] ml-14">
               Pembayaran Triwulan & Khusus Santri Baru
@@ -201,7 +221,7 @@ export default function SPPPage() {
                ))}
              </div>
 
-             <div className="h-8 w-[1px] bg-slate-200 mx-1 hidden sm:block" />
+             <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block" />
 
              <Link 
                href="/spp/config" 
@@ -214,7 +234,7 @@ export default function SPPPage() {
 
         {/* Global Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-6 rounded-[2.5rem] text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
+            <div className="bg-linear-to-br from-indigo-600 to-indigo-700 p-6 rounded-[2.5rem] text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
                   <Wallet className="w-32 h-32" />
                </div>

@@ -9,6 +9,7 @@ import SantriDetailModal from "@/components/SantriDetailModal";
 import ImportSantriModal from "@/components/ImportSantriModal";
 import * as XLSX from "xlsx";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Santri {
   id: number;
@@ -70,7 +71,7 @@ function SantriContent() {
   async function fetchAllSantri() {
     setLoading(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/santri");
+      const res = await fetch(`${API_BASE_URL}/api/santri`);
       const json = (await res.json()) as any;
       if (json.success) {
         setSantriList(json.data);

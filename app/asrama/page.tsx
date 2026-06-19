@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/config";
 
 import { useState, useEffect, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -51,7 +52,7 @@ export default function AsramaPage() {
 
   async function fetchData() {
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/asrama");
+      const res = await fetch(`${API_BASE_URL}/api/asrama`);
       const json = await res.json() as any;
       if (json.success) {
         setData(json.data);

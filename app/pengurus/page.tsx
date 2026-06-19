@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { UserCheck, Plus, Search, Mail, Phone, Home, Star } from "lucide-react";
 import PengurusDetailModal from "@/components/PengurusDetailModal";
 import AddPengurusModal from "@/components/AddPengurusModal";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Pengurus {
   id: number;
@@ -32,7 +33,7 @@ function PengurusContent() {
 
   async function fetchPengurus() {
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/pengurus");
+      const res = await fetch(`${API_BASE_URL}/api/pengurus`);
       const json = (await res.json()) as any;
       if (json.success) {
         setList(json.data);

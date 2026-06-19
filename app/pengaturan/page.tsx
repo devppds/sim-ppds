@@ -7,6 +7,7 @@ import {
   Loader2, Save, Lock
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface SPPRate {
   id: number;
@@ -60,7 +61,7 @@ export default function PengaturanPage() {
   const fetchProfile = async () => {
     setLoadingProfile(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/settings");
+      const res = await fetch(`${API_BASE_URL}/api/settings`);
       const json = await res.json() as any;
       if (json.success) {
         setPondokProfile({
@@ -84,7 +85,7 @@ export default function PengaturanPage() {
   const fetchSppRates = async () => {
     setLoadingSPP(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/spp/config");
+      const res = await fetch(`${API_BASE_URL}/api/spp/config`);
       const json = await res.json() as any;
       if (json.success) {
         setSppRates(json.data);
@@ -111,7 +112,7 @@ export default function PengaturanPage() {
     e.preventDefault();
     setIsSavingProfile(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/settings", {
+      const res = await fetch(`${API_BASE_URL}/api/settings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pondokProfile)
@@ -138,7 +139,7 @@ export default function PengaturanPage() {
     
     setIsSubmittingSPP(true);
     try {
-      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/spp/config", {
+      const res = await fetch(`${API_BASE_URL}/api/spp/config`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -171,7 +172,7 @@ export default function PengaturanPage() {
   const handleDeleteSppRate = async (id: number) => {
     if (!confirm("Hapus konfigurasi tarif ini? Tindakan ini tidak dapat dibatalkan.")) return;
     try {
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/spp/config/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/spp/config/${id}`, {
         method: "DELETE"
       });
       const json = await res.json() as any;

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Save, User, Phone, Briefcase, Camera, Loader2, Home } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Pengurus {
   id: number;
@@ -91,7 +92,7 @@ export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus
     setLoading(true);
 
     try {
-      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/pengurus/${pengurus.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/pengurus/${pengurus.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
