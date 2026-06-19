@@ -107,7 +107,9 @@ export default function PengaturanPage() {
   const isAdmin = session && (
     session.role_level === "ROOT" || 
     session.role_level === "SEKRETARIAT" || 
-    (session.role || "").toUpperCase() === "DEVELOPER"
+    (session.role || "").toUpperCase() === "DEVELOPER" ||
+    (session.role || "").toUpperCase().includes("SEKRETARIS") ||
+    (session.role || "").toUpperCase().includes("SEKRETARIAT")
   );
 
   const canManageSpp = session && (

@@ -19,13 +19,14 @@ export async function canAccess(module: 'SEKRETARIAT' | 'KEUANGAN' | 'PENGATURAN
   if (!session) return false;
 
   const level = session.role_level as AccessLevel;
-  if (level === 'ROOT') return true;
+  const role = (session.role || "").toUpperCase();
+  if (level === 'ROOT' || role === 'DEVELOPER' || role === 'MUDIR' || role.includes('SUPER')) return true;
   
   if (module === 'SEKRETARIAT') {
-    return level === 'SEKRETARIAT' || level === 'VIEW_ALL';
+    return level === 'SEKRETARIAT' || level === 'VIEW_ALL' || role.includes('SEKRETARIS') || role.includes('SEKRETARIAT');
   }
   if (module === 'KEUANGAN') {
-    return level === 'KEUANGAN' || level === 'RESTRICTED_SPP' || level === 'VIEW_ALL';
+    return level === 'KEUANGAN' || level === 'RESTRICTED_SPP' || level === 'VIEW_ALL' || role.includes('BENDAHARA') || role.includes('KEUANGAN') || role === 'SEKSI KEUANGAN';
   }
   if (module === 'PENGATURAN') {
     return true; // Semua user yang login dapat mengakses settings pribadinya
@@ -45,16 +46,17 @@ export async function canWrite(module: 'SANTRI' | 'PENGURUS' | 'ALUMNI' | 'ASRAM
   if (!session) return false;
 
   const level = session.role_level as AccessLevel;
-  if (level === 'ROOT') return true;
+  const role = (session.role || "").toUpperCase();
+  if (level === 'ROOT' || role === 'DEVELOPER' || role === 'MUDIR' || role.includes('SUPER')) return true;
 
   // Sekretaris CRUD
   if (['SANTRI', 'PENGURUS', 'ALUMNI', 'ASRAMA', 'ARSIP', 'SYSTEM'].includes(module)) {
-    return level === 'SEKRETARIAT';
+    return level === 'SEKRETARIAT' || role.includes('SEKRETARIS') || role.includes('SEKRETARIAT');
   }
 
   // Bendahara CRUD
   if (module === 'KEUANGAN') {
-    return level === 'KEUANGAN' || level === 'RESTRICTED_SPP';
+    return level === 'KEUANGAN' || level === 'RESTRICTED_SPP' || role.includes('BENDAHARA') || role.includes('KEUANGAN') || role === 'SEKSI KEUANGAN';
   }
 
   return false;

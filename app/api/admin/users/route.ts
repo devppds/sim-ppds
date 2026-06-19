@@ -21,7 +21,7 @@ async function isAuthorized() {
   try {
     const data = JSON.parse(session);
     const role = (data.role || "").toUpperCase();
-    return data.role_level === "ROOT" || data.role_level === "SEKRETARIAT" || role === "DEVELOPER";
+    return data.role_level === "ROOT" || data.role_level === "SEKRETARIAT" || role === "DEVELOPER" || role.includes("SEKRETARIS") || role.includes("SEKRETARIAT");
   } catch (e) { return false; }
 }
 

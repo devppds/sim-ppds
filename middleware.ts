@@ -35,9 +35,13 @@ export function middleware(request: NextRequest) {
      const sessionData = JSON.parse(session);
           // Access Control Logic
       const level = sessionData.role_level || 'STAFF';
+      const role = (sessionData.role || "").toUpperCase();
+      const isSekretariat = level === 'SEKRETARIAT' || role.includes('SEKRETARIS') || role.includes('SEKRETARIAT');
+      const isKeuangan = level === 'KEUANGAN' || role.includes('BENDAHARA') || role.includes('KEUANGAN') || level === 'RESTRICTED_SPP' || role === 'SEKSI KEUANGAN';
+      const isRoot = level === 'ROOT' || role === 'DEVELOPER' || role === 'MUDIR' || role.includes('SUPER');
 
       // 1. Pusat Kontrol: ROOT Only (Super Admin)
-      if (pathname.startsWith("/pusat-kontrol") && level !== 'ROOT') {
+      if (pathname.startsWith("/pusat-kontrol") && !isRoot) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
@@ -52,12 +56,12 @@ export function middleware(request: NextRequest) {
       }
 
       // 4. Eksekutif: ROOT, VIEW_ALL, SEKRETARIAT, KEUANGAN
-      if (pathname.startsWith("/eksekutif") && !(level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT' || level === 'KEUANGAN')) {
+      if (pathname.startsWith("/eksekutif") && !(isRoot || level === 'VIEW_ALL' || isSekretariat || isKeuangan)) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       // 5. Clearance: ROOT, VIEW_ALL, SEKRETARIAT
-      if (pathname.startsWith("/clearance") && !(level === 'ROOT' || level === 'VIEW_ALL' || level === 'SEKRETARIAT')) {
+      if (pathname.startsWith("/clearance") && !(isRoot || level === 'VIEW_ALL' || isSekretariat)) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
       }
      
