@@ -161,7 +161,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   const isRestricted = session !== null && (session.role === "Seksi Keuangan" || session.role_level === "RESTRICTED_SPP");
-  if (isRestricted) return null;
+  // We no longer hide the sidebar for Seksi Keuangan to ensure a consistent, professional layout for all users.
+  // if (isRestricted) return null;
 
   const navGroups: NavGroup[] = [];
 

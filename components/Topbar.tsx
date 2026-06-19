@@ -129,37 +129,27 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
       <div className="flex items-center justify-between">
         {/* Left */}
         <div className="flex items-center gap-3">
-          {session?.role !== "Seksi Keuangan" && (
-            <button
-              id="menuToggle"
-              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
-              onClick={onMenuToggle}
-            >
-              <Menu className="w-5 h-5 text-slate-600" />
-            </button>
-          )}
+          <button
+            id="menuToggle"
+            className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
+            onClick={onMenuToggle}
+          >
+            <Menu className="w-5 h-5 text-slate-600" />
+          </button>
           <div className="hidden sm:block">
             <h1 className="text-base sm:text-lg font-black text-text-main tracking-tight">
-              {session?.role === "Seksi Keuangan" ? "Sistem Pembayaran SPP" : `Selamat Datang, ${session?.name || "Ustadz"}`}
+              Selamat Datang, {session?.name || "Ustadz"}
             </h1>
             <p className="text-[10px] font-bold text-text-sub flex items-center gap-1.5 uppercase tracking-wider">
               <span>Pondok Pesantren Darussalam</span>
               <span className="w-1 h-1 rounded-full bg-slate-300" />
-              {session?.role === "Seksi Keuangan" ? (
-                <span className="text-rose-600 font-black flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Seksi Keuangan
-                </span>
-              ) : (
-                <span className="text-indigo-600 font-black">Tahun Ajaran {academicYear}</span>
-              )}
+              <span className="text-indigo-600 font-black">Tahun Ajaran {academicYear}</span>
             </p>
           </div>
         </div>
 
         {/* Right */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {session?.role !== "Seksi Keuangan" && (
-            <>
               {/* Universal Search */}
               <div className="hidden md:block relative" ref={searchRef}>
                 <div className={`flex items-center bg-slate-100 rounded-2xl px-4 py-2.5 gap-3 w-72 transition-all duration-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-100 border-2 ${showResults ? 'border-indigo-400 bg-white' : 'border-transparent'}`}>
@@ -240,18 +230,6 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
                 <Plus className="w-4 h-4" />
                 Santri Baru
               </button>
-            </>
-          )}
-
-          {session?.role === "Seksi Keuangan" && (
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-rose-600/20 active:scale-95"
-            >
-              <LogOut className="w-4 h-4" />
-              Keluar Sistem
-            </button>
-          )}
         </div>
       </div>
 
