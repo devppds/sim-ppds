@@ -112,12 +112,12 @@ body {
 
 @keyframes text-glow-blue-gold {
   0%, 100% {
-    color: #60a5fa;
-    text-shadow: 0 0 15px rgba(96, 165, 250, 0.4);
+    color: #fbbf24;
+    text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
   }
   50% {
-    color: #fbbf24;
-    text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+    color: #f59e0b;
+    text-shadow: 0 0 25px rgba(245, 158, 11, 0.8);
   }
 }
 
@@ -220,4 +220,47 @@ body {
 .splash-hide {
   animation: splash-fade-out 0.8s ease-in forwards;
   opacity: 1;
+}
+
+/* iOS 3D Spinner */
+.ios-spinner {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  animation: splash-fade-in 1.2s ease-out 1.5s forwards;
+  opacity: 0;
+}
+.ios-spinner div {
+  transform-origin: 20px 20px;
+  animation: ios-spinner-anim 1.2s linear infinite;
+}
+.ios-spinner div:after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 3px;
+  left: 18px;
+  width: 4px;
+  height: 10px;
+  border-radius: 20%;
+  background: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.8), 0 0 20px rgba(251, 191, 36, 0.4), inset 0 0 4px rgba(255, 255, 255, 0.8);
+}
+.ios-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s; }
+.ios-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s; }
+.ios-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s; }
+.ios-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s; }
+.ios-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s; }
+.ios-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s; }
+.ios-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s; }
+.ios-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s; }
+.ios-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s; }
+.ios-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s; }
+.ios-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s; }
+.ios-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s; }
+
+@keyframes ios-spinner-anim {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }

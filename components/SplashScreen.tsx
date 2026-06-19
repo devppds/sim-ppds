@@ -41,11 +41,11 @@ export default function SplashScreen() {
   return (
     <div
       id="splashScreen"
-      className={`splash-screen fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 z-[9999] flex flex-col items-center justify-between overflow-hidden transition-opacity duration-800 ${isFadingOut ? "opacity-0" : "opacity-100"}`}
+      className={`splash-screen fixed inset-0 bg-gradient-to-br from-[#021c14] via-[#043425] to-[#021c14] z-[9999] flex flex-col items-center justify-between overflow-hidden transition-opacity duration-800 ${isFadingOut ? "opacity-0" : "opacity-100"}`}
     >
       {/* Animated Floating Orbs */}
-      <div className="absolute top-20 left-20 w-80 h-80 bg-blue-500/8 rounded-full blur-3xl splash-orb-1"></div>
-      <div className="absolute bottom-20 right-20 w-80 h-80 bg-indigo-500/8 rounded-full blur-3xl splash-orb-2"></div>
+      <div className="absolute top-20 left-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl splash-orb-1"></div>
+      <div className="absolute bottom-20 right-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl splash-orb-2"></div>
 
       {/* Top Content */}
       <div className="flex-1 flex flex-col items-center justify-center z-10 max-w-4xl px-4 sm:px-6">
@@ -61,29 +61,30 @@ export default function SplashScreen() {
         </div>
 
         {/* Welcome Text */}
-        <h2 className="splash-text-welcome text-3xl sm:text-4xl font-black text-blue-400 mb-3 sm:mb-4 tracking-tighter text-center leading-tight">
+        <h2 className="splash-text-welcome text-3xl sm:text-4xl font-black text-amber-500 mb-3 sm:mb-4 tracking-tighter text-center leading-tight">
           Selamat Datang
         </h2>
 
         {/* Subtitle */}
-        <p className="splash-text-subtitle text-lg sm:text-xl font-bold text-blue-300 mb-4 sm:mb-6 text-center">
+        <p className="splash-text-subtitle text-lg sm:text-xl font-bold text-emerald-400 mb-4 sm:mb-6 text-center">
           Di Dashboard System Informasi
         </p>
 
         {/* Main Text with Enhanced Glow */}
-        <h1 className="splash-text-main text-3xl sm:text-4xl font-black text-blue-400 mb-6 sm:mb-8 text-center leading-tight">
+        <h1 className="splash-text-main text-3xl sm:text-4xl font-black text-amber-500 mb-8 sm:mb-12 text-center leading-tight">
           Pondok Pesantren Darussalam Lirboyo
         </h1>
 
-        {/* Progress Bar */}
-        <div className="w-48 sm:w-64 h-1 bg-slate-700/40 rounded-full overflow-hidden mb-6 sm:mb-8">
-          <div className="splash-progress-bar-inner h-full bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-500 rounded-full shadow-lg shadow-blue-500/50"></div>
+        {/* iOS 3D Spinner */}
+        <div className="ios-spinner mb-8 sm:mb-12 scale-[1.2] sm:scale-150">
+          <div></div><div></div><div></div><div></div><div></div><div></div>
+          <div></div><div></div><div></div><div></div><div></div><div></div>
         </div>
       </div>
 
       {/* Bottom Content */}
       <div className="z-10 mb-6 sm:mb-10 text-center">
-        <p className="splash-text-pesantren text-base sm:text-lg font-bold text-blue-300 mb-4 sm:mb-6">
+        <p className="splash-text-pesantren text-base sm:text-lg font-bold text-emerald-400 mb-4 sm:mb-6">
           Loading Dashboard...
         </p>
         <div className="splash-copyright space-y-1 sm:space-y-2">
