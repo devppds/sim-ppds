@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   Settings, Home, Wallet, Key, Plus, Trash2, 
-  Loader2, Save, CheckCircle, Info, Lock
+  Loader2, Save, Lock
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 
@@ -22,14 +22,16 @@ export default function PengaturanPage() {
   const [activeTab, setActiveTab] = useState<"profile" | "spp" | "account">("profile");
   const { showToast } = useToast();
   
-  // Profile settings state (local mock storage or state)
+  // Profile settings state (D1 Backed)
   const [pondokProfile, setPondokProfile] = useState({
-    name: "Pondok Pesantren Darussalam Lirboyo",
-    address: "Jl. KH. A. Dahlan No.3, Mojoroto, Kota Kediri, Jawa Timur",
-    phone: "081234567890",
-    email: "info@darussalamlirboyo.org",
-    head: "KH. Anwar Manshur"
+    pondok_name: "",
+    pondok_address: "",
+    pondok_phone: "",
+    pondok_email: "",
+    pondok_head: ""
   });
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   
   // SPP Rates state
   const [sppRates, setSppRates] = useState<SPPRate[]>([]);
@@ -54,6 +56,30 @@ export default function PengaturanPage() {
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  // Fetch Pondok Profile settings from D1
+  const fetchProfile = async () => {
+    setLoadingProfile(true);
+    try {
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/settings");
+      const json = await res.json() as any;
+      if (json.success) {
+        setPondokProfile({
+          pondok_name: json.data.pondok_name || "",
+          pondok_address: json.data.pondok_address || "",
+          pondok_phone: json.data.pondok_phone || "",
+          pondok_email: json.data.pondok_email || "",
+          pondok_head: json.data.pondok_head || ""
+        });
+      } else {
+        showToast(json.error || "Gagal memuat profil pesantren", "error");
+      }
+    } catch (e) {
+      showToast("Koneksi gagal ke API Worker", "error");
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
   // Fetch SPP config from Hono Worker D1
   const fetchSppRates = async () => {
     setLoadingSPP(true);
@@ -74,14 +100,33 @@ export default function PengaturanPage() {
   };
 
   useEffect(() => {
-    if (activeTab === "spp") {
+    if (activeTab === "profile") {
+      fetchProfile();
+    } else if (activeTab === "spp") {
       fetchSppRates();
     }
   }, [activeTab]);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    showToast("Profil Pondok Pesantren berhasil disimpan!", "success");
+    setIsSavingProfile(true);
+    try {
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pondokProfile)
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast("Profil pesantren berhasil disimpan ke D1!", "success");
+      } else {
+        showToast(json.error || "Gagal menyimpan profil", "error");
+      }
+    } catch (e) {
+      showToast("Koneksi gagal ke API Worker", "error");
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   const handleAddSppRate = async (e: React.FormEvent) => {
@@ -232,71 +277,80 @@ export default function PengaturanPage() {
               <Home className="w-4 h-4 text-indigo-500" /> Identitas Lembaga Pesantren
             </h3>
             
-            <form onSubmit={handleSaveProfile} className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {loadingProfile ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Memuat profil dari D1...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Pesantren</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={pondokProfile.pondok_name}
+                      onChange={e => setPondokProfile({...pondokProfile, pondok_name: e.target.value})}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Kiai Pengasuh</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={pondokProfile.pondok_head}
+                      onChange={e => setPondokProfile({...pondokProfile, pondok_head: e.target.value})}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Pesantren</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Alamat Lembaga</label>
                   <input 
                     type="text" 
                     required
-                    value={pondokProfile.name}
-                    onChange={e => setPondokProfile({...pondokProfile, name: e.target.value})}
+                    value={pondokProfile.pondok_address}
+                    onChange={e => setPondokProfile({...pondokProfile, pondok_address: e.target.value})}
                     className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Kiai Pengasuh</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={pondokProfile.head}
-                    onChange={e => setPondokProfile({...pondokProfile, head: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Alamat Lembaga</label>
-                <input 
-                  type="text" 
-                  required
-                  value={pondokProfile.address}
-                  onChange={e => setPondokProfile({...pondokProfile, address: e.target.value})}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nomor Telepon/WA</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={pondokProfile.phone}
-                    onChange={e => setPondokProfile({...pondokProfile, phone: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nomor Telepon/WA</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={pondokProfile.pondok_phone}
+                      onChange={e => setPondokProfile({...pondokProfile, pondok_phone: e.target.value})}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Email Lembaga</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={pondokProfile.pondok_email}
+                      onChange={e => setPondokProfile({...pondokProfile, pondok_email: e.target.value})}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Email Lembaga</label>
-                  <input 
-                    type="email" 
-                    required
-                    value={pondokProfile.email}
-                    onChange={e => setPondokProfile({...pondokProfile, email: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
-                  />
-                </div>
-              </div>
 
-              <button 
-                type="submit"
-                className="mt-4 px-6 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" /> Simpan Profil Pondok
-              </button>
-            </form>
+                <button 
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="mt-4 px-6 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
+                >
+                  {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+                  Simpan Profil Pesantren
+                </button>
+              </form>
+            )}
           </div>
         )}
 

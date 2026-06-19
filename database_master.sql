@@ -851,3 +851,20 @@ INSERT INTO santri (nisn, nik, name, madrasah, kelas, asrama, status, asal, stre
 VALUES ('123', '350', 'Test', 'MHM', 'Ibtida 1', 'DS A', 'Biasa', 'Malang', 'Jl. Kenanga', '03/05', 'JAWA TIMUR', 'MALANG', 'A', 'B', '651', 'Abdu', '081', '2025-07-15');
 
 
+-- File: settings_table.sql
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+INSERT OR IGNORE INTO settings (key, value) VALUES
+('pondok_name', 'Pondok Pesantren Darussalam Lirboyo'),
+('pondok_address', 'Jl. KH. A. Dahlan No.3, Mojoroto, Kota Kediri, Jawa Timur'),
+('pondok_phone', '081234567890'),
+('pondok_email', 'info@darussalamlirboyo.org'),
+('pondok_head', 'KH. Anwar Manshur');
+
+
+
