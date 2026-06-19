@@ -27,7 +27,7 @@ import jamiyyahRoutes from './routes/jamiyyah'
 
 import { getDashboardStats, getMenuStats, getDevStats } from './controllers/statsController'
 import { getAsramaData } from './controllers/asramaController'
-import { getArsipList, createArsip, deleteArsip } from './controllers/arsipController'
+import { getArsipList, createArsip, deleteArsip, updateArsip } from './controllers/arsipController'
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from './controllers/keuanganController'
 import { getNotifications, markNotificationsRead, createNotification } from './controllers/notificationsController'
 import { getSearchResults } from './controllers/searchController'
@@ -126,6 +126,7 @@ app.get('/api/asrama', getAsramaData)
 // Arsip Endpoints
 app.get('/api/arsip', getArsipList)
 app.post('/api/arsip', createArsip)
+app.put('/api/arsip/:id', updateArsip)
 app.delete('/api/arsip/:id', deleteArsip)
 
 // Keuangan Endpoints

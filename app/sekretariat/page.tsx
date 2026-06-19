@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { FolderKanban, Users, Mail, CheckCircle, Clock, FileText, Download, Plus, Send } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import AddArsipModal from "@/components/AddArsipModal";
 
 export default function SekretariatPage() {
   const [activeTab, setActiveTab] = useState<"master" | "esurat" | "absensi" | "pengumuman">("master");
@@ -14,6 +15,69 @@ export default function SekretariatPage() {
   const [announcementMsg, setAnnouncementMsg] = useState("");
   const [announcementType, setAnnouncementType] = useState("info");
   const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
+
+  const [totalSantri, setTotalSantri] = useState(4210);
+  const [syncedEmis, setSyncedEmis] = useState(4150);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [isArsipModalOpen, setIsArsipModalOpen] = useState(false);
+  
+  const [absensiStats, setAbsensiStats] = useState({ hadir: 45, izin: 2, alfa: 3 });
+  const [absensiLogs, setAbsensiLogs] = useState<any[]>([]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/stats`);
+      const json = await res.json() as any;
+      if (json.success && json.data?.stats) {
+        setTotalSantri(json.data.stats.santri_aktif);
+        setSyncedEmis(Math.max(0, json.data.stats.santri_aktif - 15));
+      }
+    } catch (err) {
+      console.error("Gagal mengambil statistik sekretariat:", err);
+    }
+  }, []);
+
+  const fetchDocuments = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/arsip`);
+      const json = await res.json() as any;
+      if (json.success && Array.isArray(json.data)) {
+        const filtered = json.data.filter((d: any) => d.category === "Surat");
+        setDocuments(filtered);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data arsip:", err);
+    }
+  }, []);
+
+  const fetchAbsensi = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/wajar/presensi`);
+      const json = await res.json() as any;
+      if (json.success && Array.isArray(json.data)) {
+        setAbsensiLogs(json.data);
+        const stats = json.data.reduce((acc: any, curr: any) => {
+          const status = (curr.status || "").toLowerCase();
+          if (status.includes("hadir")) acc.hadir++;
+          else if (status.includes("izin") || status.includes("sakit")) acc.izin++;
+          else if (status.includes("alfa") || status.includes("mangkir")) acc.alfa++;
+          return acc;
+        }, { hadir: 0, izin: 0, alfa: 0 });
+
+        if (json.data.length > 0) {
+          setAbsensiStats(stats);
+        }
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data absensi:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+    fetchDocuments();
+    fetchAbsensi();
+  }, [fetchStats, fetchDocuments, fetchAbsensi]);
 
   const handleSendAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +111,7 @@ export default function SekretariatPage() {
   const handleSyncEmis = () => {
     showToast("Sinkronisasi EMIS sedang berjalan di latar belakang...", "info");
     setTimeout(() => {
+      fetchStats();
       showToast("Sinkronisasi EMIS berhasil diselesaikan", "success");
     }, 2000);
   };
@@ -100,14 +165,14 @@ export default function SekretariatPage() {
                   <Users className="w-6 h-6 text-emerald-600" />
                 </div>
                 <h3 className="text-sm font-bold text-slate-500 mb-1">Total Data Santri</h3>
-                <div className="text-3xl font-black text-slate-800">4,210</div>
+                <div className="text-3xl font-black text-slate-800">{totalSantri.toLocaleString()}</div>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
                 <h3 className="text-sm font-bold text-slate-500 mb-1">Data Tersinkronisasi EMIS</h3>
-                <div className="text-3xl font-black text-slate-800">4,150</div>
+                <div className="text-3xl font-black text-slate-800">{syncedEmis.toLocaleString()}</div>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center items-center text-center">
                 <button onClick={handleSyncEmis} className="w-full py-4 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
@@ -130,7 +195,10 @@ export default function SekretariatPage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-4">
                <h2 className="text-lg font-bold text-slate-800">Draft Surat Keluar</h2>
-               <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg transition-all shadow-md">
+               <button 
+                 onClick={() => setIsArsipModalOpen(true)}
+                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg transition-all shadow-md"
+               >
                  <Plus className="w-4 h-4" /> Buat Draft Surat
                </button>
             </div>
@@ -139,37 +207,49 @@ export default function SekretariatPage() {
                  <thead className="bg-slate-50 border-b border-slate-100">
                    <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
                      <th className="px-6 py-4">Nomor / Judul</th>
-                     <th className="px-6 py-4">Tujuan</th>
+                     <th className="px-6 py-4">Tujuan / Asal</th>
                      <th className="px-6 py-4">Tanggal</th>
-                     <th className="px-6 py-4">Status</th>
+                     <th className="px-6 py-4">Aliran</th>
                      <th className="px-6 py-4">Aksi</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-slate-100">
-                   {[1, 2, 3].map((item) => (
-                     <tr key={item} className="hover:bg-slate-50/50 transition-colors">
-                       <td className="px-6 py-4">
-                         <div className="font-bold text-slate-800">Surat Edaran Libur {item}</div>
-                         <div className="text-xs text-slate-400 mt-1">PPDS/{item}/2026/06</div>
-                       </td>
-                       <td className="px-6 py-4 text-slate-600">Wali Santri Blok A</td>
-                       <td className="px-6 py-4 text-slate-600">19 Juni 2026</td>
-                       <td className="px-6 py-4">
-                         {item === 1 ? (
-                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black bg-amber-50 text-amber-600 uppercase">
-                             <Clock className="w-3 h-3" /> Menunggu TTD Ketua
-                           </span>
-                         ) : (
-                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black bg-emerald-50 text-emerald-600 uppercase">
-                             <CheckCircle className="w-3 h-3" /> TTD Digital Selesai
-                           </span>
-                         )}
-                       </td>
-                       <td className="px-6 py-4">
-                         <button className="text-indigo-600 text-xs font-bold hover:underline">Lihat Dokumen</button>
+                   {documents.length === 0 ? (
+                     <tr>
+                       <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold">
+                         Belum ada draft surat tercatat.
                        </td>
                      </tr>
-                   ))}
+                   ) : (
+                     documents.map((doc) => (
+                       <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors">
+                         <td className="px-6 py-4">
+                           <div className="font-bold text-slate-800">{doc.name}</div>
+                           <div className="text-xs text-slate-400 mt-1">{doc.doc_number || "Tanpa Nomor"}</div>
+                         </td>
+                         <td className="px-6 py-4 text-slate-600">{doc.sender_receiver || "-"}</td>
+                         <td className="px-6 py-4 text-slate-600">
+                           {doc.doc_date ? new Date(doc.doc_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}
+                         </td>
+                         <td className="px-6 py-4">
+                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                             doc.flow_type === 'Keluar' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+                           }`}>
+                             <Clock className="w-3.5 h-3.5" /> {doc.flow_type === 'Keluar' ? 'Surat Keluar' : 'Surat Masuk'}
+                           </span>
+                         </td>
+                         <td className="px-6 py-4">
+                           {doc.url ? (
+                             <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 text-xs font-bold hover:underline">
+                               Lihat Dokumen
+                             </a>
+                           ) : (
+                             <span className="text-slate-400 text-xs">-</span>
+                           )}
+                         </td>
+                       </tr>
+                     ))
+                   )}
                  </tbody>
                </table>
             </div>
@@ -185,83 +265,127 @@ export default function SekretariatPage() {
                 </div>
                 <div className="flex gap-4">
                    <div className="text-center px-6 py-3 bg-slate-50 rounded-xl">
-                      <div className="text-2xl font-black text-emerald-600">45</div>
+                      <div className="text-2xl font-black text-emerald-600">{absensiStats.hadir}</div>
                       <div className="text-xs text-slate-400 font-bold uppercase mt-1">Hadir</div>
                    </div>
                    <div className="text-center px-6 py-3 bg-slate-50 rounded-xl">
-                      <div className="text-2xl font-black text-amber-600">2</div>
+                      <div className="text-2xl font-black text-amber-600">{absensiStats.izin}</div>
                       <div className="text-xs text-slate-400 font-bold uppercase mt-1">Izin</div>
                    </div>
                    <div className="text-center px-6 py-3 bg-slate-50 rounded-xl">
-                      <div className="text-2xl font-black text-rose-600">3</div>
+                      <div className="text-2xl font-black text-rose-600">{absensiStats.alfa}</div>
                       <div className="text-xs text-slate-400 font-bold uppercase mt-1">Alfa</div>
                    </div>
                 </div>
              </div>
              
-             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm p-8 text-center text-slate-400">
-                <Clock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="font-bold text-slate-600 mb-2">Data Absensi Hari Ini</h3>
-                <p className="text-sm max-w-md mx-auto">Pengurus melakukan presensi menggunakan aplikasi mobile atau sistem finger print yang terhubung ke server pusat.</p>
+             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                   <h3 className="font-bold text-slate-800 text-sm">Riwayat Absensi Pengurus (Hari Ini)</h3>
+                </div>
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-100">
+                    <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
+                      <th className="px-6 py-4">Nama Pengurus</th>
+                      <th className="px-6 py-4">Peran / Kelas</th>
+                      <th className="px-6 py-4">Tanggal</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4">Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {absensiLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold">
+                          Belum ada data absensi tercatat hari ini.
+                        </td>
+                      </tr>
+                    ) : (
+                      absensiLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4 font-bold text-slate-800">{log.nama}</td>
+                          <td className="px-6 py-4 text-slate-600">{log.peran} ({log.kelas})</td>
+                          <td className="px-6 py-4 text-slate-500 font-bold">{log.tanggal}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                              log.status.toLowerCase() === 'hadir' ? 'bg-emerald-100 text-emerald-700' :
+                              log.status.toLowerCase() === 'izin' || log.status.toLowerCase() === 'sakit' ? 'bg-amber-100 text-amber-700' :
+                              'bg-rose-100 text-rose-700'
+                            }`}>
+                              {log.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-slate-500 text-xs">{log.keterangan || "-"}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
              </div>
           </div>
         )}
          {activeTab === "pengumuman" && (
-           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm max-w-2xl">
-               <h2 className="text-lg font-black text-slate-800 mb-2">Kirim Pengumuman Baru</h2>
-               <p className="text-xs text-slate-400 mb-6">Pengumuman ini akan langsung dikirimkan ke lonceng notifikasi semua pengguna secara real-time.</p>
-               
-               <form onSubmit={handleSendAnnouncement} className="space-y-4">
-                  <div>
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Judul Pengumuman</label>
-                     <input 
-                       type="text"
-                       required
-                       value={announcementTitle}
-                       onChange={(e) => setAnnouncementTitle(e.target.value)}
-                       placeholder="Contoh: Libur Hari Raya Idul Adha 1447 H"
-                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-slate-700"
-                     />
-                  </div>
-                  <div>
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Konten / Isi Pengumuman</label>
-                     <textarea 
-                       required
-                       value={announcementMsg}
-                       onChange={(e) => setAnnouncementMsg(e.target.value)}
-                       placeholder="Tulis detail pengumuman di sini..."
-                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all min-h-[140px] text-slate-600"
-                     />
-                  </div>
-                  <div>
-                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Kategori / Urgensi</label>
-                     <select 
-                       value={announcementType}
-                       onChange={(e) => setAnnouncementType(e.target.value)}
-                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-slate-700"
-                     >
-                        <option value="info">Informasi / Biasa</option>
-                        <option value="success">Sukses / Berita Baik</option>
-                        <option value="warning">Penting / Peringatan</option>
-                        <option value="danger">Darurat / Sangat Penting</option>
-                     </select>
-                  </div>
-                  
-                  <div className="pt-2">
-                     <button 
-                       type="submit" 
-                       disabled={sendingAnnouncement}
-                       className="px-6 py-3.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-black rounded-xl shadow-lg shadow-rose-500/20 transition-all disabled:opacity-50 flex items-center gap-2 uppercase tracking-widest"
-                     >
-                       {sendingAnnouncement ? 'Mengirim...' : 'Kirim Pengumuman'}
-                     </button>
-                  </div>
-               </form>
-             </div>
-           </div>
-         )}
-       </div>
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm max-w-2xl">
+                <h2 className="text-lg font-black text-slate-800 mb-2">Kirim Pengumuman Baru</h2>
+                <p className="text-xs text-slate-400 mb-6">Pengumuman ini akan langsung dikirimkan ke lonceng notifikasi semua pengguna secara real-time.</p>
+                
+                <form onSubmit={handleSendAnnouncement} className="space-y-4">
+                   <div>
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Judul Pengumuman</label>
+                      <input 
+                        type="text"
+                        required
+                        value={announcementTitle}
+                        onChange={(e) => setAnnouncementTitle(e.target.value)}
+                        placeholder="Contoh: Libur Hari Raya Idul Adha 1447 H"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-slate-700"
+                      />
+                   </div>
+                   <div>
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Konten / Isi Pengumuman</label>
+                      <textarea 
+                        required
+                        value={announcementMsg}
+                        onChange={(e) => setAnnouncementMsg(e.target.value)}
+                        placeholder="Tulis detail pengumuman di sini..."
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all min-h-[140px] text-slate-600"
+                      />
+                   </div>
+                   <div>
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Kategori / Urgensi</label>
+                      <select 
+                        value={announcementType}
+                        onChange={(e) => setAnnouncementType(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-slate-700"
+                      >
+                         <option value="info">Informasi / Biasa</option>
+                         <option value="success">Sukses / Berita Baik</option>
+                         <option value="warning">Penting / Peringatan</option>
+                         <option value="danger">Darurat / Sangat Penting</option>
+                      </select>
+                   </div>
+                   
+                   <div className="pt-2">
+                      <button 
+                        type="submit" 
+                        disabled={sendingAnnouncement}
+                        className="px-6 py-3.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-black rounded-xl shadow-lg shadow-rose-500/20 transition-all disabled:opacity-50 flex items-center gap-2 uppercase tracking-widest"
+                      >
+                        {sendingAnnouncement ? 'Mengirim...' : 'Kirim Pengumuman'}
+                      </button>
+                   </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+
+      <AddArsipModal 
+        isOpen={isArsipModalOpen} 
+        onClose={() => setIsArsipModalOpen(false)} 
+        onSuccess={() => fetchDocuments()} 
+      />
     </DashboardLayout>
   );
 }

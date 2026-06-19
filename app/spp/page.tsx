@@ -30,6 +30,7 @@ export default function SPPPage() {
   const [data, setData] = useState<SantriSPP[]>([]);
   const [summary, setSummary] = useState({ paid_count: 0, total_count: 0, total_amount: 0 });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Period Logic: Syawal, Maulid, Rajab
   const PERIODS = ["Syawal", "Maulid", "Rajab"];
@@ -82,14 +83,21 @@ export default function SPPPage() {
     const fetchSPPData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await fetch(`${API_BASE_URL}/api/spp?period=${selectedPeriod}&academic_year=${academicYear}`);
+        if (!res.ok) throw new Error("HTTP error");
         const json = await res.json() as { success: boolean, data: SantriSPP[], summary: { paid_count: number, total_count: number, total_amount: number } };
         if (json.success && active) {
           setData(json.data);
           setSummary(json.summary);
+        } else if (active) {
+          throw new Error("Gagal memuat data");
         }
       } catch {
-        if (active) showToast("Gagal memuat data SPP", "error");
+        if (active) {
+          setError("Gagal memuat data SPP");
+          showToast("Gagal memuat data SPP", "error");
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -102,13 +110,18 @@ export default function SPPPage() {
   const fetchSPPDataForce = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await fetch(`${API_BASE_URL}/api/spp?period=${selectedPeriod}&academic_year=${academicYear}`);
+        if (!res.ok) throw new Error("HTTP error");
         const json = await res.json() as { success: boolean, data: SantriSPP[], summary: { paid_count: number, total_count: number, total_amount: number } };
         if (json.success) {
           setData(json.data);
           setSummary(json.summary);
+        } else {
+          throw new Error("Gagal memuat data");
         }
       } catch {
+        setError("Gagal memuat data SPP");
         showToast("Gagal memuat data SPP", "error");
       } finally {
         setLoading(false);
@@ -353,20 +366,34 @@ export default function SPPPage() {
                    </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                   {loading ? (
-                      Array(5).fill(0).map((_, i) => (
-                        <tr key={i} className="animate-pulse">
-                          <td colSpan={4} className="px-8 py-10"><div className="h-12 bg-slate-50 rounded-2xl w-full" /></td>
-                        </tr>
-                      ))
-                   ) : filteredData.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="px-8 py-32 text-center">
-                           <Receipt className="w-16 h-16 text-slate-100 mx-auto mb-4" />
-                           <p className="text-slate-400 font-bold">Data tidak ditemukan</p>
-                        </td>
-                      </tr>
-                   ) : (
+                    {loading ? (
+                       Array(5).fill(0).map((_, i) => (
+                         <tr key={i} className="animate-pulse">
+                           <td colSpan={4} className="px-8 py-10"><div className="h-12 bg-slate-50 rounded-2xl w-full" /></td>
+                         </tr>
+                       ))
+                    ) : error ? (
+                       <tr>
+                         <td colSpan={4} className="px-8 py-20 text-center">
+                            <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4 animate-bounce" />
+                            <p className="text-slate-500 font-black text-sm uppercase">{error}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Periksa koneksi database atau coba lagi</p>
+                            <button 
+                              onClick={fetchSPPDataForce}
+                              className="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-black uppercase shadow-lg shadow-indigo-100 transition-all active:scale-95"
+                            >
+                              Coba Lagi
+                            </button>
+                         </td>
+                       </tr>
+                    ) : filteredData.length === 0 ? (
+                       <tr>
+                         <td colSpan={4} className="px-8 py-32 text-center">
+                            <Receipt className="w-16 h-16 text-slate-100 mx-auto mb-4" />
+                            <p className="text-slate-400 font-bold">Data tidak ditemukan</p>
+                         </td>
+                       </tr>
+                    ) : (
                       filteredData.map(s => (
                         <tr key={s.id} className="hover:bg-slate-50/50 transition-colors group">
                            <td className="px-8 py-6">

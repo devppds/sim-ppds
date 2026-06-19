@@ -53,7 +53,7 @@ interface BimbinganLog {
 }
 
 export default function PendidikanPage() {
-  const [activeTab, setActiveTab] = useState<"jadwal" | "izin" | "bk">("jadwal");
+  const [activeTab, setActiveTab] = useState<"jadwal" | "izin" | "bk" | "pulang">("jadwal");
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -61,6 +61,9 @@ export default function PendidikanPage() {
   const [jadwalList, setJadwalList] = useState<JadwalPengajian[]>([]);
   const [izinList, setIzinList] = useState<IzinSekolah[]>([]);
   const [bkList, setBkList] = useState<BimbinganLog[]>([]);
+
+  const [izinPulangList, setIzinPulangList] = useState<any[]>([]);
+  const [loadingPulang, setLoadingPulang] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -126,13 +129,29 @@ export default function PendidikanPage() {
     }
   }, []);
 
+  const fetchIzinPulangData = useCallback(async () => {
+    setLoadingPulang(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/keamanan/perizinan`);
+      const json = await res.json() as any;
+      if (json.success) {
+        setIzinPulangList(json.data);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data santri pulang di Pendidikan:", err);
+    } finally {
+      setLoadingPulang(false);
+    }
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSantri();
       fetchPendidikanData();
+      fetchIzinPulangData();
     }, 0);
     return () => clearTimeout(timer);
-  }, [fetchSantri, fetchPendidikanData]);
+  }, [fetchSantri, fetchPendidikanData, fetchIzinPulangData]);
 
   // Actions
   const handleUpdateIzinStatus = async (id: number, status: "Disetujui" | "Ditolak") => {
@@ -280,6 +299,12 @@ export default function PendidikanPage() {
     (b.solusi || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredIzinPulangList = izinPulangList.filter(p => 
+    (p.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.keperluan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.santri_asrama || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const getAddBtnConfig = () => {
     switch (activeTab) {
       case "jadwal":
@@ -288,6 +313,8 @@ export default function PendidikanPage() {
         return { label: "Ajukan Izin Baru", action: () => setIsIzinModalOpen(true), bg: "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20" };
       case "bk":
         return { label: "Catat Bimbingan Baru", action: () => setIsBkModalOpen(true), bg: "bg-violet-600 hover:bg-violet-700 shadow-violet-500/20" };
+      default:
+        return null;
     }
   };
 
@@ -309,19 +336,21 @@ export default function PendidikanPage() {
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button 
-              onClick={fetchPendidikanData}
+              onClick={() => { fetchPendidikanData(); fetchIzinPulangData(); }}
               className="p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
               title="Refresh Data"
             >
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 ${(loading || loadingPulang) ? 'animate-spin' : ''}`} />
             </button>
-            <button 
-              onClick={addBtn.action} 
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
-            >
-              <Plus className="w-5 h-5" />
-              <span>{addBtn.label}</span>
-            </button>
+            {addBtn && (
+              <button 
+                onClick={addBtn.action} 
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
+              >
+                <Plus className="w-5 h-5" />
+                <span>{addBtn.label}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -356,6 +385,16 @@ export default function PendidikanPage() {
             }`}
           >
             Bimbingan Konseling (BK)
+          </button>
+          <button
+            onClick={() => setActiveTab("pulang")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "pulang" 
+                ? "bg-white text-indigo-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            Laporan Santri Pulang
           </button>
         </div>
 
@@ -555,6 +594,73 @@ export default function PendidikanPage() {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "pulang" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Laporan Santri Pulang / Keluar (Seksi Keamanan)</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              {loadingPulang ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+                  <p className="text-xs font-medium">Memuat data santri pulang...</p>
+                </div>
+              ) : filteredIzinPulangList.length === 0 ? (
+                <div className="text-center py-20 text-slate-400 text-xs font-semibold italic">
+                  Tidak ada data santri pulang
+                </div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-100">
+                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
+                      <th className="px-6 py-4">Nama / Kelas</th>
+                      <th className="px-6 py-4">Asrama</th>
+                      <th className="px-6 py-4">Keperluan</th>
+                      <th className="px-6 py-4">Tanggal Mulai</th>
+                      <th className="px-6 py-4">Batas Kembali</th>
+                      <th className="px-6 py-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredIzinPulangList.map((p) => (
+                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-slate-800">{p.santri_name}</div>
+                          <div className="text-xs text-slate-400 mt-1">{p.santri_kelas}</div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-700 font-semibold">{p.santri_asrama || "-"}</td>
+                        <td className="px-6 py-4 text-slate-600">{p.keperluan}</td>
+                        <td className="px-6 py-4 text-slate-500">{p.tgl_mulai}</td>
+                        <td className="px-6 py-4 font-semibold text-rose-500">{p.tgl_kembali}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                            p.status === "Keluar" ? "bg-rose-50 text-rose-600" :
+                            p.status === "Kembali" ? "bg-emerald-50 text-emerald-600" :
+                            "bg-slate-100 text-slate-500"
+                          }`}>
+                            {p.status === "Keluar" ? "Sedang Pulang" : p.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           </div>

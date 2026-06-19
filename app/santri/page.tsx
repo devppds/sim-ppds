@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo, Suspense } from "react";
+import { useEffect, useState, useMemo, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Users, Plus, Search, Download, Upload, RefreshCw } from "lucide-react";
+import { Users, Plus, Search, Download, Upload, RefreshCw, ArrowLeft } from "lucide-react";
 import AddSantriModal from "@/components/AddSantriModal";
 import SantriDetailModal from "@/components/SantriDetailModal";
 import ImportSantriModal from "@/components/ImportSantriModal";
@@ -42,6 +42,16 @@ function SantriContent() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
 
+  // States for seksi / restricted profile search & view
+  const [selectedSantriId, setSelectedSantriId] = useState<number | null>(null);
+  const [detailData, setDetailData] = useState<any>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [profileTab, setProfileTab] = useState<"pembayaran" | "izin" | "pelanggaran">("pembayaran");
+
+  const [restrictedQuery, setRestrictedQuery] = useState("");
+  const [restrictedResults, setRestrictedResults] = useState<Santri[]>([]);
+  const [searchingRestricted, setSearchingRestricted] = useState(false);
+
   useEffect(() => {
     const sessionCookie = document.cookie.split('; ').find(row => row.startsWith('sim_ppds_session='));
     if (sessionCookie) {
@@ -51,6 +61,20 @@ function SantriContent() {
       } catch (e) { console.error(e); }
     }
   }, []);
+
+  const hasFullAccess = useMemo(() => {
+    if (!session) return true; // Default true during loading
+    const level = session.role_level;
+    const role = (session.role || "").toUpperCase();
+    return level === 'SEKRETARIAT' || 
+      level === 'VIEW_ALL' || 
+      level === 'ROOT' || 
+      role.includes("SEKRETARIS") || 
+      role.includes("SEKRETARIAT") ||
+      role === "DEVELOPER" ||
+      role === "MUDIR" ||
+      role.includes("SUPER");
+  }, [session]);
 
   const canWrite = session?.role_level === 'ROOT' || session?.role_level === 'ADMIN';
   
@@ -67,7 +91,36 @@ function SantriContent() {
   const searchParams = useSearchParams();
   const deepId = searchParams.get("id");
 
-  async function fetchAllSantri() {
+  const fetchDetail = useCallback(async (id: number) => {
+    setLoadingDetail(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/santri/${id}/detail`);
+      const json = await res.json() as any;
+      if (json.success) {
+        setDetailData(json.data);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil detail santri:", err);
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (deepId) {
+      const id = parseInt(deepId);
+      if (!isNaN(id)) {
+        setSelectedSantriId(id);
+        fetchDetail(id);
+      }
+    } else {
+      setSelectedSantriId(null);
+      setDetailData(null);
+    }
+  }, [deepId, fetchDetail]);
+
+  const fetchAllSantri = useCallback(async () => {
+    if (!hasFullAccess) return;
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/santri`);
@@ -78,24 +131,48 @@ function SantriContent() {
             const found = json.data.find((s: Santri) => s.id.toString() === deepId);
             if (found) setSelectedSantri(found);
         }
-        if (selectedSantri) {
-          const updated = json.data.find((s: Santri) => s.id === selectedSantri.id);
-          if (updated) setSelectedSantri(updated);
-        }
+        setSelectedSantri(prev => {
+          if (!prev) return null;
+          const updated = json.data.find((s: Santri) => s.id === prev.id);
+          return updated || prev;
+        });
       }
     } catch (error) {
       console.error("Gagal ambil semua data santri:", error);
     } finally {
       setTimeout(() => setLoading(false), 600);
     }
-  }
+  }, [hasFullAccess, deepId]);
 
   useEffect(() => {
     fetchAllSantri();
     const handleUpdate = () => fetchAllSantri();
     window.addEventListener('santri-updated', handleUpdate);
     return () => window.removeEventListener('santri-updated', handleUpdate);
-  }, [deepId]);
+  }, [deepId, fetchAllSantri]);
+
+  // Search effect for restricted view
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (restrictedQuery.length >= 2) {
+        setSearchingRestricted(true);
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/santri?q=${encodeURIComponent(restrictedQuery)}`);
+          const json = await res.json() as any;
+          if (json.success) {
+            setRestrictedResults(json.data);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setSearchingRestricted(false);
+        }
+      } else {
+        setRestrictedResults([]);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [restrictedQuery]);
 
   // Derived unique values for filters
   const filterOptions = useMemo(() => {
@@ -169,6 +246,348 @@ function SantriContent() {
     } catch (err) {
       showToast("Gagal mengeksport data", "error");
     }
+  }
+
+  const formatIDR = (val: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
+  if (session && !hasFullAccess) {
+    if (selectedSantriId) {
+      if (loadingDetail || !detailData) {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-indigo-650 animate-spin"></div>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-4">Memuat Profil Santri...</p>
+          </div>
+        );
+      }
+
+      const s = detailData.santri;
+      const payments = detailData.payments || [];
+      const permissions = detailData.permissions || [];
+      const violations = detailData.violations || [];
+
+      return (
+        <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-xs">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => {
+                  setSelectedSantriId(null);
+                  setDetailData(null);
+                  router.push("/santri");
+                }}
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-black uppercase rounded-xl transition-all flex items-center gap-2"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Pencarian
+              </button>
+            </div>
+            <div className="text-right">
+              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                s.status === 'Aktif' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+              }`}>
+                {s.status}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column: Data Diri */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-32 h-32 rounded-3xl bg-slate-50 border border-slate-100 p-2 shadow-inner overflow-hidden relative">
+                  {s.photo_url ? (
+                    <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover rounded-2xl" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
+                      <Users className="w-16 h-16" />
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-xl font-black text-slate-800 mt-4 leading-tight">{s.name}</h3>
+                <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">NISN: {s.nisn || "-"}</p>
+              </div>
+
+              <div className="border-t border-slate-100 pt-6 space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Madrasah & Kelas</label>
+                  <p className="text-sm font-black text-slate-700 mt-0.5">{s.madrasah || "-"} • {s.kelas}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Asrama / Kamar</label>
+                  <p className="text-sm font-black text-slate-700 mt-0.5">{s.asrama || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daerah Asal</label>
+                  <p className="text-sm font-black text-slate-700 mt-0.5">{s.asal || "-"}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Wali</label>
+                  <p className="text-sm font-black text-slate-700 mt-0.5">{s.wali_name || "-"}</p>
+                </div>
+                {s.wali_wa && (
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kontak Wali</label>
+                    <a 
+                      href={`https://wa.me/${s.wali_wa.replace(/\D/g, "")}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-sm font-black text-emerald-600 hover:underline block mt-0.5"
+                    >
+                      {s.wali_wa} (Hubungi via WA)
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Dynamic Tabs (Payments, Permissions, Violations) */}
+            <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+              {/* Tab Navigation */}
+              <div className="flex border-b border-slate-100 bg-slate-50/50 p-2 gap-1">
+                <button
+                  onClick={() => setProfileTab("pembayaran")}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
+                    profileTab === "pembayaran" ? "bg-white text-indigo-600 shadow-sm border border-slate-100" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  Data Pembayaran
+                </button>
+                <button
+                  onClick={() => setProfileTab("izin")}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
+                    profileTab === "izin" ? "bg-white text-indigo-600 shadow-sm border border-slate-100" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  Rekap Izin
+                </button>
+                <button
+                  onClick={() => setProfileTab("pelanggaran")}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
+                    profileTab === "pelanggaran" ? "bg-white text-indigo-600 shadow-sm border border-slate-100" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  Rekap Pelanggaran
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-6 flex-1 overflow-y-auto max-h-[500px]">
+                {profileTab === "pembayaran" && (
+                  <div className="space-y-4">
+                    <h4 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider mb-2">Riwayat Syahriyah SPP</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold text-left">
+                            <th className="px-4 py-3">Periode</th>
+                            <th className="px-4 py-3">Tahun Ajaran</th>
+                            <th className="px-4 py-3 text-right">Jumlah</th>
+                            <th className="px-4 py-3 text-center">Status</th>
+                            <th className="px-4 py-3">Tanggal Bayar</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
+                          {payments.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-slate-400 font-bold">
+                                Belum ada riwayat pembayaran SPP.
+                              </td>
+                            </tr>
+                          ) : (
+                            payments.map((p: any) => (
+                              <tr key={p.id} className="hover:bg-slate-50/50">
+                                <td className="px-4 py-3 text-slate-800">{p.period}</td>
+                                <td className="px-4 py-3 text-slate-500">{p.academic_year}</td>
+                                <td className="px-4 py-3 text-right font-mono text-slate-800">{formatIDR(p.amount)}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                                    p.status === 'Lunas' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                                  }`}>
+                                    {p.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-slate-500">
+                                  {p.paid_at ? new Date(p.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {profileTab === "izin" && (
+                  <div className="space-y-4">
+                    <h4 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider mb-2">Riwayat Izin Pulang / Keluar</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold text-left">
+                            <th className="px-4 py-3">Keperluan</th>
+                            <th className="px-4 py-3">Tgl Mulai</th>
+                            <th className="px-4 py-3">Tgl Kembali</th>
+                            <th className="px-4 py-3 text-center">Status</th>
+                            <th className="px-4 py-3">Disetujui Oleh</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
+                          {permissions.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-slate-400 font-bold">
+                                Belum ada riwayat perizinan.
+                              </td>
+                            </tr>
+                          ) : (
+                            permissions.map((p: any) => (
+                              <tr key={p.id} className="hover:bg-slate-50/50">
+                                <td className="px-4 py-3 text-slate-800">{p.keperluan}</td>
+                                <td className="px-4 py-3 text-slate-500">{p.tgl_mulai}</td>
+                                <td className="px-4 py-3 text-slate-500">{p.tgl_kembali}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                                    p.status === 'Kembali' ? 'bg-emerald-50 text-emerald-600' :
+                                    p.status === 'Keluar' ? 'bg-amber-50 text-amber-600 animate-pulse' : 'bg-rose-50 text-rose-600'
+                                  }`}>
+                                    {p.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-slate-500">{p.disetujui_oleh || "-"}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {profileTab === "pelanggaran" && (
+                  <div className="space-y-4">
+                    <h4 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider mb-2">Riwayat Pelanggaran & Takzir</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold text-left">
+                            <th className="px-4 py-3">Jenis</th>
+                            <th className="px-4 py-3 w-1/3">Keterangan / Kronologi</th>
+                            <th className="px-4 py-3 text-center">Poin</th>
+                            <th className="px-4 py-3 text-center">Status</th>
+                            <th className="px-4 py-3">Dilaporkan Oleh</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
+                          {violations.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-slate-400 font-bold">
+                                Bersih (Belum ada catatan pelanggaran).
+                              </td>
+                            </tr>
+                          ) : (
+                            violations.map((v: any) => (
+                              <tr key={v.id} className="hover:bg-slate-50/50">
+                                <td className="px-4 py-3 text-slate-800 font-extrabold">{v.jenis}</td>
+                                <td className="px-4 py-3 text-slate-500">{v.deskripsi}</td>
+                                <td className="px-4 py-3 text-center font-mono font-black text-rose-600">{v.point}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                                    v.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                                  }`}>
+                                    {v.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-slate-500">{v.dilaporkan_oleh || "-"}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Search Page for Restricted Role
+    return (
+      <div className="p-4 md:p-8 space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300">
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm text-center space-y-4">
+          <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-xs">
+            <Search className="w-8 h-8" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">Pencarian Data Profil Santri</h2>
+            <p className="text-xs text-slate-400 uppercase font-black tracking-widest mt-1">Keuangan, Akademik, Perizinan & Kedisiplinan</p>
+          </div>
+
+          <div className="relative max-w-xl mx-auto pt-4">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 mt-2" />
+            <input 
+              type="text" 
+              placeholder="Cari berdasarkan Nama atau NISN santri..." 
+              value={restrictedQuery}
+              onChange={(e) => setRestrictedQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-bold text-slate-700"
+            />
+          </div>
+        </div>
+
+        {restrictedQuery.length > 0 && (
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden p-6 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-widest">Hasil Pencarian ({restrictedResults.length})</h3>
+            
+            {searchingRestricted ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
+              </div>
+            ) : restrictedQuery.length < 2 ? (
+              <p className="text-xs font-bold text-slate-400 text-center py-6">Ketik minimal 2 karakter untuk mulai mencari...</p>
+            ) : restrictedResults.length === 0 ? (
+              <p className="text-xs font-bold text-slate-400 text-center py-12">Santri tidak ditemukan.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {restrictedResults.map((s) => (
+                  <div 
+                    key={s.id} 
+                    onClick={() => {
+                      setSelectedSantriId(s.id);
+                      fetchDetail(s.id);
+                      router.push(`/santri?id=${s.id}`);
+                    }}
+                    className="flex items-center gap-4 p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer group"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 font-black flex items-center justify-center text-xs overflow-hidden shrink-0 border border-indigo-100/50">
+                      {s.photo_url ? (
+                        <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover" />
+                      ) : (
+                        s.name.substring(0, 2).toUpperCase()
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-black text-slate-700 group-hover:text-indigo-600 transition-colors truncate">{s.name}</h4>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{s.madrasah} • Kelas {s.kelas}</p>
+                      <p className="text-[9px] font-bold text-slate-400 tracking-wider">NISN: {s.nisn || "-"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (

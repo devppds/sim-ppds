@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   ShieldAlert, Users, Activity, HardDrive, 
@@ -41,29 +41,29 @@ export default function PusatKontrolPage() {
   const [formData, setFormData] = useState({ username: "", name: "", role: "Sekretaris", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/users");
       const json = await res.json() as any;
       if (json.success) setUsers(json.data);
     } catch (e) { showToast("Gagal muat user", "error"); }
-  }
+  }, [showToast]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/audit");
       const json = await res.json() as any;
       if (json.success) setLogs(json.data);
     } catch (e) { showToast("Gagal muat log", "error"); }
-  }
+  }, [showToast]);
 
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/roles");
       const json = await res.json() as any;
       if (json.success) setJabatanList(json.data);
     } catch (e) { showToast("Gagal muat jabatan", "error"); }
-  }
+  }, [showToast]);
 
   useEffect(() => {
     setLoading(true);
@@ -71,7 +71,7 @@ export default function PusatKontrolPage() {
     if (activeTab === "users") fetchUsers().finally(() => setLoading(false));
     else if (activeTab === "audit") fetchLogs().finally(() => setLoading(false));
     else setLoading(false);
-  }, [activeTab]);
+  }, [activeTab, fetchRoles, fetchUsers, fetchLogs]);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,9 +112,9 @@ export default function PusatKontrolPage() {
         {/* Header with Command Center Vibe */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-             <div className="w-14 h-14 bg-slate-900 rounded-[2rem] border border-white/5 flex items-center justify-center shadow-2xl relative">
+             <div className="w-14 h-14 bg-slate-900 rounded-4xl border border-white/5 flex items-center justify-center shadow-2xl relative">
                 <ShieldAlert className="w-7 h-7 text-rose-500" />
-                <div className="absolute inset-0 bg-rose-500/10 rounded-[2rem] animate-pulse" />
+                <div className="absolute inset-0 bg-rose-500/10 rounded-4xl animate-pulse" />
              </div>
              <div>
                 <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase italic flex items-center gap-2">
@@ -219,7 +219,7 @@ export default function PusatKontrolPage() {
                  </div>
 
                  {/* System Alert Card */}
-                 <div className="bg-gradient-to-br from-rose-500 to-rose-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-rose-100">
+                 <div className="bg-linear-to-br from-rose-500 to-rose-600 p-8 rounded-4xl text-white shadow-xl shadow-rose-100">
                     <ShieldAlert className="w-10 h-10 mb-4 opacity-50" />
                     <h4 className="text-sm font-black uppercase italic mb-2">Peringatan Keamanan</h4>
                     <p className="text-[11px] font-medium opacity-80 leading-relaxed mb-6">
@@ -234,7 +234,7 @@ export default function PusatKontrolPage() {
 
               {/* User List Table */}
               <div className="lg:col-span-2">
-                 <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden h-full">
+                 <div className="bg-white rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden h-full">
                     <div className="p-8 border-b border-slate-50 flex items-center justify-between">
                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest italic">
                           Database Personel Sistem
@@ -261,14 +261,14 @@ export default function PusatKontrolPage() {
                                          </div>
                                          <div>
                                             <p className="text-xs font-black text-slate-800 uppercase">{u.name}</p>
-                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${
+                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase ${
                                               u.role === 'Pengasuh' ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-500'
                                             }`}>{u.role}</span>
                                          </div>
                                       </div>
                                    </td>
                                    <td className="px-8 py-6 text-center">
-                                      <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-full uppercase border border-emerald-100">{u.status}</span>
+                                      <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-2xl uppercase border border-emerald-100">{u.status}</span>
                                    </td>
                                    <td className="px-8 py-6 text-center">
                                       <div className="flex flex-col items-center gap-1">
@@ -295,7 +295,7 @@ export default function PusatKontrolPage() {
         )}
 
         {activeTab === "audit" && (
-           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden animate-in fade-in duration-300">
+           <div className="bg-white rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden animate-in fade-in duration-300">
               <div className="p-8 border-b border-slate-100 bg-slate-50/10 flex items-center justify-between">
                  <div>
                     <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest italic flex items-center gap-2">
@@ -309,11 +309,11 @@ export default function PusatKontrolPage() {
                  {logs.map(l => (
                     <div key={l.id} className="flex items-start gap-6 group hover:bg-slate-50/50 p-4 rounded-3xl transition-colors relative">
                        <div className="absolute left-[38px] top-14 bottom-0 w-0.5 bg-slate-100 hidden group-last:hidden sm:block" />
-                       <div className="w-20 pt-1 text-right flex-shrink-0 hidden sm:block">
+                       <div className="w-20 pt-1 text-right shrink-0 hidden sm:block">
                           <p className="text-[10px] font-black text-slate-400 uppercase">{new Date(l.created_at).toLocaleTimeString('id-ID')}</p>
                           <p className="text-[9px] font-bold text-slate-300">{new Date(l.created_at).toLocaleDateString('id-ID', {month: 'short', day: 'numeric'})}</p>
                        </div>
-                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 shadow-sm border ${
+                       <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 shadow-sm border ${
                          l.action === 'INSERT' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
                          l.action === 'DELETE' ? 'bg-rose-50 text-rose-500 border-rose-100' : 
                          'bg-amber-50 text-amber-600 border-amber-100'

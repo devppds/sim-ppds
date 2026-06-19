@@ -190,3 +190,34 @@ export const createSantriBulk = async (c: Context<{ Bindings: Env }>) => {
     return c.json({ success: false, error: "Gagal mengimport data santri" }, 500)
   }
 }
+
+export const getSantriDetail = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const id = c.req.param('id')
+    if (!id) return c.json({ success: false, error: "ID wajib ada" }, 400)
+
+    const santri = await c.env.DB.prepare("SELECT * FROM santri WHERE id = ?").bind(id).first()
+    if (!santri) {
+      return c.json({ success: false, error: "Santri tidak ditemukan" }, 404)
+    }
+
+    const [paymentsRes, permissionsRes, violationsRes] = await c.env.DB.batch([
+      c.env.DB.prepare("SELECT * FROM spp_payments WHERE santri_id = ? ORDER BY paid_at DESC, id DESC").bind(id),
+      c.env.DB.prepare("SELECT * FROM perizinan WHERE santri_id = ? ORDER BY tgl_mulai DESC, id DESC").bind(id),
+      c.env.DB.prepare("SELECT * FROM pelanggaran WHERE santri_id = ? ORDER BY created_at DESC, id DESC").bind(id)
+    ])
+
+    return c.json({
+      success: true,
+      data: {
+        santri,
+        payments: paymentsRes.results,
+        permissions: permissionsRes.results,
+        violations: violationsRes.results
+      }
+    })
+  } catch (error) {
+    console.error("Error fetching santri detail:", error)
+    return c.json({ success: false, error: "Gagal mengambil detail santri" }, 500)
+  }
+}

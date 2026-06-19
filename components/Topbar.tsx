@@ -1,7 +1,30 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
-import { Bell, Menu, Plus, Search, User, Ghost, GraduationCap, X, LogOut, ShieldCheck } from "lucide-react";
+import { 
+  Bell, 
+  Menu, 
+  Plus, 
+  Search, 
+  User, 
+  Ghost, 
+  GraduationCap, 
+  X, 
+  LogOut, 
+  ShieldCheck,
+  Wallet,
+  UserCheck,
+  Calendar,
+  Zap,
+  Trash2,
+  Hammer,
+  Video,
+  MoonStar,
+  Wrench,
+  Package,
+  HeartPulse,
+  Store
+} from "lucide-react";
 import AddSantriModal from "./AddSantriModal";
 import NotificationModal from "./NotificationModal";
 import { useRouter } from "next/navigation";
@@ -124,6 +147,171 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
     }
   };
 
+  const getQuickAction = () => {
+    if (!session) return null;
+    const role = (session.role || "").toUpperCase();
+    const level = session.role_level;
+
+    // Sekretaris / Sekretariat / Root / Mudir / Developer
+    const isSekretaris = level === 'SEKRETARIAT' || 
+      level === 'ROOT' || 
+      role.includes("SEKRETARIS") || 
+      role.includes("SEKRETARIAT") ||
+      role === "DEVELOPER" ||
+      role === "MUDIR";
+    
+    if (isSekretaris) {
+      return {
+        label: "Santri Baru",
+        icon: Plus,
+        colorClass: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20 text-white",
+        onClick: () => setIsAddModalOpen(true)
+      };
+    }
+
+    // Bendahara / Keuangan
+    if (role.includes("BENDAHARA") || role.includes("KEUANGAN") || level === 'KEUANGAN' || level === 'RESTRICTED_SPP') {
+      return {
+        label: "Catat SPP",
+        icon: Wallet,
+        colorClass: "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 text-white",
+        onClick: () => router.push("/spp")
+      };
+    }
+
+    // Keamanan
+    if (role === "KEAMANAN") {
+      return {
+        label: "Catat Pelanggaran",
+        icon: ShieldCheck,
+        colorClass: "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20 text-white",
+        onClick: () => router.push("/keamanan")
+      };
+    }
+
+    // Pendidikan
+    if (role === "PENDIDIKAN") {
+      return {
+        label: "Data Guru / Kelas",
+        icon: GraduationCap,
+        colorClass: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20 text-white",
+        onClick: () => router.push("/pendidikan")
+      };
+    }
+
+    // Wajar
+    if (role === "WAJAR") {
+      return {
+        label: "Presensi Wajar",
+        icon: UserCheck,
+        colorClass: "bg-amber-600 hover:bg-amber-700 shadow-amber-600/20 text-white",
+        onClick: () => router.push("/wajar")
+      };
+    }
+
+    // Jam'iyyah
+    if (role === "JAMIYYAH" || role.includes("JAMI")) {
+      return {
+        label: "Agenda Jam'iyyah",
+        icon: Calendar,
+        colorClass: "bg-purple-600 hover:bg-purple-700 shadow-purple-600/20 text-white",
+        onClick: () => router.push("/jamiyyah")
+      };
+    }
+
+    // PLP
+    if (role === "PLP") {
+      return {
+        label: "Kontrol Utilitas",
+        icon: Zap,
+        colorClass: "bg-cyan-600 hover:bg-cyan-700 shadow-cyan-600/20 text-white",
+        onClick: () => router.push("/plp")
+      };
+    }
+
+    // Kebersihan / KBR
+    if (role === "KBR" || role.includes("KEBERSIHAN")) {
+      return {
+        label: "Log Kebersihan",
+        icon: Trash2,
+        colorClass: "bg-teal-600 hover:bg-teal-700 shadow-teal-600/20 text-white",
+        onClick: () => router.push("/kebersihan")
+      };
+    }
+
+    // Pembangunan
+    if (role === "PEMBANGUNAN") {
+      return {
+        label: "Proyek Pembangunan",
+        icon: Hammer,
+        colorClass: "bg-orange-600 hover:bg-orange-700 shadow-orange-600/20 text-white",
+        onClick: () => router.push("/pembangunan")
+      };
+    }
+
+    // Media
+    if (role === "MEDIA") {
+      return {
+        label: "Galeri Media",
+        icon: Video,
+        colorClass: "bg-pink-600 hover:bg-pink-700 shadow-pink-600/20 text-white",
+        onClick: () => router.push("/media")
+      };
+    }
+
+    // Takmir Masjid
+    if (role === "TAKMIR") {
+      return {
+        label: "Takmir Masjid",
+        icon: MoonStar,
+        colorClass: "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 text-white",
+        onClick: () => router.push("/takmir")
+      };
+    }
+
+    // Fasilitas / Sarpras
+    if (role === "FASILITAS") {
+      return {
+        label: "Sarpras & Inventaris",
+        icon: Wrench,
+        colorClass: "bg-slate-700 hover:bg-slate-800 shadow-slate-700/20 text-white",
+        onClick: () => router.push("/fasilitas")
+      };
+    }
+
+    // Logistik
+    if (role === "LOGISTIK" || role === "HUMASY") {
+      return {
+        label: "Stok Logistik",
+        icon: Package,
+        colorClass: "bg-blue-600 hover:bg-blue-700 shadow-blue-600/20 text-white",
+        onClick: () => router.push("/logistik")
+      };
+    }
+
+    // Klinik
+    if (role === "KESEHATAN" || role === "KLINIK") {
+      return {
+        label: "Pos Kesehatan",
+        icon: HeartPulse,
+        colorClass: "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20 text-white",
+        onClick: () => router.push("/klinik")
+      };
+    }
+
+    // Unit Usaha BUMP
+    if (role === "BUMP") {
+      return {
+        label: "Kas Penjualan",
+        icon: Store,
+        colorClass: "bg-amber-600 hover:bg-amber-700 shadow-amber-600/20 text-white",
+        onClick: () => router.push("/bump")
+      };
+    }
+
+    return null;
+  };
+
   return (
     <header className="shrink-0 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3 relative z-50">
       <div className="flex items-center justify-between">
@@ -223,13 +411,20 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
                 )}
               </button>
 
-              <button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
-              >
-                <Plus className="w-4 h-4" />
-                Santri Baru
-              </button>
+              {(() => {
+                const action = getQuickAction();
+                if (!action) return null;
+                const IconComponent = action.icon;
+                return (
+                  <button 
+                    onClick={action.onClick}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-lg active:scale-95 ${action.colorClass}`}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    {action.label}
+                  </button>
+                );
+              })()}
         </div>
       </div>
 

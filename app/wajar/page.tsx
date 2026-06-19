@@ -39,12 +39,16 @@ interface UbudiyyahRecord {
 }
 
 export default function WajarPage() {
-  const [activeTab, setActiveTab] = useState<"presensi" | "ubudiyyah">("presensi");
+  const [activeTab, setActiveTab] = useState<"presensi" | "ubudiyyah" | "izin">("presensi");
   const { showToast } = useToast();
 
   const [santriList, setSantriList] = useState<Santri[]>([]);
   const [presensiList, setPresensiList] = useState<PresensiWajar[]>([]);
   const [ubudiyyahList, setUbudiyyahList] = useState<UbudiyyahRecord[]>([]);
+
+  const [izinSekolahList, setIzinSekolahList] = useState<any[]>([]);
+  const [izinPulangList, setIzinPulangList] = useState<any[]>([]);
+  const [loadingIzin, setLoadingIzin] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,13 +134,33 @@ export default function WajarPage() {
     }
   }, []);
 
+  const fetchIzinData = useCallback(async () => {
+    setLoadingIzin(true);
+    try {
+      const [sekolahRes, pulangRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/pendidikan/izin-sekolah`),
+        fetch(`${API_BASE_URL}/api/keamanan/perizinan`)
+      ]);
+      const sekolahJson = await sekolahRes.json() as any;
+      const pulangJson = await pulangRes.json() as any;
+
+      if (sekolahJson.success) setIzinSekolahList(sekolahJson.data);
+      if (pulangJson.success) setIzinPulangList(pulangJson.data);
+    } catch (err) {
+      console.error("Gagal mengambil data perizinan di Wajar:", err);
+    } finally {
+      setLoadingIzin(false);
+    }
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSantri();
       fetchWajarData();
+      fetchIzinData();
     }, 0);
     return () => clearTimeout(timer);
-  }, [fetchSantri, fetchWajarData]);
+  }, [fetchSantri, fetchWajarData, fetchIzinData]);
 
   // Actions
   const handleCreatePresensi = async (e: React.FormEvent) => {
@@ -222,6 +246,18 @@ export default function WajarPage() {
     u.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredIzinSekolahList = izinSekolahList.filter(i => 
+    (i.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (i.keperluan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (i.santri_asrama || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredIzinPulangList = izinPulangList.filter(p => 
+    (p.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.keperluan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.santri_asrama || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
@@ -238,19 +274,21 @@ export default function WajarPage() {
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button 
-              onClick={fetchWajarData}
+              onClick={() => { fetchWajarData(); fetchIzinData(); }}
               className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
               title="Refresh Data"
             >
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 ${(loading || loadingIzin) ? 'animate-spin' : ''}`} />
             </button>
-            <button 
-              onClick={() => activeTab === "presensi" ? setIsPresensiModalOpen(true) : setIsUbudiyyahModalOpen(true)} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
-            >
-              <Plus className="w-5 h-5" />
-              <span>{activeTab === "presensi" ? "Catat Presensi Baru" : "Catat Ubudiyyah"}</span>
-            </button>
+            {activeTab !== "izin" && (
+              <button 
+                onClick={() => activeTab === "presensi" ? setIsPresensiModalOpen(true) : setIsUbudiyyahModalOpen(true)} 
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+              >
+                <Plus className="w-5 h-5" />
+                <span>{activeTab === "presensi" ? "Catat Presensi Baru" : "Catat Ubudiyyah"}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -275,6 +313,16 @@ export default function WajarPage() {
             }`}
           >
             Tracker Ubudiyyah (Subuh Ceria)
+          </button>
+          <button
+            onClick={() => setActiveTab("izin")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "izin" 
+                ? "bg-white text-emerald-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            Laporan Perizinan Santri
           </button>
         </div>
 
@@ -415,6 +463,128 @@ export default function WajarPage() {
                   </tbody>
                 </table>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "izin" && (
+          <div className="space-y-6">
+            {/* Izin Sekolah */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <div>
+                  <h2 className="font-extrabold text-slate-800 text-lg">Laporan Izin Sekolah / Akademik (Pendidikan)</h2>
+                  <p className="text-xs text-slate-400 font-medium">Data dispensasi sekolah santri aktif</p>
+                </div>
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-black uppercase tracking-wider">
+                  {filteredIzinSekolahList.length} Santri
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                {loadingIzin ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-2" />
+                    <p className="text-xs font-bold uppercase tracking-wider">Memuat...</p>
+                  </div>
+                ) : filteredIzinSekolahList.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400 text-sm font-semibold italic">
+                    Tidak ada data izin sekolah.
+                  </div>
+                ) : (
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-100">
+                      <tr className="text-xs text-slate-500 font-bold uppercase text-left">
+                        <th className="px-6 py-4">Nama / Kelas</th>
+                        <th className="px-6 py-4">Asrama</th>
+                        <th className="px-6 py-4">Sekolah / Keperluan</th>
+                        <th className="px-6 py-4">Tanggal Mulai</th>
+                        <th className="px-6 py-4">Batas Kembali</th>
+                        <th className="px-6 py-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredIzinSekolahList.map((i) => (
+                        <tr key={i.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4 font-bold text-slate-800">
+                            <div>{i.santri_name}</div>
+                            <div className="text-[10px] text-slate-400 font-normal mt-0.5">{i.santri_kelas}</div>
+                          </td>
+                          <td className="px-6 py-4 text-slate-600 font-semibold">{i.santri_asrama || "-"}</td>
+                          <td className="px-6 py-4 text-slate-600">{i.keperluan}</td>
+                          <td className="px-6 py-4 text-slate-500">{i.tgl_mulai}</td>
+                          <td className="px-6 py-4 font-semibold text-emerald-600">{i.tgl_kembali}</td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-600 uppercase">
+                              {i.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+
+            {/* Izin Pulang / Keluar */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <div>
+                  <h2 className="font-extrabold text-slate-800 text-lg">Laporan Santri Pulang / Keluar (Keamanan)</h2>
+                  <p className="text-xs text-slate-400 font-medium">Santri yang saat ini berada di luar pondok</p>
+                </div>
+                <span className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-xs font-black uppercase tracking-wider">
+                  {filteredIzinPulangList.filter(p => p.status === 'Keluar' || p.status === 'Terlambat').length} Aktif
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                {loadingIzin ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                    <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-2" />
+                    <p className="text-xs font-bold uppercase tracking-wider">Memuat...</p>
+                  </div>
+                ) : filteredIzinPulangList.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400 text-sm font-semibold italic">
+                    Tidak ada data izin pulang.
+                  </div>
+                ) : (
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-100">
+                      <tr className="text-xs text-slate-500 font-bold uppercase text-left">
+                        <th className="px-6 py-4">Nama / Kelas</th>
+                        <th className="px-6 py-4">Asrama</th>
+                        <th className="px-6 py-4">Keperluan</th>
+                        <th className="px-6 py-4">Tanggal Mulai</th>
+                        <th className="px-6 py-4">Batas Kembali</th>
+                        <th className="px-6 py-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredIzinPulangList.map((p) => (
+                        <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4 font-bold text-slate-800">
+                            <div>{p.santri_name}</div>
+                            <div className="text-[10px] text-slate-400 font-normal mt-0.5">{p.santri_kelas}</div>
+                          </td>
+                          <td className="px-6 py-4 text-slate-600 font-semibold">{p.santri_asrama || "-"}</td>
+                          <td className="px-6 py-4 text-slate-600">{p.keperluan}</td>
+                          <td className="px-6 py-4 text-slate-500">{p.tgl_mulai}</td>
+                          <td className="px-6 py-4 font-semibold text-rose-500">{p.tgl_kembali}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold uppercase ${
+                              p.status === "Keluar" ? "bg-rose-50 text-rose-600" :
+                              p.status === "Kembali" ? "bg-emerald-50 text-emerald-600" :
+                              "bg-slate-100 text-slate-500"
+                            }`}>
+                              {p.status === "Keluar" ? "Pulang" : p.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
           </div>
         )}

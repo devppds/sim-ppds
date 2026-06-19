@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback, useMemo } from "react";
 import { CheckCircle2, XCircle, Info, AlertCircle, X } from "lucide-react";
 
 type ToastType = "success" | "error" | "info" | "warning";
@@ -20,7 +20,11 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = (message: string, type: ToastType = "info") => {
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const showToast = useCallback((message: string, type: ToastType = "info") => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
 
@@ -28,14 +32,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => {
       removeToast(id);
     }, 4000);
-  };
+  }, [removeToast]);
 
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  const value = useMemo(() => ({ showToast }), [showToast]);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div className="fixed top-6 left-1/2 -translate-x-1/2 z-200 flex flex-col items-center gap-3 pointer-events-none">
         {toasts.map((toast) => (

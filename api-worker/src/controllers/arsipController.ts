@@ -59,3 +59,34 @@ export const deleteArsip = async (c: Context<{ Bindings: Env }>) => {
     return c.json({ success: false, error: "Gagal menghapus arsip: " + (error.message || "") }, 500);
   }
 }
+
+export const updateArsip = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const id = c.req.param('id');
+    const body = await c.req.json() as any;
+    const { name, url, type, size, category, doc_date, doc_number, flow_type, sender_receiver } = body;
+
+    if (!id) {
+      return c.json({ success: false, error: "ID wajib ada" }, 400);
+    }
+
+    await c.env.DB.prepare(`
+      UPDATE arsip 
+      SET name = COALESCE(?, name),
+          url = COALESCE(?, url),
+          type = COALESCE(?, type),
+          size = COALESCE(?, size),
+          category = COALESCE(?, category),
+          doc_date = COALESCE(?, doc_date),
+          doc_number = COALESCE(?, doc_number),
+          flow_type = COALESCE(?, flow_type),
+          sender_receiver = COALESCE(?, sender_receiver)
+      WHERE id = ?
+    `).bind(name, url, type, size, category, doc_date, doc_number, flow_type, sender_receiver, id).run();
+
+    return c.json({ success: true, message: "Arsip berhasil diperbarui" });
+  } catch (error: any) {
+    console.error("Error updating arsip:", error);
+    return c.json({ success: false, error: "Gagal memperbarui arsip: " + (error.message || "") }, 500);
+  }
+}
