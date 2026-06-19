@@ -133,22 +133,29 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const canAccess = (module: 'SEKRETARIAT' | 'KEUANGAN' | 'PENGATURAN' | 'PUSAT_KONTROL' | 'OPERASIONAL') => {
     if (!session) return false;
     const level = session.role_level;
-    if (level === 'ROOT') return true;
+    const role = (session.role || "").toUpperCase();
+    const name = (session.name || "").toUpperCase();
+    
+    // ROOT / MUDIR
+    if (level === 'ROOT' || role === 'MUDIR' || role.includes('SUPER')) return true;
 
     if (module === 'SEKRETARIAT') {
-      return level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT';
+      return level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT' || 
+             role.includes('SEKRETARIS') || role.includes('SEKRETARIAT') || name.includes('SEKRETARIAT');
     }
     if (module === 'KEUANGAN') {
-      return level === 'KEUANGAN' || level === 'RESTRICTED_SPP' || level === 'VIEW_ALL' || level === 'ROOT';
+      return level === 'KEUANGAN' || level === 'RESTRICTED_SPP' || level === 'VIEW_ALL' || level === 'ROOT' || 
+             role.includes('BENDAHARA') || role.includes('KEUANGAN') || name.includes('KEUANGAN');
     }
     if (module === 'PENGATURAN') {
-      return level === 'SEKRETARIAT'; 
+      return level === 'SEKRETARIAT' || role.includes('SEKRETARIS') || role.includes('SEKRETARIAT'); 
     }
     if (module === 'PUSAT_KONTROL') {
-      return level === 'ROOT'; 
+      return level === 'ROOT' || role === 'MUDIR' || role.includes('SUPER'); 
     }
     if (module === 'OPERASIONAL') {
-      return level === 'STAFF' || level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT' || level === 'OPERASIONAL';
+      return level === 'STAFF' || level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT' || level === 'OPERASIONAL' ||
+             role.includes('SEKRETARIS') || role.includes('SEKRETARIAT');
     }
     return false;
   };
@@ -225,38 +232,42 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     });
   }
 
-  // 4. Operasional Dasar (Keamanan, Pendidikan, Wajar)
+  // 4. Operasional (Keamanan, Pendidikan, dll)
   if (canAccess('OPERASIONAL')) {
-    navGroups.push({
-      label: "Operasional",
-      items: [
-        { href: "/keamanan", icon: ShieldAlert, label: "Keamanan" },
-        { href: "/pendidikan", icon: UserCheck, label: "Pendidikan" },
-        { href: "/wajar", icon: LayoutDashboard, label: "Wajib Belajar" },
-      ]
-    });
+    const role = (session?.role || "").toUpperCase();
+    const level = session?.role_level || "";
+    const isSuper = level === 'ROOT' || level === 'VIEW_ALL' || role === 'MUDIR' || role.includes('SUPER') || role.includes('SEKRETARIS');
 
-    navGroups.push({
-      label: "Operasional (Lanjutan)",
-      items: [
-        { href: "/jamiyyah", icon: Music, label: "Jam'iyyah" },
-        { href: "/plp", icon: Zap, label: "Listrik & Air (PLP)" },
-        { href: "/kebersihan", icon: Trash2, label: "Kebersihan (KBR)" },
-        { href: "/pembangunan", icon: Hammer, label: "Pembangunan" },
-        { href: "/media", icon: Video, label: "Media & Lab" },
-        { href: "/takmir", icon: MoonStar, label: "Takmir Masjid" },
-      ]
-    });
+    const operasionalItems = [];
+    if (isSuper || role === 'KEAMANAN') operasionalItems.push({ href: "/keamanan", icon: ShieldAlert, label: "Keamanan" });
+    if (isSuper || role === 'PENDIDIKAN') operasionalItems.push({ href: "/pendidikan", icon: UserCheck, label: "Pendidikan" });
+    if (isSuper || role === 'WAJAR') operasionalItems.push({ href: "/wajar", icon: LayoutDashboard, label: "Wajib Belajar" });
+    if (isSuper || role === 'JAMIYYAH' || role.includes('JAMI')) operasionalItems.push({ href: "/jamiyyah", icon: Music, label: "Jam'iyyah" });
+    if (isSuper || role === 'PLP') operasionalItems.push({ href: "/plp", icon: Zap, label: "Listrik & Air (PLP)" });
+    if (isSuper || role === 'KBR' || role.includes('KEBERSIHAN')) operasionalItems.push({ href: "/kebersihan", icon: Trash2, label: "Kebersihan (KBR)" });
+    if (isSuper || role === 'PEMBANGUNAN') operasionalItems.push({ href: "/pembangunan", icon: Hammer, label: "Pembangunan" });
+    if (isSuper || role === 'MEDIA') operasionalItems.push({ href: "/media", icon: Video, label: "Media & Lab" });
+    if (isSuper || role === 'TAKMIR') operasionalItems.push({ href: "/takmir", icon: MoonStar, label: "Takmir Masjid" });
 
-    navGroups.push({
-      label: "Layanan & Usaha",
-      items: [
-        { href: "/fasilitas", icon: Wrench, label: "Fasilitas & Sarpras" },
-        { href: "/logistik", icon: Package, label: "Logistik & Kebersihan" },
-        { href: "/klinik", icon: HeartPulse, label: "Pos Kesehatan (UKP)" },
-        { href: "/bump", icon: Store, label: "Unit Usaha BUMP" },
-      ]
-    });
+    if (operasionalItems.length > 0) {
+      navGroups.push({
+        label: "Operasional",
+        items: operasionalItems
+      });
+    }
+
+    const layananItems = [];
+    if (isSuper || role === 'FASILITAS') layananItems.push({ href: "/fasilitas", icon: Wrench, label: "Fasilitas & Sarpras" });
+    if (isSuper || role === 'LOGISTIK' || role === 'HUMASY') layananItems.push({ href: "/logistik", icon: Package, label: "Logistik & Kebersihan" });
+    if (isSuper || role === 'KESEHATAN' || role === 'KLINIK') layananItems.push({ href: "/klinik", icon: HeartPulse, label: "Pos Kesehatan (UKP)" });
+    if (isSuper || role === 'BUMP') layananItems.push({ href: "/bump", icon: Store, label: "Unit Usaha BUMP" });
+
+    if (layananItems.length > 0) {
+      navGroups.push({
+        label: "Layanan & Usaha",
+        items: layananItems
+      });
+    }
   }
 
   // 5. Eksekutif & Integrasi
