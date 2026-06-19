@@ -119,7 +119,7 @@ export default function JamiyyahPage() {
             <Music className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Seksi Jam'iyyah & Event</h1>
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Seksi Jam&apos;iyyah & Event</h1>
             <p className="text-sm text-slate-500 font-medium">Manajemen data operasional terpadu</p>
           </div>
         </div>

@@ -9,7 +9,7 @@
     "preview": "npm run pages:build --legacy-peer-deps && wrangler pages dev",
     "deploy": "npm run pages:build --legacy-peer-deps && wrangler pages deploy",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",

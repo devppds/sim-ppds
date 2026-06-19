@@ -230,7 +230,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
               <div className="md:col-span-4 flex flex-col items-center">
                  <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                     <div className="w-32 h-32 rounded-[2rem] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-400">
-                       {formData.photo_url ? <img src={formData.photo_url} className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-slate-300" />}
+                       {formData.photo_url ? <img src={formData.photo_url} alt="Santri" className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-slate-300" />}
                        {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-indigo-600" /></div>}
                     </div>
                  </div>

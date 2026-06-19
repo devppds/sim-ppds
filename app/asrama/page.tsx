@@ -177,7 +177,7 @@ export default function AsramaPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
                           {room.pengurus[0].photo_url ? (
-                            <img src={room.pengurus[0].photo_url} className="w-full h-full object-cover" />
+                            <img src={room.pengurus[0].photo_url} alt={room.pengurus[0].name} className="w-full h-full object-cover" />
                           ) : (
                             <User className="w-3 h-3 text-indigo-600" />
                           )}
@@ -227,7 +227,7 @@ export default function AsramaPage() {
                          <div key={i} className="flex items-center gap-4 p-4 bg-indigo-50/50 rounded-3xl border border-indigo-100">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-200 overflow-hidden shadow-sm shrink-0">
                                {p.photo_url ? (
-                                 <img src={p.photo_url} className="w-full h-full object-cover" />
+                                 <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
                                ) : (
                                  <div className="w-full h-full flex items-center justify-center text-indigo-600 text-lg font-black">{p.name[0]}</div>
                                )}
