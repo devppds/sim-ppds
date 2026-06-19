@@ -14,7 +14,8 @@ import {
   PieChart,
   Plus,
   Download,
-  CheckCircle
+  CheckCircle,
+  Users
 } from "lucide-react";
 import AddTransactionModal from "@/components/AddTransactionModal";
 import TransactionDetailModal from "@/components/TransactionDetailModal";
@@ -38,7 +39,7 @@ export default function KeuanganPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTrashed, setShowTrashed] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
-  const [activeTab, setActiveTab] = useState<"ledger" | "budgeting" | "neraca">("ledger");
+  const [activeTab, setActiveTab] = useState<"ledger" | "budgeting" | "neraca" | "monitoring">("ledger");
 
   const fetchFinance = useCallback(async () => {
     try {
@@ -139,6 +140,12 @@ export default function KeuanganPage() {
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "neraca" ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
           >
             <PieChart className="w-4 h-4" /> Laporan Neraca
+          </button>
+          <button 
+            onClick={() => setActiveTab("monitoring")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "monitoring" ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+          >
+            <Users className="w-4 h-4" /> Monitoring Seksi
           </button>
         </div>
 
@@ -363,6 +370,89 @@ export default function KeuanganPage() {
                      <span className="font-bold text-indigo-800 text-lg">Saldo Kas Bersih (Surplus)</span>
                      <span className="font-black text-2xl text-indigo-700 font-mono">Rp 77.500.000</span>
                  </div>
+             </div>
+           </div>
+        )}
+
+        {activeTab === "monitoring" && (
+           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+                <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/20">
+                    <div>
+                        <h2 className="text-lg font-black text-slate-800 tracking-tight">Monitoring Laporan Bulanan Seksi</h2>
+                        <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-wider">Rekapitulasi Akumulasi Pendapatan dan Pengeluaran Tiap Divisi/Seksi</p>
+                    </div>
+                    <div className="text-[11px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl uppercase tracking-widest">
+                       Bulan Ini: Syawal 1447 H
+                    </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                   <thead className="bg-slate-50/50 border-b border-slate-100 text-xs text-slate-400 font-black uppercase tracking-wider text-left">
+                     <tr>
+                       <th className="px-6 py-4">Nama Seksi / Divisi</th>
+                       <th className="px-6 py-4 text-right">Pemasukan Seksi</th>
+                       <th className="px-6 py-4 text-right">Pengeluaran Seksi</th>
+                       <th className="px-6 py-4 text-right">Saldo Terakumulasi</th>
+                       <th className="px-6 py-4 text-center">Status Laporan</th>
+                       <th className="px-6 py-4 text-center">Aksi</th>
+                     </tr>
+                   </thead>
+                   <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
+                     {[
+                       { name: "Unit Usaha BUMP", income: 12500000, expense: 4500000, status: "Verified", date: "15 Juni 2026", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                       { name: "Pos Kesehatan (UKP)", income: 3200000, expense: 1800000, status: "Verified", date: "16 Juni 2026", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                       { name: "Takmir Masjid", income: 8400000, expense: 2100000, status: "Verified", date: "18 Juni 2026", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                       { name: "Kebersihan (KBR)", income: 1500000, expense: 1200000, status: "Pending", date: "Hari ini", color: "bg-amber-50 text-amber-600 border-amber-100 animate-pulse" },
+                       { name: "Listrik & Air (PLP)", income: 0, expense: 0, status: "Belum Kirim", date: "-", color: "bg-rose-50 text-rose-600 border-rose-100" },
+                       { name: "Jam'iyyah & Event", income: 0, expense: 0, status: "Belum Kirim", date: "-", color: "bg-rose-50 text-rose-600 border-rose-100" },
+                       { name: "Pembangunan", income: 45000000, expense: 38000000, status: "Verified", date: "17 Juni 2026", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                       { name: "Media & Lab", income: 1200000, expense: 800000, status: "Verified", date: "14 Juni 2026", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                     ].map((item, i) => {
+                       const balance = item.income - item.expense;
+                       return (
+                         <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                           <td className="px-6 py-4 font-black text-slate-800">{item.name}</td>
+                           <td className="px-6 py-4 text-right text-emerald-600 tabular-nums">
+                             {item.income > 0 ? `Rp ${item.income.toLocaleString("id-ID")}` : "Rp 0"}
+                           </td>
+                           <td className="px-6 py-4 text-right text-rose-600 tabular-nums">
+                             {item.expense > 0 ? `Rp ${item.expense.toLocaleString("id-ID")}` : "Rp 0"}
+                           </td>
+                           <td className={`px-6 py-4 text-right tabular-nums ${balance >= 0 ? "text-slate-800" : "text-rose-600"}`}>
+                             {balance !== 0 ? `Rp ${balance.toLocaleString("id-ID")}` : "Rp 0"}
+                           </td>
+                           <td className="px-6 py-4 text-center">
+                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${item.color}`}>
+                                 {item.status}
+                               </span>
+                           </td>
+                           <td className="px-6 py-4 text-center">
+                             {item.status === "Pending" ? (
+                               <button 
+                                 onClick={() => alert(`Laporan keuangan seksi ${item.name} berhasil diverifikasi!`)}
+                                 className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm"
+                               >
+                                 Verifikasi
+                               </button>
+                             ) : item.status === "Belum Kirim" ? (
+                               <button 
+                                 onClick={() => alert(`Pengingat laporan bulanan dikirimkan ke Penanggung Jawab ${item.name}`)}
+                                 className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm"
+                               >
+                                 Kirim Pengingat
+                               </button>
+                             ) : (
+                               <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Selesai ({item.date})</span>
+                             )}
+                           </td>
+                         </tr>
+                       );
+                     })}
+                   </tbody>
+                 </table>
+                </div>
              </div>
            </div>
         )}

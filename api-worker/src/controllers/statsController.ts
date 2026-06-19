@@ -100,3 +100,30 @@ export const getMenuStats = async (c: Context<{ Bindings: Env }>) => {
     return c.json({ success: false, error: "Gagal mengambil statistik menu" }, 500)
   }
 }
+
+export const getDevStats = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const tables = [
+      'users', 'ustadz', 'santri', 'settings', 'transactions', 'notifications',
+      'jamiyyah_events', 'jamiyyah_assets', 'kbr_hygiene_checks',
+      'media_bookings', 'media_tickets', 'pembangunan_renovasi',
+      'plp_meters', 'plp_tickets', 'takmir_schedules', 'takmir_bookings',
+      'spp_payments', 'spp_config', 'presensi_wajar', 'ubudiyyah_tracker',
+      'clearance_boyong', 'skkb', 'santri_assets', 'pelanggaran',
+      'medical_records', 'surat_sakit', 'bump_inventory', 'bump_sales'
+    ];
+
+    const stats = await Promise.all(tables.map(async (table) => {
+      try {
+        const countRes = await c.env.DB.prepare(`SELECT COUNT(*) as count FROM ${table}`).first() as any;
+        return { table, count: countRes?.count ?? 0, status: 'OK' };
+      } catch (err: any) {
+        return { table, count: 0, status: 'Error', error: err.message };
+      }
+    }));
+
+    return c.json({ success: true, tables: stats });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+}

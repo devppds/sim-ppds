@@ -51,6 +51,7 @@ interface SessionData {
   role_level: string;
   name: string;
   timestamp: number;
+  avatar_url?: string;
 }
 
 interface NavItem {
@@ -136,8 +137,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const role = (session.role || "").toUpperCase();
     const name = (session.name || "").toUpperCase();
     
-    // ROOT / MUDIR
-    if (level === 'ROOT' || role === 'MUDIR' || role.includes('SUPER')) return true;
+    // ROOT / MUDIR / DEVELOPER
+    if (level === 'ROOT' || role === 'MUDIR' || role.includes('SUPER') || role === 'DEVELOPER') return true;
 
     if (module === 'SEKRETARIAT') {
       return level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT' || 
@@ -148,7 +149,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
              role.includes('BENDAHARA') || role.includes('KEUANGAN') || name.includes('KEUANGAN');
     }
     if (module === 'PENGATURAN') {
-      return level === 'SEKRETARIAT' || role.includes('SEKRETARIS') || role.includes('SEKRETARIAT'); 
+      return true; 
     }
     if (module === 'PUSAT_KONTROL') {
       return level === 'ROOT' || role === 'MUDIR' || role.includes('SUPER'); 
@@ -309,7 +310,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       items: configItems
     });
   }
-
+  if (session && (session.role || "").toUpperCase() === 'DEVELOPER') {
+    navGroups.push({
+      label: "Developer Only",
+      items: [
+        { href: "/developer", icon: Wrench, label: "Developer Portal", premium: true }
+      ]
+    });
+  }
   const getInitials = (name: string | undefined | null) => {
     if (!name) return "??";
     return name.split(' ').map(n => n?.[0] || '').join('').toUpperCase().substring(0, 2);
@@ -402,8 +410,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         <div className="px-4 py-4 border-t border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[11px] font-black shrink-0 border border-white/10 shadow-lg">
-              {session ? getInitials(session.name) : "..."}
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-[11px] font-black shrink-0 border border-white/10 shadow-lg overflow-hidden">
+              {session?.avatar_url ? (
+                <img src={session.avatar_url} alt={session.name} className="w-full h-full object-cover" />
+              ) : (
+                session ? getInitials(session.name) : "..."
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold truncate text-white">{session?.name || "Loading..."}</div>

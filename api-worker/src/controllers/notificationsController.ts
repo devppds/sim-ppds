@@ -39,3 +39,19 @@ export const markNotificationsRead = async (c: Context<{ Bindings: Env }>) => {
     return c.json({ success: false, error: "Internal Server Error" }, 500);
   }
 }
+
+export const createNotification = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const { title, message, type } = await c.req.json() as { title: string; message: string; type: string };
+    if (!title || !message) {
+      return c.json({ success: false, error: "Judul dan pesan wajib diisi" }, 400);
+    }
+    await c.env.DB.prepare(
+      "INSERT INTO notifications (title, message, type, is_read, created_at) VALUES (?, ?, ?, 0, datetime('now'))"
+    ).bind(title, message, type || 'info').run();
+    return c.json({ success: true, message: "Notifikasi berhasil dibuat" });
+  } catch (error: any) {
+    console.error("Notifications POST Error:", error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+}

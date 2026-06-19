@@ -2,12 +2,47 @@
 
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { FolderKanban, Users, Mail, CheckCircle, Clock, FileText, Download, Plus } from "lucide-react";
+import { FolderKanban, Users, Mail, CheckCircle, Clock, FileText, Download, Plus, Send } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 export default function SekretariatPage() {
-  const [activeTab, setActiveTab] = useState<"master" | "esurat" | "absensi">("master");
+  const [activeTab, setActiveTab] = useState<"master" | "esurat" | "absensi" | "pengumuman">("master");
   const { showToast } = useToast();
+
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementMsg, setAnnouncementMsg] = useState("");
+  const [announcementType, setAnnouncementType] = useState("info");
+  const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
+
+  const handleSendAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!announcementTitle || !announcementMsg) return;
+    setSendingAnnouncement(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: announcementTitle,
+          message: announcementMsg,
+          type: announcementType
+        })
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast("Pengumuman berhasil disebarkan ke seluruh pengguna!", "success");
+        setAnnouncementTitle("");
+        setAnnouncementMsg("");
+      } else {
+        showToast(json.error || "Gagal menyebarkan pengumuman", "error");
+      }
+    } catch (err) {
+      showToast("Kesalahan jaringan", "error");
+    } finally {
+      setSendingAnnouncement(false);
+    }
+  };
 
   const handleSyncEmis = () => {
     showToast("Sinkronisasi EMIS sedang berjalan di latar belakang...", "info");
@@ -47,6 +82,12 @@ export default function SekretariatPage() {
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "absensi" ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
           >
             <CheckCircle className="w-4 h-4" /> Absensi Pengurus
+          </button>
+          <button 
+            onClick={() => setActiveTab("pengumuman")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "pengumuman" ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+          >
+            <Send className="w-4 h-4" /> Kirim Pengumuman
           </button>
         </div>
 
@@ -165,7 +206,62 @@ export default function SekretariatPage() {
              </div>
           </div>
         )}
-      </div>
+         {activeTab === "pengumuman" && (
+           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm max-w-2xl">
+               <h2 className="text-lg font-black text-slate-800 mb-2">Kirim Pengumuman Baru</h2>
+               <p className="text-xs text-slate-400 mb-6">Pengumuman ini akan langsung dikirimkan ke lonceng notifikasi semua pengguna secara real-time.</p>
+               
+               <form onSubmit={handleSendAnnouncement} className="space-y-4">
+                  <div>
+                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Judul Pengumuman</label>
+                     <input 
+                       type="text"
+                       required
+                       value={announcementTitle}
+                       onChange={(e) => setAnnouncementTitle(e.target.value)}
+                       placeholder="Contoh: Libur Hari Raya Idul Adha 1447 H"
+                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-slate-700"
+                     />
+                  </div>
+                  <div>
+                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Konten / Isi Pengumuman</label>
+                     <textarea 
+                       required
+                       value={announcementMsg}
+                       onChange={(e) => setAnnouncementMsg(e.target.value)}
+                       placeholder="Tulis detail pengumuman di sini..."
+                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all min-h-[140px] text-slate-600"
+                     />
+                  </div>
+                  <div>
+                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Kategori / Urgensi</label>
+                     <select 
+                       value={announcementType}
+                       onChange={(e) => setAnnouncementType(e.target.value)}
+                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-slate-700"
+                     >
+                       <option value="info">Info / Pengumuman Biasa</option>
+                       <option value="success">Success / Berita Baik</option>
+                       <option value="warning">Warning / Penting</option>
+                       <option value="danger">Urgent / Darurat</option>
+                     </select>
+                  </div>
+                  
+                  <div className="pt-2">
+                     <button 
+                       type="submit" 
+                       disabled={sendingAnnouncement}
+                       className="px-6 py-3.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-black rounded-xl shadow-lg shadow-rose-500/20 transition-all disabled:opacity-50 flex items-center gap-2 uppercase tracking-widest"
+                     >
+                       {sendingAnnouncement ? 'Mengirim...' : 'Kirim Pengumuman'}
+                     </button>
+                  </div>
+               </form>
+             </div>
+           </div>
+         )}
+       </div>
     </DashboardLayout>
   );
 }

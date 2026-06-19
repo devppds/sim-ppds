@@ -41,14 +41,12 @@ export function middleware(request: NextRequest) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // 2. Pengaturan: ROOT or SEKRETARIAT
-      if (pathname.startsWith("/pengaturan") && !(level === 'ROOT' || level === 'SEKRETARIAT')) {
-         return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
+      // 2. Pengaturan: All authenticated users can access settings page
+      // No restriction here because page content will be customized based on role.
 
-      // 3. Seksi Keuangan: Limited access to /spp only
+      // 3. Seksi Keuangan: Limited access to /spp and /pengaturan only
       if (level === 'RESTRICTED_SPP' || sessionData.role === 'Seksi Keuangan') {
-         if (!pathname.startsWith("/spp")) {
+         if (!pathname.startsWith("/spp") && !pathname.startsWith("/pengaturan")) {
             return NextResponse.redirect(new URL("/spp", request.url));
          }
       }

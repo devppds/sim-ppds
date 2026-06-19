@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   Settings, Home, Wallet, Key, Plus, Trash2, 
-  Loader2, Save, Lock
+  Loader2, Save, Lock, User, Users, Bell, Upload, ShieldAlert
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
@@ -20,8 +20,12 @@ interface SPPRate {
 }
 
 export default function PengaturanPage() {
-  const [activeTab, setActiveTab] = useState<"profile" | "spp" | "account">("profile");
   const { showToast } = useToast();
+  const [session, setSession] = useState<any>(null);
+  const [loadingSession, setLoadingSession] = useState(true);
+  
+  // Available Tabs: profile_pesantren | spp_rates | user_management | app_settings | personal_profile | security
+  const [activeTab, setActiveTab] = useState<string>("personal_profile");
   
   // Profile settings state (D1 Backed)
   const [pondokProfile, setPondokProfile] = useState({
@@ -29,7 +33,12 @@ export default function PengaturanPage() {
     pondok_address: "",
     pondok_phone: "",
     pondok_email: "",
-    pondok_head: ""
+    pondok_head: "",
+    academic_year: "",
+    spp_due_day: "10",
+    cashless_enabled: "1",
+    notify_wa_active: "1",
+    notify_email_active: "1"
   });
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -49,6 +58,21 @@ export default function PengaturanPage() {
     description: ""
   });
 
+  // Personal Profile state
+  const [personalProfile, setPersonalProfile] = useState({
+    name: "",
+    username: "",
+    role: "",
+    avatar_url: ""
+  });
+  const [loadingPersonal, setLoadingPersonal] = useState(false);
+  const [isSavingPersonal, setIsSavingPersonal] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // User Accounts state
+  const [userList, setUserList] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
   // Account change password state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -57,8 +81,47 @@ export default function PengaturanPage() {
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // Fetch Pondok Profile settings from D1
-  const fetchProfile = async () => {
+  // Fetch session data
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then(res => res.json())
+      .then((data: any) => {
+        if (data.success && data.session) {
+          setSession(data.session);
+          // Set default tab based on role
+          const role = (data.session.role || "").toUpperCase();
+          const level = data.session.role_level;
+          const isAdmin = level === "ROOT" || level === "SEKRETARIAT" || role === "DEVELOPER";
+          
+          if (isAdmin) {
+            setActiveTab("profile_pesantren");
+          } else {
+            setActiveTab("personal_profile");
+          }
+        }
+      })
+      .catch(e => console.error("Session fetch error", e))
+      .finally(() => setLoadingSession(false));
+  }, []);
+
+  const isAdmin = session && (
+    session.role_level === "ROOT" || 
+    session.role_level === "SEKRETARIAT" || 
+    (session.role || "").toUpperCase() === "DEVELOPER"
+  );
+
+  const canManageSpp = session && (
+    (session.role || "").toUpperCase() === "BENDAHARA" ||
+    (session.role || "").toUpperCase() === "KEUANGAN" ||
+    (session.role || "").toUpperCase() === "SEKSI KEUANGAN" ||
+    session.role_level === "KEUANGAN" ||
+    session.role_level === "RESTRICTED_SPP" ||
+    session.role_level === "ROOT" ||
+    (session.role || "").toUpperCase() === "DEVELOPER"
+  );
+
+  // Fetch Pondok Profile settings
+  const fetchProfile = useCallback(async () => {
     setLoadingProfile(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/settings`);
@@ -69,7 +132,12 @@ export default function PengaturanPage() {
           pondok_address: json.data.pondok_address || "",
           pondok_phone: json.data.pondok_phone || "",
           pondok_email: json.data.pondok_email || "",
-          pondok_head: json.data.pondok_head || ""
+          pondok_head: json.data.pondok_head || "",
+          academic_year: json.data.academic_year || "",
+          spp_due_day: json.data.spp_due_day || "10",
+          cashless_enabled: json.data.cashless_enabled || "1",
+          notify_wa_active: json.data.notify_wa_active || "1",
+          notify_email_active: json.data.notify_email_active || "1"
         });
       } else {
         showToast(json.error || "Gagal memuat profil pesantren", "error");
@@ -79,10 +147,31 @@ export default function PengaturanPage() {
     } finally {
       setLoadingProfile(false);
     }
-  };
+  }, [showToast]);
 
-  // Fetch SPP config from Hono Worker D1
-  const fetchSppRates = async () => {
+  // Fetch personal profile details
+  const fetchPersonalProfile = useCallback(async () => {
+    setLoadingPersonal(true);
+    try {
+      const res = await fetch("/api/auth/profile");
+      const json = await res.json() as any;
+      if (json.success && json.data) {
+        setPersonalProfile({
+          name: json.data.name || "",
+          username: json.data.username || "",
+          role: json.data.role || "",
+          avatar_url: json.data.avatar_url || ""
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingPersonal(false);
+    }
+  }, []);
+
+  // Fetch SPP rates
+  const fetchSppRates = useCallback(async () => {
     setLoadingSPP(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/spp/config`);
@@ -98,16 +187,39 @@ export default function PengaturanPage() {
     } finally {
       setLoadingSPP(false);
     }
-  };
+  }, [showToast]);
 
-  useEffect(() => {
-    if (activeTab === "profile") {
-      fetchProfile();
-    } else if (activeTab === "spp") {
-      fetchSppRates();
+  // Fetch all user accounts
+  const fetchUserList = useCallback(async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      const json = await res.json() as any;
+      if (json.success) {
+        setUserList(json.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingUsers(false);
     }
-  }, [activeTab]);
+  }, []);
 
+  // Fetch dynamic content on tab change
+  useEffect(() => {
+    if (!session) return;
+    if (activeTab === "profile_pesantren" || activeTab === "app_settings") {
+      fetchProfile();
+    } else if (activeTab === "spp_rates") {
+      fetchSppRates();
+    } else if (activeTab === "user_management") {
+      fetchUserList();
+    } else if (activeTab === "personal_profile") {
+      fetchPersonalProfile();
+    }
+  }, [activeTab, session, fetchProfile, fetchPersonalProfile, fetchSppRates, fetchUserList]);
+
+  // Save pesantren profile and settings
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingProfile(true);
@@ -119,7 +231,7 @@ export default function PengaturanPage() {
       });
       const json = await res.json() as any;
       if (json.success) {
-        showToast("Profil pesantren berhasil disimpan ke D1!", "success");
+        showToast("Pengaturan pesantren berhasil disimpan ke D1!", "success");
       } else {
         showToast(json.error || "Gagal menyimpan profil", "error");
       }
@@ -130,6 +242,61 @@ export default function PengaturanPage() {
     }
   };
 
+  // Save personal profile
+  const handleSavePersonalProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingPersonal(true);
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(personalProfile)
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast("Profil pribadi berhasil diperbarui!", "success");
+        // Reload to apply changes across topbar and sidebar
+        window.location.reload();
+      } else {
+        showToast(json.error || "Gagal memperbarui profil", "error");
+      }
+    } catch (e) {
+      showToast("Koneksi gagal ke server", "error");
+    } finally {
+      setIsSavingPersonal(false);
+    }
+  };
+
+  // Upload personal profile photo
+  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", "sim-ppds-avatars");
+
+    setUploadingPhoto(true);
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        setPersonalProfile(prev => ({ ...prev, avatar_url: json.url }));
+        showToast("Foto berhasil diunggah! Klik Simpan untuk memperbarui profil.", "success");
+      } else {
+        showToast(json.error || "Upload foto gagal", "error");
+      }
+    } catch (err) {
+      showToast("Gagal terhubung ke Cloudinary", "error");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  // SPP rate commands
   const handleAddSppRate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSpp.kelas_name || !newSpp.amount) {
@@ -187,6 +354,53 @@ export default function PengaturanPage() {
     }
   };
 
+  // Toggle user active state
+  const handleToggleUserStatus = async (userId: number, currentStatus: number) => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: userId,
+          is_active: currentStatus === 1 ? false : true
+        })
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast(json.message || "Status pengguna diperbarui", "success");
+        fetchUserList();
+      } else {
+        showToast(json.error || "Gagal mengubah status pengguna", "error");
+      }
+    } catch (e) {
+      showToast("Gagal terhubung ke server", "error");
+    }
+  };
+
+  // Reset user password
+  const handleResetPassword = async (userId: number, targetName: string) => {
+    if (!confirm(`Reset kata sandi ${targetName} ke password default (123456)?`)) return;
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: userId,
+          reset_password: true
+        })
+      });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast("Kata sandi berhasil di-reset ke 123456", "success");
+      } else {
+        showToast(json.error || "Gagal me-reset kata sandi", "error");
+      }
+    } catch (e) {
+      showToast("Gagal terhubung ke server", "error");
+    }
+  };
+
+  // Change password
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
@@ -223,13 +437,29 @@ export default function PengaturanPage() {
     }
   };
 
+  const getInitials = (name: string | undefined | null) => {
+    if (!name) return "??";
+    return name.split(' ').map(n => n?.[0] || '').join('').toUpperCase().substring(0, 2);
+  };
+
+  if (loadingSession) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Memuat Sesi Pengaturan...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="fade-up space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-             <div className="w-14 h-14 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-xl shadow-indigo-600/20">
+             <div className="w-14 h-14 bg-indigo-600 rounded-4xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
                 <Settings className="w-7 h-7 text-white" />
              </div>
              <div>
@@ -237,33 +467,66 @@ export default function PengaturanPage() {
                    PENGATURAN
                 </h1>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                   Konfigurasi Profil Pondok, Tarif SPP, & Akun
+                   Konfigurasi Aplikasi & Pengaturan Akun
                 </p>
              </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex bg-white rounded-2xl border border-slate-100 p-1.5 shadow-sm">
+          {/* Navigation Tabs */}
+          <div className="flex flex-wrap gap-1 bg-white rounded-2xl border border-slate-100 p-1.5 shadow-sm">
+             {isAdmin && (
+               <>
+                 <button
+                   onClick={() => setActiveTab("profile_pesantren")}
+                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                     activeTab === "profile_pesantren" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
+                   }`}
+                 >
+                    <Home className="w-3.5 h-3.5" /> Pesantren
+                 </button>
+                 <button
+                   onClick={() => setActiveTab("app_settings")}
+                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                     activeTab === "app_settings" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
+                   }`}
+                 >
+                    <Settings className="w-3.5 h-3.5" /> Aplikasi & Notifikasi
+                 </button>
+                 <button
+                   onClick={() => setActiveTab("user_management")}
+                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                     activeTab === "user_management" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
+                   }`}
+                 >
+                    <Users className="w-3.5 h-3.5" /> Akun Pengguna
+                 </button>
+               </>
+             )}
+             
              <button
-               onClick={() => setActiveTab("profile")}
-               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase transition-all ${
-                 activeTab === "profile" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
+               onClick={() => setActiveTab("personal_profile")}
+               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                 activeTab === "personal_profile" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
                }`}
              >
-                <Home className="w-3.5 h-3.5" /> Profil
+                <User className="w-3.5 h-3.5" /> Profil Saya
              </button>
+             
+             {canManageSpp && (
+               <button
+                 onClick={() => setActiveTab("spp_rates")}
+                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                   activeTab === "spp_rates" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
+                 }`}
+               >
+                  <Wallet className="w-3.5 h-3.5" /> Tarif SPP
+               </button>
+             )}
+
              <button
-               onClick={() => setActiveTab("spp")}
-               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase transition-all ${
-                 activeTab === "spp" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
-               }`}
-             >
-                <Wallet className="w-3.5 h-3.5" /> Tarif SPP
-             </button>
-             <button
-               onClick={() => setActiveTab("account")}
-               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase transition-all ${
-                 activeTab === "account" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
+               onClick={() => setActiveTab("security")}
+               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                 activeTab === "security" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
                }`}
              >
                 <Key className="w-3.5 h-3.5" /> Keamanan
@@ -271,8 +534,8 @@ export default function PengaturanPage() {
           </div>
         </div>
 
-        {/* Tab content: Profile */}
-        {activeTab === "profile" && (
+        {/* Tab Content: Profil Pesantren */}
+        {activeTab === "profile_pesantren" && isAdmin && (
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-3xl animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <Home className="w-4 h-4 text-indigo-500" /> Identitas Lembaga Pesantren
@@ -281,7 +544,7 @@ export default function PengaturanPage() {
             {loadingProfile ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Memuat profil dari D1...</p>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Memuat profil...</p>
               </div>
             ) : (
               <form onSubmit={handleSaveProfile} className="space-y-5">
@@ -293,7 +556,7 @@ export default function PengaturanPage() {
                       required
                       value={pondokProfile.pondok_name}
                       onChange={e => setPondokProfile({...pondokProfile, pondok_name: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                     />
                   </div>
                   <div className="space-y-1">
@@ -303,7 +566,7 @@ export default function PengaturanPage() {
                       required
                       value={pondokProfile.pondok_head}
                       onChange={e => setPondokProfile({...pondokProfile, pondok_head: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                     />
                   </div>
                 </div>
@@ -315,7 +578,7 @@ export default function PengaturanPage() {
                     required
                     value={pondokProfile.pondok_address}
                     onChange={e => setPondokProfile({...pondokProfile, pondok_address: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                    className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                   />
                 </div>
 
@@ -327,7 +590,7 @@ export default function PengaturanPage() {
                       required
                       value={pondokProfile.pondok_phone}
                       onChange={e => setPondokProfile({...pondokProfile, pondok_phone: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                     />
                   </div>
                   <div className="space-y-1">
@@ -337,7 +600,7 @@ export default function PengaturanPage() {
                       required
                       value={pondokProfile.pondok_email}
                       onChange={e => setPondokProfile({...pondokProfile, pondok_email: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                     />
                   </div>
                 </div>
@@ -348,15 +611,307 @@ export default function PengaturanPage() {
                   className="mt-4 px-6 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
                 >
                   {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
-                  Simpan Profil Pesantren
+                  Simpan Identitas Pesantren
                 </button>
               </form>
             )}
           </div>
         )}
 
-        {/* Tab content: SPP Config */}
-        {activeTab === "spp" && (
+        {/* Tab Content: Aplikasi & Notifikasi */}
+        {activeTab === "app_settings" && isAdmin && (
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-3xl animate-in slide-in-from-bottom-2 duration-300">
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <Settings className="w-4 h-4 text-indigo-500" /> Konfigurasi Aplikasi & Notifikasi Real-time
+            </h3>
+
+            {loadingProfile ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Memuat pengaturan...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Tahun Ajaran</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Contoh: 2025/2026"
+                      value={pondokProfile.academic_year}
+                      onChange={e => setPondokProfile({...pondokProfile, academic_year: e.target.value})}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Jatuh Tempo SPP (Tanggal)</label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="31"
+                      required
+                      value={pondokProfile.spp_due_day}
+                      onChange={e => setPondokProfile({...pondokProfile, spp_due_day: e.target.value})}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Status Cashless BUMP</label>
+                    <select 
+                      value={pondokProfile.cashless_enabled}
+                      onChange={e => setPondokProfile({...pondokProfile, cashless_enabled: e.target.value})}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-4 text-xs font-bold text-slate-700 outline-none"
+                    >
+                      <option value="1">Aktif / Diaktifkan</option>
+                      <option value="0">Nonaktif / Dibatasi</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-6">
+                  <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
+                    <Bell className="w-3.5 h-3.5 text-indigo-500" /> Saluran Notifikasi Tagihan
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div>
+                        <p className="text-xs font-black text-slate-800">Notifikasi WhatsApp Otomatis</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Kirim pesan WhatsApp gateway tagihan SPP bulanan ke wali santri</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={pondokProfile.notify_wa_active === "1"}
+                          onChange={e => setPondokProfile({...pondokProfile, notify_wa_active: e.target.checked ? "1" : "0"})}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div>
+                        <p className="text-xs font-black text-slate-800">Notifikasi Email Tagihan</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Kirim email pengingat bulanan ke email pengguna / pengurus</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={pondokProfile.notify_email_active === "1"}
+                          onChange={e => setPondokProfile({...pondokProfile, notify_email_active: e.target.checked ? "1" : "0"})}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="mt-4 px-6 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
+                >
+                  {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+                  Simpan Konfigurasi Aplikasi & Notifikasi
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* Tab Content: Akun Pengguna */}
+        {activeTab === "user_management" && isAdmin && (
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-5xl animate-in slide-in-from-bottom-2 duration-300">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                  <Users className="w-4 h-4 text-indigo-500" /> Manajemen Akun & Hak Akses
+                </h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+                  Pantau status login pengurus dan lakukan reset kata sandi jika diperlukan
+                </p>
+              </div>
+            </div>
+
+            {loadingUsers ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mengambil data pengguna...</p>
+              </div>
+            ) : userList.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                    <tr>
+                      <th className="px-6 py-4">Username & Nama</th>
+                      <th className="px-6 py-4">Jabatan/Peran</th>
+                      <th className="px-6 py-4">Login Terakhir</th>
+                      <th className="px-6 py-4 text-center">Status</th>
+                      <th className="px-6 py-4 text-center">Tindakan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 text-slate-700">
+                    {userList.map((user) => (
+                      <tr key={user.id} className="hover:bg-slate-50/50 transition-colors text-xs font-bold">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-black shrink-0">
+                              {getInitials(user.name)}
+                            </div>
+                            <div>
+                              <p className="text-slate-800">{user.name}</p>
+                              <p className="text-[10px] font-bold text-slate-400">@{user.username}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-black uppercase tracking-wider">
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-400">
+                          {user.last_login ? new Date(user.last_login).toLocaleString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          }) : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                            user.is_active === 1 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                          }`}>
+                            {user.is_active === 1 ? "Aktif" : "Nonaktif"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleToggleUserStatus(user.id, user.is_active)}
+                              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
+                                user.is_active === 1 
+                                ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' 
+                                : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                              }`}
+                            >
+                              {user.is_active === 1 ? "Nonaktifkan" : "Aktifkan"}
+                            </button>
+                            <button
+                              onClick={() => handleResetPassword(user.id, user.name)}
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-[9px] font-black uppercase transition-all"
+                            >
+                              Reset Sandi
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-20 text-center text-slate-300 italic text-sm font-bold">
+                Tidak ada pengguna terdaftar yang dapat ditampilkan.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab Content: Profil Saya */}
+        {activeTab === "personal_profile" && (
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-3xl animate-in slide-in-from-bottom-2 duration-300">
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <User className="w-4 h-4 text-indigo-500" /> Informasi Data Diri Pribadi
+            </h3>
+
+            {loadingPersonal ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Memuat profil pribadi...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSavePersonalProfile} className="space-y-6">
+                {/* Photo Profile Section */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 w-fit">
+                  <div className="w-20 h-20 rounded-4xl bg-linear-to-br from-indigo-500 to-purple-600 border border-slate-200/50 shadow-lg overflow-hidden flex items-center justify-center text-white text-2xl font-black shrink-0 relative group">
+                    {personalProfile.avatar_url ? (
+                      <img src={personalProfile.avatar_url} alt="Foto Profil" className="w-full h-full object-cover" />
+                    ) : (
+                      getInitials(personalProfile.name)
+                    )}
+                    {uploadingPhoto && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2 text-center sm:text-left">
+                    <p className="text-xs font-black text-slate-800 uppercase tracking-wider">Foto Profil</p>
+                    <p className="text-[10px] text-slate-400">Direkomendasikan foto wajah formal, rasio 1:1, max 2MB</p>
+                    <label className="relative inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase rounded-xl transition-all cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" />
+                      {uploadingPhoto ? "Mengunggah..." : "Unggah Foto Baru"}
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        disabled={uploadingPhoto}
+                        onChange={handleUploadPhoto}
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Username (Tidak Dapat Diubah)</label>
+                    <input 
+                      type="text" 
+                      disabled
+                      value={personalProfile.username}
+                      className="w-full bg-slate-100 border-none rounded-2xl py-3.5 px-4 text-xs font-bold text-slate-500 cursor-not-allowed outline-none" 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Jabatan / Level Akses</label>
+                    <input 
+                      type="text" 
+                      disabled
+                      value={personalProfile.role}
+                      className="w-full bg-slate-100 border-none rounded-2xl py-3.5 px-4 text-xs font-bold text-slate-500 cursor-not-allowed outline-none" 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Lengkap</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={personalProfile.name}
+                    onChange={e => setPersonalProfile({...personalProfile, name: e.target.value})}
+                    className="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-4 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-100" 
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={isSavingPersonal || uploadingPhoto}
+                  className="mt-4 px-6 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
+                >
+                  {isSavingPersonal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+                  Simpan Profil Pribadi
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* Tab Content: Tarif SPP */}
+        {activeTab === "spp_rates" && canManageSpp && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-2 duration-300">
             {/* Create SPP Tariff Form */}
             <div className="lg:col-span-1">
@@ -386,7 +941,7 @@ export default function PengaturanPage() {
                         required
                         value={newSpp.kelas_name}
                         onChange={e => setNewSpp({...newSpp, kelas_name: e.target.value})}
-                        className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                        className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                         placeholder="Contoh: Ibtida, Ula"
                       />
                     </div>
@@ -432,7 +987,7 @@ export default function PengaturanPage() {
                       required
                       value={newSpp.amount}
                       onChange={e => setNewSpp({...newSpp, amount: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                       placeholder="Contoh: 1000000"
                     />
                   </div>
@@ -443,9 +998,14 @@ export default function PengaturanPage() {
                       type="text" 
                       value={newSpp.description}
                       onChange={e => setNewSpp({...newSpp, description: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
                       placeholder="Contoh: Biaya Syahriah Ibtida"
                     />
+                  </div>
+
+                  <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100 text-[10px] text-amber-800 font-bold leading-normal flex items-start gap-2">
+                    <ShieldAlert className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>Catatan: Segala perubahan nominal SPP harap disesuaikan dengan instruksi atau verifikasi dari Bendahara Umum.</span>
                   </div>
 
                   <button 
@@ -526,11 +1086,11 @@ export default function PengaturanPage() {
           </div>
         )}
 
-        {/* Tab content: Security change password */}
-        {activeTab === "account" && (
+        {/* Tab Content: Keamanan (Ganti Password) */}
+        {activeTab === "security" && (
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-md animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-rose-500" /> Perbarui Password
+              <Lock className="w-4 h-4 text-rose-500" /> Perbarui Password Akun
             </h3>
             
             <form onSubmit={handleChangePassword} className="space-y-4">
@@ -541,7 +1101,7 @@ export default function PengaturanPage() {
                   required
                   value={passwordForm.currentPassword}
                   onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-100" 
                   placeholder="••••••••"
                 />
               </div>
@@ -553,7 +1113,7 @@ export default function PengaturanPage() {
                   required
                   value={passwordForm.newPassword}
                   onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-100" 
                   placeholder="Minimal 6 karakter"
                 />
               </div>
@@ -565,7 +1125,7 @@ export default function PengaturanPage() {
                   required
                   value={passwordForm.confirmPassword}
                   onChange={e => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700" 
+                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-100" 
                   placeholder="Ulangi password baru"
                 />
               </div>

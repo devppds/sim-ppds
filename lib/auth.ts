@@ -28,7 +28,7 @@ export async function canAccess(module: 'SEKRETARIAT' | 'KEUANGAN' | 'PENGATURAN
     return level === 'KEUANGAN' || level === 'RESTRICTED_SPP' || level === 'VIEW_ALL';
   }
   if (module === 'PENGATURAN') {
-    return level === 'SEKRETARIAT'; // Khusus Sekretaris
+    return true; // Semua user yang login dapat mengakses settings pribadinya
   }
   if (module === 'PUSAT_KONTROL') {
     return false; // Root already handled at the top

@@ -4,15 +4,15 @@ export default function SPPChart({ data = [] }: { data?: any[] }) {
   const [isYearly, setIsYearly] = useState(false);
   
   const displayData = data.length > 0 ? data : [
-    { label: "Syawal", value: 73 },
+    { label: "Syawal", value: 0 },
     { label: "Maulid", value: 0 },
     { label: "Rajab", value: 0 },
   ];
 
   const yearlyData = [
-    { label: "2023", value: 85 },
-    { label: "2024", value: 92 },
-    { label: "2025", value: 73 },
+    { label: "2024", value: 0 },
+    { label: "2025", value: 0 },
+    { label: "2026", value: 0 },
   ];
 
   const currentData = isYearly ? yearlyData : displayData;
@@ -22,8 +22,8 @@ export default function SPPChart({ data = [] }: { data?: any[] }) {
     <div className="fade-up fade-up-5 lg:col-span-2 bg-white rounded-xl border border-slate-100 p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-sm font-black text-[#1e293b] tracking-tight">Penerimaan SPP</h2>
-          <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-widest mt-0.5">
+          <h2 className="text-sm font-black text-text-main tracking-tight">Penerimaan SPP</h2>
+          <p className="text-[10px] font-bold text-text-sub uppercase tracking-widest mt-0.5">
             {isYearly ? 'Rekapitulasi 3 Tahun Terakhir' : 'Rekapitulasi 6 Bulan Terakhir'}
           </p>
         </div>
@@ -65,13 +65,13 @@ export default function SPPChart({ data = [] }: { data?: any[] }) {
                 style={{ height: 160 }}
               >
                 <div
-                  className={`chart-bar absolute bottom-0 w-full rounded-t-2xl transition-all duration-700 bg-gradient-to-t ${
+                  className={`chart-bar absolute bottom-0 w-full rounded-t-2xl transition-all duration-700 bg-linear-to-t ${
                     isYearly ? 'from-indigo-600 to-indigo-400' : 'from-emerald-600 to-emerald-400'
                   }`}
                   style={{ height: `${pct}%` }}
                 />
               </div>
-              <span className="text-[10px] font-black text-[#64748b] uppercase tracking-widest mt-1">
+              <span className="text-[10px] font-black text-text-sub uppercase tracking-widest mt-1">
                 {d.label}
               </span>
             </div>

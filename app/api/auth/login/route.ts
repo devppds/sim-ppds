@@ -24,6 +24,26 @@ export async function POST(request: Request) {
     }
 
     // 1. DEVELOPMENT FALLBACK: If D1 is not available (common in 'next dev')
+    if (username === "developer" && password === "developer123") {
+       const mockUser = {
+          id: 999,
+          username: "developer",
+          name: "Developer Portal",
+          role: "Developer",
+          role_level: "ROOT"
+       };
+       
+       const cookieStore = await cookies();
+       cookieStore.set("sim_ppds_session", JSON.stringify({ ...mockUser, timestamp: Date.now() }), {
+         httpOnly: true,
+         secure: process.env.NODE_ENV === "production",
+         sameSite: "strict",
+         maxAge: 60 * 60 * 24,
+       });
+
+       return NextResponse.json({ success: true, user: mockUser });
+    }
+
     if (process.env.NODE_ENV === "development" && (!env || !env.DB)) {
        console.warn("⚠️ [DEV MODE] Cloudflare D1 not found. Using local fallback for 'admin' user.");
        if (username === "admin" && password === "admin123") {

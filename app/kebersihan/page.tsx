@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 import { API_BASE_URL } from "@/lib/config";
 import { Plus, Search, RefreshCw, X, Pencil, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 
@@ -35,6 +36,7 @@ export default function KebersihanPage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
@@ -103,7 +105,8 @@ export default function KebersihanPage() {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
+    <DashboardLayout>
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
       {/* Notification Toast */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl animate-in slide-in-from-top-10 duration-300 font-bold text-sm text-white ${notification.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
@@ -284,6 +287,7 @@ export default function KebersihanPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

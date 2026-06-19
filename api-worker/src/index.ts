@@ -25,11 +25,11 @@ import plpRoutes from './routes/plp'
 import jamiyyahRoutes from './routes/jamiyyah'
 
 
-import { getDashboardStats, getMenuStats } from './controllers/statsController'
+import { getDashboardStats, getMenuStats, getDevStats } from './controllers/statsController'
 import { getAsramaData } from './controllers/asramaController'
 import { getArsipList, createArsip, deleteArsip } from './controllers/arsipController'
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from './controllers/keuanganController'
-import { getNotifications, markNotificationsRead } from './controllers/notificationsController'
+import { getNotifications, markNotificationsRead, createNotification } from './controllers/notificationsController'
 import { getSearchResults } from './controllers/searchController'
 import { getAlumniList, createAlumni } from './controllers/alumniController'
 
@@ -100,6 +100,8 @@ app.post('/api/settings', async (c) => {
     }
 
     const statements = Object.entries(body).map(([key, val]) => {
+
+
       return c.env.DB.prepare(
         "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))"
       ).bind(key, String(val));
@@ -116,6 +118,7 @@ app.post('/api/settings', async (c) => {
 // Stats Endpoints
 app.get('/api/stats', getDashboardStats)
 app.get('/api/stats/menu', getMenuStats)
+app.get('/api/dev/stats', getDevStats)
 
 // Asrama Endpoints
 app.get('/api/asrama', getAsramaData)
@@ -145,6 +148,7 @@ app.post('/api/keuangan/restore', async (c) => {
 // Notifications Endpoints
 app.get('/api/notifications', getNotifications)
 app.put('/api/notifications', markNotificationsRead)
+app.post('/api/notifications', createNotification)
 
 // Search Endpoints
 app.get('/api/search', getSearchResults)
