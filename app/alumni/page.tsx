@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Users, UserCheck, Search, Filter, GraduationCap, Phone, MapPin, Calendar, ArrowRight, Upload, Download, Plus } from "lucide-react";
+import { Users, UserCheck, Search, Filter, GraduationCap, Phone, MapPin, Calendar, ArrowRight, Upload, Download, Plus, RefreshCw } from "lucide-react";
 import SantriDetailModal from "@/components/SantriDetailModal";
 import PengurusDetailModal from "@/components/PengurusDetailModal";
 import ManualAlumniModal from "@/components/ManualAlumniModal";
@@ -70,7 +70,6 @@ export default function AlumniPage() {
     );
   }, [list, searchQuery]);
 
-  // Derive unique years for filter
   const availableYears = useMemo(() => {
     const field = activeType === 'santri' ? 'tahun_lulus' : 'tahun_purna';
     const years = list.map(item => item[field]).filter(Boolean);
@@ -127,81 +126,87 @@ export default function AlumniPage() {
 
   return (
     <DashboardLayout>
-      <div className="fade-up space-y-6">
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="flex-1">
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-slate-800 text-white flex items-center justify-center shadow-lg shadow-slate-800/20">
-                <Users className="w-5 h-5" />
-              </div>
-              Data Alumni
-            </h1>
-            <p className="text-sm font-bold text-slate-400 mt-2 max-w-lg">
-              Arsip data santri dan pengurus yang telah menyelesaikan masa bakti di Pondok Pesantren Darussalam.
-            </p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-slate-100 text-slate-800 rounded-xl">
+              <Users className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Data Alumni</h1>
+              <p className="text-sm text-slate-500 font-medium">Arsip data santri dan pengurus yang telah menyelesaikan masa bakti di Pondok Pesantren Darussalam.</p>
+            </div>
           </div>
-
-          <div className="flex flex-wrap gap-2">
-             <button onClick={() => setIsImportModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-black text-indigo-600 hover:bg-slate-50 transition-all shadow-sm">
-                <Upload className="w-4 h-4" /> Import
-             </button>
-             <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-black text-emerald-600 hover:bg-slate-50 transition-all shadow-sm">
-                <Download className="w-4 h-4" /> Export
-             </button>
-             <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-[22px] text-xs font-black hover:bg-black shadow-xl shadow-slate-900/10 transition-all active:scale-95">
-                <Plus className="w-4 h-4" /> Tambah Manual
-             </button>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={fetchAlumni}
+              className="p-2.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button onClick={() => setIsImportModalOpen(true)} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-indigo-600 hover:bg-slate-50 transition-all shadow-sm">
+              <Upload className="w-4 h-4" /> Import
+            </button>
+            <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-emerald-600 hover:bg-slate-50 transition-all shadow-sm">
+              <Download className="w-4 h-4" /> Export
+            </button>
+            <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black hover:bg-black shadow-lg transition-all active:scale-95">
+              <Plus className="w-4 h-4" /> Tambah Manual
+            </button>
           </div>
         </div>
 
+        {/* Tab switch & Filters bar */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-            {/* Type Switcher */}
-            <div className="p-1 bg-slate-200/50 backdrop-blur-md rounded-[20px] flex gap-1 w-full lg:w-auto">
-                <button
-                onClick={() => setActiveType("santri")}
-                className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-[16px] text-[11px] font-black transition-all ${
-                    activeType === "santri" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
-                >
-                <GraduationCap className={`w-4 h-4 ${activeType === "santri" ? "text-indigo-500" : ""}`} />
-                Alumni Santri
-                </button>
-                <button
-                onClick={() => setActiveType("pengurus")}
-                className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-[16px] text-[11px] font-black transition-all ${
-                    activeType === "pengurus" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
-                >
-                <UserCheck className={`w-4 h-4 ${activeType === "pengurus" ? "text-emerald-500" : ""}`} />
-                Alumni Pengurus
-                </button>
-            </div>
+          {/* Type Switcher */}
+          <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit overflow-x-auto">
+            <button
+              onClick={() => { setActiveType("santri"); setSearchQuery(""); }}
+              className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                activeType === "santri" 
+                  ? "bg-white text-indigo-600 shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              Alumni Santri
+            </button>
+            <button
+              onClick={() => { setActiveType("pengurus"); setSearchQuery(""); }}
+              className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                activeType === "pengurus" 
+                  ? "bg-white text-emerald-600 shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              Alumni Pengurus
+            </button>
+          </div>
 
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:flex-1 lg:justify-end">
-                <div className="relative flex-1 group w-full lg:max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                    <input 
-                    type="text" 
-                    placeholder={`Cari nama, ${activeType === 'santri' ? 'NISN' : 'NIK'}...`}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold placeholder:text-slate-400 focus:border-indigo-500 transition-all outline-none shadow-sm" 
-                    />
-                </div>
-                <div className="relative w-full sm:w-auto">
-                    <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <select 
-                        className="w-full sm:w-48 pl-11 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold appearance-none outline-none focus:border-indigo-500 shadow-sm"
-                        value={yearFilter}
-                        onChange={(e) => setYearFilter(e.target.value)}
-                    >
-                        <option value="">Tahun Ajaran</option>
-                        {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-                    </select>
-                </div>
+          {/* Search and Dropdowns */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:flex-1 lg:justify-end">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder={`Cari nama, ${activeType === 'santri' ? 'NISN' : 'NIK'}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500 transition-all shadow-sm" 
+              />
             </div>
+            <div className="relative w-full sm:w-auto">
+              <select 
+                className="w-full sm:w-48 pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold appearance-none outline-none focus:border-indigo-500 shadow-sm"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="">Tahun Ajaran (Semua)</option>
+                {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* List Content */}

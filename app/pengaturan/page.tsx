@@ -457,88 +457,96 @@ export default function PengaturanPage() {
 
   return (
     <DashboardLayout>
-      <div className="fade-up space-y-6">
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-4">
-             <div className="w-14 h-14 bg-indigo-600 rounded-4xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
-                <Settings className="w-7 h-7 text-white" />
-             </div>
-             <div>
-                <h1 className="text-2xl font-black text-slate-800 tracking-tight">
-                   PENGATURAN
-                </h1>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                   Konfigurasi Aplikasi & Pengaturan Akun
-                </p>
-             </div>
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <Settings className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Pengaturan</h1>
+              <p className="text-sm text-slate-500 font-medium">Konfigurasi Aplikasi & Pengaturan Akun</p>
+            </div>
           </div>
+        </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex flex-wrap gap-1 bg-white rounded-2xl border border-slate-100 p-1.5 shadow-sm">
-             {isAdmin && (
-               <>
-                 <button
-                   onClick={() => setActiveTab("profile_pesantren")}
-                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
-                     activeTab === "profile_pesantren" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
-                   }`}
-                 >
-                    <Home className="w-3.5 h-3.5" /> Pesantren
-                 </button>
-                 <button
-                   onClick={() => setActiveTab("app_settings")}
-                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
-                     activeTab === "app_settings" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
-                   }`}
-                 >
-                    <Settings className="w-3.5 h-3.5" /> Aplikasi & Notifikasi
-                 </button>
-                 <button
-                   onClick={() => setActiveTab("user_management")}
-                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
-                     activeTab === "user_management" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
-                   }`}
-                 >
-                    <Users className="w-3.5 h-3.5" /> Akun Pengguna
-                 </button>
-               </>
-             )}
-             
-             <button
-               onClick={() => setActiveTab("personal_profile")}
-               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
-                 activeTab === "personal_profile" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
-               }`}
-             >
-                <User className="w-3.5 h-3.5" /> Profil Saya
-             </button>
-             
-             {canManageSpp && (
-               <button
-                 onClick={() => setActiveTab("spp_rates")}
-                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
-                   activeTab === "spp_rates" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
-                 }`}
-               >
-                  <Wallet className="w-3.5 h-3.5" /> Tarif SPP
-               </button>
-             )}
+        {/* Navigation Tabs */}
+        <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit overflow-x-auto">
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => setActiveTab("profile_pesantren")}
+                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                  activeTab === "profile_pesantren"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                Pesantren
+              </button>
+              <button
+                onClick={() => setActiveTab("app_settings")}
+                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                  activeTab === "app_settings"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                Aplikasi & Notifikasi
+              </button>
+              <button
+                onClick={() => setActiveTab("user_management")}
+                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                  activeTab === "user_management"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                Akun Pengguna
+              </button>
+            </>
+          )}
 
-             <button
-               onClick={() => setActiveTab("security")}
-               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
-                 activeTab === "security" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25" : "text-slate-400 hover:text-slate-600"
-               }`}
-             >
-                <Key className="w-3.5 h-3.5" /> Keamanan
-             </button>
-          </div>
+          <button
+            onClick={() => setActiveTab("personal_profile")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "personal_profile"
+                ? "bg-white text-indigo-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            Profil Saya
+          </button>
+
+          {canManageSpp && (
+            <button
+              onClick={() => setActiveTab("spp_rates")}
+              className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                activeTab === "spp_rates"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              Tarif SPP
+            </button>
+          )}
+
+          <button
+            onClick={() => setActiveTab("security")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "security"
+                ? "bg-white text-indigo-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            Keamanan
+          </button>
         </div>
 
         {/* Tab Content: Profil Pesantren */}
         {activeTab === "profile_pesantren" && isAdmin && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-3xl animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <Home className="w-4 h-4 text-indigo-500" /> Identitas Lembaga Pesantren
             </h3>
@@ -622,7 +630,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Aplikasi & Notifikasi */}
         {activeTab === "app_settings" && isAdmin && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-3xl animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <Settings className="w-4 h-4 text-indigo-500" /> Konfigurasi Aplikasi & Notifikasi Real-time
             </h3>
@@ -726,7 +734,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Akun Pengguna */}
         {activeTab === "user_management" && isAdmin && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-5xl animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
@@ -824,7 +832,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Profil Saya */}
         {activeTab === "personal_profile" && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-3xl animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <User className="w-4 h-4 text-indigo-500" /> Informasi Data Diri Pribadi
             </h3>
@@ -1090,7 +1098,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Keamanan (Ganti Password) */}
         {activeTab === "security" && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm max-w-md animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full max-w-xl animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <Lock className="w-4 h-4 text-rose-500" /> Perbarui Password Akun
             </h3>

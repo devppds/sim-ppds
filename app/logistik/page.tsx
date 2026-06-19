@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
-  Package, CheckSquare, Plus, Loader2 
+  Package, CheckSquare, Plus, Loader2, RefreshCw, Search 
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
@@ -30,6 +30,7 @@ interface HygieneChecklist {
 export default function LogistikPage() {
   const [activeTab, setActiveTab] = useState<"bookings" | "hygiene">("bookings");
   const { showToast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [bookings, setBookings] = useState<EquipmentBooking[]>([]);
   const [checklist, setChecklist] = useState<HygieneChecklist[]>([]);
@@ -173,52 +174,111 @@ export default function LogistikPage() {
     }
   };
 
+  const getAddBtnConfig = () => {
+    switch (activeTab) {
+      case "bookings":
+        return { label: "Pinjam Barang", action: () => setIsBookingModalOpen(true), bg: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20" };
+      case "hygiene":
+        return { label: "Catat Audit Baru", action: () => setIsHygieneModalOpen(true), bg: "bg-teal-600 hover:bg-teal-700 shadow-teal-500/20" };
+    }
+  };
+
+  const addBtn = getAddBtnConfig();
+
+  const filteredBookings = bookings.filter(b => 
+    (b.nama_kegiatan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.perlengkapan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.peminjam || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.status || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredChecklist = checklist.filter(c => 
+    (c.area || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.petugas || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.catatan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.status_kebersihan || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <DashboardLayout>
-      <div className="fade-up">
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-              <Package className="w-7 h-7 text-indigo-600" /> Logistik & Kebersihan
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Booking Perlengkapan Kegiatan Pondok & Checklist Kebersihan Harian</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <Package className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Logistik & Kebersihan</h1>
+              <p className="text-sm text-slate-500 font-medium">Booking Perlengkapan Kegiatan Pondok & Checklist Kebersihan Harian</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={fetchData}
+              className="p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button 
+              onClick={addBtn.action} 
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
+            >
+              <Plus className="w-5 h-5" />
+              <span>{addBtn.label}</span>
+            </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide border-b border-slate-200">
-          <button 
-            onClick={() => setActiveTab("bookings")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "bookings" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+        <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit overflow-x-auto">
+          <button
+            onClick={() => { setActiveTab("bookings"); setSearchQuery(""); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "bookings" 
+                ? "bg-white text-indigo-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <Package className="w-4 h-4" /> Booking Perlengkapan
+            Booking Perlengkapan
           </button>
-          <button 
-            onClick={() => setActiveTab("hygiene")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "hygiene" ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+          <button
+            onClick={() => { setActiveTab("hygiene"); setSearchQuery(""); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "hygiene" 
+                ? "bg-white text-teal-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <CheckSquare className="w-4 h-4" /> Hygiene Tracker
+            Hygiene Tracker
           </button>
         </div>
 
         {/* Contents */}
         {activeTab === "bookings" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Pinjam Perlengkapan / Inventaris</h2>
-              <button onClick={() => setIsBookingModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-indigo-700 transition-all">
-                <Plus className="w-4 h-4" /> Pinjam Barang
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Pinjam Perlengkapan / Inventaris</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
                   <p className="text-xs font-medium">Memuat data booking logistik...</p>
                 </div>
-              ) : bookings.length === 0 ? (
+              ) : filteredBookings.length === 0 ? (
                 <div className="text-center py-20 text-slate-400 text-xs">
                   Tidak ada booking perlengkapan
                 </div>
@@ -234,7 +294,7 @@ export default function LogistikPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {bookings.map((b) => (
+                    {filteredBookings.map((b) => (
                       <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-800">{b.nama_kegiatan}</div>
@@ -279,21 +339,28 @@ export default function LogistikPage() {
         )}
 
         {activeTab === "hygiene" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Checklist Kebersihan & Hygiene Pondok</h2>
-              <button onClick={() => setIsHygieneModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-teal-700 transition-all">
-                <Plus className="w-4 h-4" /> Catat Audit Baru
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Checklist Kebersihan & Hygiene Pondok</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <Loader2 className="w-10 h-10 animate-spin text-teal-600 mb-4" />
                   <p className="text-xs font-medium">Memuat audit kebersihan...</p>
                 </div>
-              ) : checklist.length === 0 ? (
+              ) : filteredChecklist.length === 0 ? (
                 <div className="text-center py-20 text-slate-400 text-xs">
                   Belum ada audit kebersihan tercatat
                 </div>
@@ -309,7 +376,7 @@ export default function LogistikPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {checklist.map((c) => (
+                    {filteredChecklist.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4 font-bold text-slate-800">{c.area}</td>
                         <td className="px-6 py-4 text-slate-600">{c.petugas}</td>

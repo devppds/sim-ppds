@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
-  Users, Award, Plus, Loader2, ClipboardList
+  Users, Award, Plus, Loader2, ClipboardList, Search, RefreshCw
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
@@ -47,6 +47,7 @@ export default function WajarPage() {
   const [ubudiyyahList, setUbudiyyahList] = useState<UbudiyyahRecord[]>([]);
 
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Modals state
   const [isPresensiModalOpen, setIsPresensiModalOpen] = useState(false);
@@ -209,52 +210,98 @@ export default function WajarPage() {
     }
   };
 
+  const filteredPresensiList = presensiList.filter(p => 
+    p.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.kelas.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.status.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredUbudiyyahList = ubudiyyahList.filter(u => 
+    (u.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.kegiatan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.status.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <DashboardLayout>
-      <div className="fade-up">
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-              <ClipboardList className="w-7 h-7 text-emerald-600" /> Seksi Wajib Belajar (Wajar)
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Presensi Digital Harian Asatidz/Siswa & Tracker Ubudiyyah Santri</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <ClipboardList className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Seksi Wajib Belajar (Wajar)</h1>
+              <p className="text-sm text-slate-500 font-medium">Presensi Digital Harian Asatidz/Siswa & Tracker Ubudiyyah Santri</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={fetchWajarData}
+              className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button 
+              onClick={() => activeTab === "presensi" ? setIsPresensiModalOpen(true) : setIsUbudiyyahModalOpen(true)} 
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+            >
+              <Plus className="w-5 h-5" />
+              <span>{activeTab === "presensi" ? "Catat Presensi Baru" : "Catat Ubudiyyah"}</span>
+            </button>
           </div>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide border-b border-slate-200">
-          <button 
+        {/* Tabs */}
+        <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit">
+          <button
             onClick={() => setActiveTab("presensi")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "presensi" ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "presensi" 
+                ? "bg-white text-emerald-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <Users className="w-4 h-4" /> Presensi Madrasah Wajar
+            Presensi Madrasah Wajar
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("ubudiyyah")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "ubudiyyah" ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "ubudiyyah" 
+                ? "bg-white text-emerald-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <Award className="w-4 h-4" /> Tracker Ubudiyyah (Subuh Ceria)
+            Tracker Ubudiyyah (Subuh Ceria)
           </button>
         </div>
 
         {/* Tab Contents */}
         {activeTab === "presensi" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Presensi Kehadiran Kelas (Madrasah Wajar)</h2>
-              <button onClick={() => setIsPresensiModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-emerald-700 transition-all">
-                <Plus className="w-4 h-4" /> Catat Presensi Baru
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Presensi Kehadiran Kelas (Madrasah Wajar)</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
                   <p className="text-xs font-medium">Memuat presensi Wajar...</p>
                 </div>
-              ) : presensiList.length === 0 ? (
+              ) : filteredPresensiList.length === 0 ? (
                 <div className="text-center py-20 text-slate-400 text-xs">
                   Tidak ada data presensi
                 </div>
@@ -271,7 +318,7 @@ export default function WajarPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {presensiList.map((p) => (
+                    {filteredPresensiList.map((p) => (
                       <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4 font-bold text-slate-800">{p.nama}</td>
                         <td className="px-6 py-4">
@@ -306,21 +353,28 @@ export default function WajarPage() {
         )}
 
         {activeTab === "ubudiyyah" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Tracker Kegiatan Ubudiyyah Santri (Subuh Ceria)</h2>
-              <button onClick={() => setIsUbudiyyahModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-teal-700 transition-all">
-                <Plus className="w-4 h-4" /> Catat Ubudiyyah
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Tracker Kegiatan Ubudiyyah Santri (Subuh Ceria)</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <Loader2 className="w-10 h-10 animate-spin text-teal-600 mb-4" />
                   <p className="text-xs font-medium">Memuat tracker ubudiyyah...</p>
                 </div>
-              ) : ubudiyyahList.length === 0 ? (
+              ) : filteredUbudiyyahList.length === 0 ? (
                 <div className="text-center py-20 text-slate-400 text-xs">
                   Tidak ada catatan ubudiyyah
                 </div>
@@ -336,7 +390,7 @@ export default function WajarPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {ubudiyyahList.map((u) => (
+                    {filteredUbudiyyahList.map((u) => (
                       <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-800">{u.santri_name}</div>

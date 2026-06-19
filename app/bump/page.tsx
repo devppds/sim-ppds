@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   ShoppingCart, Store, PackageOpen, FileSpreadsheet, Plus, 
-  Search, Trash2, DollarSign, Loader2
+  Search, Trash2, DollarSign, Loader2, RefreshCw
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
@@ -220,41 +220,93 @@ export default function BumpPage() {
 
   const filteredProducts = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return products.filter(p => p.nama_barang.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+    return products.filter(p => p.nama_barang.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.kategori.toLowerCase().includes(q));
   }, [products, searchQuery]);
+
+  const filteredSales = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return sales.filter(s =>
+      (s.sales_number || "").toLowerCase().includes(q) ||
+      (s.metode_bayar || "").toLowerCase().includes(q)
+    );
+  }, [sales, searchQuery]);
+
+  const getAddBtnConfig = () => {
+    switch (activeTab) {
+      case "inventory":
+        return { label: "Tambah Barang", action: () => setIsProductModalOpen(true), bg: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20" };
+      default:
+        return null;
+    }
+  };
+
+  const addBtn = getAddBtnConfig();
 
   return (
     <DashboardLayout>
-      <div className="fade-up">
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-              <Store className="w-7 h-7 text-emerald-600" /> Badan Usaha Milik Pesantren (BUMP)
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">POS Kasir Kas Pesantren, Inventori Toko, & Setoran Usaha</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Store className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Badan Usaha Milik Pesantren (BUMP)</h1>
+              <p className="text-sm text-slate-500 font-medium">POS Kasir Kas Pesantren, Inventori Toko, & Setoran Usaha</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={fetchData}
+              className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            {addBtn && (
+              <button 
+                onClick={addBtn.action} 
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
+              >
+                <Plus className="w-5 h-5" />
+                <span>{addBtn.label}</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide border-b border-slate-200">
-          <button 
-            onClick={() => setActiveTab("pos")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "pos" ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+        <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit overflow-x-auto">
+          <button
+            onClick={() => { setActiveTab("pos"); setSearchQuery(""); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "pos" 
+                ? "bg-white text-emerald-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <ShoppingCart className="w-4 h-4" /> Kasir POS
+            Kasir POS
           </button>
-          <button 
-            onClick={() => setActiveTab("inventory")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "inventory" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+          <button
+            onClick={() => { setActiveTab("inventory"); setSearchQuery(""); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "inventory" 
+                ? "bg-white text-indigo-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <PackageOpen className="w-4 h-4" /> Inventori Toko
+            Inventori Toko
           </button>
-          <button 
-            onClick={() => setActiveTab("sales")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "sales" ? "bg-slate-700 text-white shadow-lg shadow-slate-700/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+          <button
+            onClick={() => { setActiveTab("sales"); setSearchQuery(""); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "sales" 
+                ? "bg-white text-slate-700 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <FileSpreadsheet className="w-4 h-4" /> Rekap Penjualan
+            Rekap Penjualan
           </button>
         </div>
 
@@ -376,15 +428,22 @@ export default function BumpPage() {
         )}
 
         {activeTab === "inventory" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Manajemen Inventori & Stok BUMP</h2>
-              <button onClick={() => setIsProductModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-indigo-700 transition-all">
-                <Plus className="w-4 h-4" /> Tambah Barang
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Manajemen Inventori & Stok BUMP</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-100">
                   <tr className="text-xs text-slate-500 font-bold uppercase text-left">
@@ -397,7 +456,7 @@ export default function BumpPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {products.map((p) => (
+                  {filteredProducts.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-bold text-slate-800">{p.nama_barang}</div>
@@ -423,12 +482,22 @@ export default function BumpPage() {
         )}
 
         {activeTab === "sales" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Laporan Transaksi Kasir BUMP</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Laporan Transaksi Kasir BUMP</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari transaksi..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-100">
                   <tr className="text-xs text-slate-500 font-bold uppercase text-left">
@@ -440,7 +509,7 @@ export default function BumpPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {sales.map((s) => (
+                  {filteredSales.map((s) => (
                     <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 font-mono font-bold text-slate-800">{s.sales_number}</td>
                       <td className="px-6 py-4">

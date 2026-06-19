@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   BookOpen, UserCheck, Plus, CheckCircle, 
-  XCircle, MessageSquare, GraduationCap, Clock, Loader2 
+  XCircle, MessageSquare, GraduationCap, Clock, Loader2, Search, RefreshCw 
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
@@ -55,6 +55,7 @@ interface BimbinganLog {
 export default function PendidikanPage() {
   const [activeTab, setActiveTab] = useState<"jadwal" | "izin" | "bk">("jadwal");
   const { showToast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [santriList, setSantriList] = useState<Santri[]>([]);
   const [jadwalList, setJadwalList] = useState<JadwalPengajian[]>([]);
@@ -261,105 +262,185 @@ export default function PendidikanPage() {
     }
   };
 
+  const filteredJadwalList = jadwalList.filter(j => 
+    j.kitab.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    j.ustadz.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    j.hari.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredIzinList = izinList.filter(i => 
+    (i.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (i.keperluan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (i.status || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredBkList = bkList.filter(b => 
+    (b.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.keluhan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (b.solusi || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getAddBtnConfig = () => {
+    switch (activeTab) {
+      case "jadwal":
+        return { label: "Tambah Jadwal Baru", action: () => setIsJadwalModalOpen(true), bg: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20" };
+      case "izin":
+        return { label: "Ajukan Izin Baru", action: () => setIsIzinModalOpen(true), bg: "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20" };
+      case "bk":
+        return { label: "Catat Bimbingan Baru", action: () => setIsBkModalOpen(true), bg: "bg-violet-600 hover:bg-violet-700 shadow-violet-500/20" };
+    }
+  };
+
+  const addBtn = getAddBtnConfig();
+
   return (
     <DashboardLayout>
-      <div className="fade-up">
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-              <GraduationCap className="w-7 h-7 text-indigo-600" /> Seksi Pendidikan Pondok
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Jadwal Pengajian Kitab Kuning, Izin Sekolah, & Log Bimbingan BK</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <GraduationCap className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Seksi Pendidikan Pondok</h1>
+              <p className="text-sm text-slate-500 font-medium">Jadwal Pengajian Kitab Kuning, Izin Sekolah, & Log Bimbingan BK</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={fetchPendidikanData}
+              className="p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button 
+              onClick={addBtn.action} 
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
+            >
+              <Plus className="w-5 h-5" />
+              <span>{addBtn.label}</span>
+            </button>
           </div>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide border-b border-slate-200">
-          <button 
+        {/* Tabs */}
+        <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit overflow-x-auto">
+          <button
             onClick={() => setActiveTab("jadwal")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "jadwal" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "jadwal" 
+                ? "bg-white text-indigo-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <BookOpen className="w-4 h-4" /> Jadwal Pengajian Kitab
+            Jadwal Pengajian Kitab
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("izin")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "izin" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "izin" 
+                ? "bg-white text-blue-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <UserCheck className="w-4 h-4" /> Izin Sekolah & Musyawarah
+            Izin Sekolah & Musyawarah
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("bk")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "bk" ? "bg-violet-600 text-white shadow-lg shadow-violet-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "bk" 
+                ? "bg-white text-violet-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <MessageSquare className="w-4 h-4" /> Bimbingan Konseling (BK)
+            Bimbingan Konseling (BK)
           </button>
         </div>
 
         {/* Content Tabs */}
         {activeTab === "jadwal" && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Jadwal Pengajian Kitab Kuning</h2>
-              <button onClick={() => setIsJadwalModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-indigo-700 transition-all">
-                <Plus className="w-4 h-4" /> Tambah Jadwal Baru
-              </button>
-            </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+                <h2 className="font-bold text-slate-800 text-lg">Jadwal Pengajian Kitab Kuning</h2>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text"
+                    placeholder="Cari data..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  />
+                </div>
+              </div>
 
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white border border-slate-100 rounded-2xl">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
-                <p className="text-xs font-medium">Memuat jadwal pengajian...</p>
-              </div>
-            ) : jadwalList.length === 0 ? (
-              <div className="text-center py-20 text-slate-400 text-xs bg-white border border-slate-100 rounded-2xl font-medium">
-                Belum ada jadwal pengajian
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {jadwalList.map((j) => (
-                  <div key={j.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <span className="px-2.5 py-0.5 text-[10px] font-black uppercase rounded-md bg-indigo-50 text-indigo-600">
-                          {j.hari}
-                        </span>
-                        <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" /> {j.waktu}
-                        </span>
-                      </div>
-                      <div className="mt-4">
-                        <h3 className="font-extrabold text-slate-800 text-base">{j.kitab}</h3>
-                        <p className="text-xs text-slate-500 mt-1 font-bold">Ustadz: <span className="text-slate-600 font-medium">{j.ustadz}</span></p>
-                        <p className="text-xs text-slate-400 mt-2 italic">&quot;{j.keterangan || '-'}&quot;</p>
-                      </div>
-                    </div>
-                    <div className="mt-6 border-t border-slate-50 pt-4 flex items-center justify-between text-xs text-slate-400">
-                      <span>Lokasi: <strong className="text-slate-600">{j.lokasi || "Masjid"}</strong></span>
-                    </div>
+              <div className="p-6">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                    <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+                    <p className="text-xs font-medium">Memuat jadwal pengajian...</p>
                   </div>
-                ))}
+                ) : filteredJadwalList.length === 0 ? (
+                  <div className="text-center py-20 text-slate-400 text-xs">
+                    Belum ada jadwal pengajian
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {filteredJadwalList.map((j) => (
+                      <div key={j.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-start">
+                            <span className="px-2.5 py-0.5 text-[10px] font-black uppercase rounded-md bg-indigo-50 text-indigo-600">
+                              {j.hari}
+                            </span>
+                            <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-slate-400" /> {j.waktu}
+                            </span>
+                          </div>
+                          <div className="mt-4">
+                            <h3 className="font-extrabold text-slate-800 text-base">{j.kitab}</h3>
+                            <p className="text-xs text-slate-500 mt-1 font-bold">Ustadz: <span className="text-slate-600 font-medium">{j.ustadz}</span></p>
+                            <p className="text-xs text-slate-400 mt-2 italic">&quot;{j.keterangan || '-'}&quot;</p>
+                          </div>
+                        </div>
+                        <div className="mt-6 border-t border-slate-50 pt-4 flex items-center justify-between text-xs text-slate-400">
+                          <span>Lokasi: <strong className="text-slate-600">{j.lokasi || "Masjid"}</strong></span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         )}
 
         {activeTab === "izin" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Persetujuan Izin Sekolah / Musyawarah Luar</h2>
-              <button onClick={() => setIsIzinModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-blue-700 transition-all">
-                <Plus className="w-4 h-4" /> Ajukan Izin Baru
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Persetujuan Izin Sekolah / Musyawarah Luar</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
                   <p className="text-xs font-medium">Memuat data izin...</p>
                 </div>
-              ) : izinList.length === 0 ? (
+              ) : filteredIzinList.length === 0 ? (
                 <div className="text-center py-20 text-slate-400 text-xs">
                   Tidak ada data izin sekolah
                 </div>
@@ -375,7 +456,7 @@ export default function PendidikanPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {izinList.map((izin) => (
+                    {filteredIzinList.map((izin) => (
                       <tr key={izin.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-800">{izin.santri_name}</div>
@@ -420,53 +501,62 @@ export default function PendidikanPage() {
         )}
 
         {activeTab === "bk" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Catatan Bimbingan Konseling (BK) & Mental Santri</h2>
-              <button onClick={() => setIsBkModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-violet-700 transition-all">
-                <Plus className="w-4 h-4" /> Catat Bimbingan Baru
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Catatan Bimbingan Konseling (BK) & Mental Santri</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                />
+              </div>
             </div>
 
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white border border-slate-100 rounded-2xl">
-                <Loader2 className="w-10 h-10 animate-spin text-violet-600 mb-4" />
-                <p className="text-xs font-medium">Memuat catatan BK...</p>
-              </div>
-            ) : bkList.length === 0 ? (
-              <div className="text-center py-20 text-slate-400 text-xs bg-white border border-slate-100 rounded-2xl font-medium">
-                Belum ada catatan bimbingan konseling
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {bkList.map((bk) => (
-                  <div key={bk.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all flex flex-col md:flex-row justify-between gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400 font-bold">{bk.tanggal}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-violet-50 text-violet-600">BK Record</span>
-                      </div>
-                      <h3 className="font-extrabold text-slate-800 text-base">Bimbingan: {bk.santri_name}</h3>
-                      <p className="text-xs text-slate-400">Pendidikan: <span className="text-slate-600 font-medium">{bk.santri_kelas}</span> | Asrama: <span className="text-slate-600 font-medium">{bk.santri_asrama}</span></p>
-                      <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                        <h4 className="text-xs font-bold text-slate-500 uppercase mb-1">Masalah / Keluhan</h4>
-                        <p className="text-xs text-slate-700">{bk.keluhan}</p>
-                      </div>
-                      {bk.solusi && (
-                        <div className="p-3 bg-violet-50/50 rounded-lg border border-violet-100/50">
-                          <h4 className="text-xs font-bold text-violet-500 uppercase mb-1">Solusi / Arahan Maslahat</h4>
-                          <p className="text-xs text-slate-700">{bk.solusi}</p>
+            <div className="p-6">
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white border border-slate-100 rounded-2xl">
+                  <Loader2 className="w-10 h-10 animate-spin text-violet-600 mb-4" />
+                  <p className="text-xs font-medium">Memuat catatan BK...</p>
+                </div>
+              ) : filteredBkList.length === 0 ? (
+                <div className="text-center py-20 text-slate-400 text-xs">
+                  Belum ada catatan bimbingan konseling
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredBkList.map((bk) => (
+                    <div key={bk.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all flex flex-col md:flex-row justify-between gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400 font-bold">{bk.tanggal}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-violet-50 text-violet-600">BK Record</span>
                         </div>
-                      )}
+                        <h3 className="font-extrabold text-slate-800 text-base">Bimbingan: {bk.santri_name}</h3>
+                        <p className="text-xs text-slate-400">Pendidikan: <span className="text-slate-600 font-medium">{bk.santri_kelas}</span> | Asrama: <span className="text-slate-600 font-medium">{bk.santri_asrama}</span></p>
+                        <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                          <h4 className="text-xs font-bold text-slate-500 uppercase mb-1">Masalah / Keluhan</h4>
+                          <p className="text-xs text-slate-700">{bk.keluhan}</p>
+                        </div>
+                        {bk.solusi && (
+                          <div className="p-3 bg-violet-50/50 rounded-lg border border-violet-100/50">
+                            <h4 className="text-xs font-bold text-violet-500 uppercase mb-1">Solusi / Arahan Maslahat</h4>
+                            <p className="text-xs text-slate-700">{bk.solusi}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col justify-end text-xs text-slate-400 min-w-40 text-left md:text-right">
+                        <p>Pembimbing Konseling:</p>
+                        <p className="font-bold text-slate-700 mt-1">{bk.pembimbing}</p>
+                      </div>
                     </div>
-                    <div className="flex flex-col justify-end text-xs text-slate-400 min-w-40 text-left md:text-right">
-                      <p>Pembimbing Konseling:</p>
-                      <p className="font-bold text-slate-700 mt-1">{bk.pembimbing}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

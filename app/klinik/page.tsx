@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
-  HeartPulse, Plus, FileText, Printer, Stethoscope, Loader2 
+  HeartPulse, Plus, FileText, Printer, Stethoscope, Loader2, RefreshCw, Search 
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
@@ -48,6 +48,7 @@ interface SuratSakit {
 export default function KlinikPage() {
   const [activeTab, setActiveTab] = useState<"records" | "letters">("records");
   const { showToast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [santriList, setSantriList] = useState<Santri[]>([]);
   const [records, setRecords] = useState<MedicalRecord[]>([]);
@@ -223,52 +224,111 @@ export default function KlinikPage() {
     }
   };
 
+  const getAddBtnConfig = () => {
+    switch (activeTab) {
+      case "records":
+        return { label: "Catat Pemeriksaan", action: () => setIsRecordModalOpen(true), bg: "bg-rose-600 hover:bg-rose-700 shadow-rose-500/20" };
+      case "letters":
+        return { label: "Terbitkan Surat Sakit", action: () => setIsLetterModalOpen(true), bg: "bg-red-600 hover:bg-red-700 shadow-red-500/20" };
+    }
+  };
+
+  const addBtn = getAddBtnConfig();
+
+  const filteredRecords = records.filter(r => 
+    (r.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (r.diagnosa || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (r.dokter_perawat || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (r.status || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredLetters = letters.filter(l => 
+    (l.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (l.diagnosa || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (l.petugas || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (l.keterangan || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <DashboardLayout>
-      <div className="fade-up">
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-              <HeartPulse className="w-7 h-7 text-rose-600" /> Pos Kesehatan Pesantren (UKP)
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">E-Medical Record Santri & Penerbitan Surat Keterangan Sakit Terintegrasi</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
+              <HeartPulse className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Pos Kesehatan Pesantren (UKP)</h1>
+              <p className="text-sm text-slate-500 font-medium">E-Medical Record Santri & Penerbitan Surat Keterangan Sakit Terintegrasi</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={fetchData}
+              className="p-2.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button 
+              onClick={addBtn.action} 
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
+            >
+              <Plus className="w-5 h-5" />
+              <span>{addBtn.label}</span>
+            </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide border-b border-slate-200">
-          <button 
-            onClick={() => setActiveTab("records")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "records" ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+        <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit overflow-x-auto">
+          <button
+            onClick={() => { setActiveTab("records"); setSearchQuery(""); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "records" 
+                ? "bg-white text-rose-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <Stethoscope className="w-4 h-4" /> Rekam Medis
+            Rekam Medis
           </button>
-          <button 
-            onClick={() => setActiveTab("letters")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "letters" ? "bg-red-600 text-white shadow-lg shadow-red-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
+          <button
+            onClick={() => { setActiveTab("letters"); setSearchQuery(""); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "letters" 
+                ? "bg-white text-red-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
           >
-            <FileText className="w-4 h-4" /> Surat Keterangan Sakit
+            Surat Keterangan Sakit
           </button>
         </div>
 
         {/* Content Tabs */}
         {activeTab === "records" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Daftar Rekam Medis Pasien</h2>
-              <button onClick={() => setIsRecordModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-rose-700 transition-all">
-                <Plus className="w-4 h-4" /> Catat Pemeriksaan
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Daftar Rekam Medis Pasien</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <Loader2 className="w-10 h-10 animate-spin text-rose-600 mb-4" />
                   <p className="text-xs font-medium">Memuat rekam medis...</p>
                 </div>
-              ) : records.length === 0 ? (
+              ) : filteredRecords.length === 0 ? (
                 <div className="text-center py-20 text-slate-400 text-xs">
                   Tidak ada rekam medis tercatat
                 </div>
@@ -285,7 +345,7 @@ export default function KlinikPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {records.map((r) => (
+                    {filteredRecords.map((r) => (
                       <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-800">{r.santri_name}</div>
@@ -314,21 +374,28 @@ export default function KlinikPage() {
         )}
 
         {activeTab === "letters" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Daftar Surat Keterangan Sakit (SKS)</h2>
-              <button onClick={() => setIsLetterModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-red-700 transition-all">
-                <Plus className="w-4 h-4" /> Terbitkan Surat Sakit
-              </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Daftar Surat Keterangan Sakit (SKS)</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari data..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <Loader2 className="w-10 h-10 animate-spin text-red-600 mb-4" />
                   <p className="text-xs font-medium">Memuat surat sakit...</p>
                 </div>
-              ) : letters.length === 0 ? (
+              ) : filteredLetters.length === 0 ? (
                 <div className="text-center py-20 text-slate-400 text-xs">
                   Belum ada surat keterangan sakit diterbitkan
                 </div>
@@ -345,7 +412,7 @@ export default function KlinikPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {letters.map((l) => (
+                    {filteredLetters.map((l) => (
                       <tr key={l.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-slate-800">{l.santri_name}</div>
