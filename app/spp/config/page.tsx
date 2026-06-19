@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { 
   Settings, Save, Plus, Trash2, Calendar, 
@@ -66,7 +66,7 @@ export default function SppConfigPage() {
     c.toLowerCase().includes(classQuery.toLowerCase())
   ).slice(0, 8);
 
-  const fetchAllConfigs = async () => {
+  const fetchAllConfigs = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_BASE_URL}/api/spp/config?all=true`);
@@ -77,11 +77,11 @@ export default function SppConfigPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchAllConfigs();
-  }, []);
+  }, [fetchAllConfigs]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,7 +205,7 @@ export default function SppConfigPage() {
                        </div>
                        
                        {showClassSuggestions && filteredClasses.length > 0 && (
-                          <div className="absolute z-[110] top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl max-h-48 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+                          <div className="absolute z-110 top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl max-h-48 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
                              {filteredClasses.map(c => (
                                 <button 
                                   key={c} 
@@ -371,7 +371,7 @@ export default function SppConfigPage() {
 
                  <div className="p-6 bg-slate-50/10 border-t border-slate-50 rounded-b-[2.5rem]">
                     <div className="flex items-start gap-3 text-slate-400">
-                       <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                       <Info className="w-4 h-4 mt-0.5 shrink-0" />
                        <div className="text-[10px] font-bold leading-relaxed">
                           Sistem akan memprioritaskan tarif berdasarkan **Madrasah**, **Jenjang**, dan **Status**. Santri baru akan dicek berdasarkan bulan masuknya.
                        </div>

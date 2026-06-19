@@ -101,7 +101,7 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden scale-in-center">
         {/* Header */}
         <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
@@ -234,7 +234,7 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
             <button 
               type="submit" 
               disabled={loading || uploading} 
-              className={`flex-[2] py-4 rounded-2xl text-white text-sm font-black shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95 disabled:grayscale ${
+              className={`flex-2 py-4 rounded-2xl text-white text-sm font-black shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95 disabled:grayscale ${
                 formData.type === 'Pemasukan' ? 'bg-emerald-600 shadow-emerald-500/20' : 'bg-rose-600 shadow-rose-500/20'
               }`}
             >

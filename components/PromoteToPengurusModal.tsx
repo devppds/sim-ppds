@@ -129,10 +129,10 @@ export default function PromoteToPengurusModal({ isOpen, onClose, onSuccess, san
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-xl rounded-[48px] shadow-2xl overflow-hidden scale-in-center max-h-[90vh] overflow-y-auto relative">
         {/* Header Decor */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-indigo-600 to-violet-700 -z-0 opacity-5"></div>
+        <div className="absolute top-0 left-0 right-0 h-32 bg-linear-to-br from-indigo-600 to-violet-700 z-0 opacity-5"></div>
         
         <div className="p-8 border-b border-slate-100 flex items-center justify-between relative z-10">
           <div className="flex items-center gap-4">
@@ -261,7 +261,7 @@ export default function PromoteToPengurusModal({ isOpen, onClose, onSuccess, san
             <button
                 type="submit"
                 disabled={loading || uploading}
-                className="flex-[2] py-4.5 bg-slate-900 text-white rounded-[24px] text-sm font-black shadow-2xl shadow-slate-900/20 hover:bg-black transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-2 py-4.5 bg-slate-900 text-white rounded-[24px] text-sm font-black shadow-2xl shadow-slate-900/20 hover:bg-black transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
             >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-amber-400" />}
                 Konfirmasi & Aktifkan Pengurus

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Users, UserCheck, Search, Filter, GraduationCap, Phone, MapPin, Calendar, ArrowRight, Upload, Download, Plus, RefreshCw } from "lucide-react";
 import SantriDetailModal from "@/components/SantriDetailModal";
@@ -44,7 +44,7 @@ export default function AlumniPage() {
   const [selectedPengurus, setSelectedPengurus] = useState<any | null>(null);
   const { showToast } = useToast();
 
-  async function fetchAlumni() {
+  const fetchAlumni = useCallback(async () => {
     setLoading(true);
     try {
       const url = `${API_BASE_URL}/api/alumni?type=${activeType}${yearFilter ? `&year=${encodeURIComponent(yearFilter)}` : ""}`;
@@ -56,11 +56,11 @@ export default function AlumniPage() {
     } finally {
       setTimeout(() => setLoading(false), 500);
     }
-  }
+  }, [activeType, yearFilter]);
 
   useEffect(() => {
     fetchAlumni();
-  }, [activeType, yearFilter]);
+  }, [fetchAlumni]);
 
   const filteredData = useMemo(() => {
     return list.filter(item => 

@@ -106,12 +106,12 @@ export default function PengurusDetailModal({ pengurus, isOpen, onClose, onUpdat
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 text-[#1e293b]">
+      <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 text-text-main">
         <div className="bg-white w-full max-w-md rounded-[48px] shadow-2xl overflow-hidden scale-in-center relative">
           {/* Header Section */}
           <div className="relative h-44 bg-indigo-600">
             {/* Pattern Backdrop */}
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,_rgba(255,255,255,0.15)_1px,_transparent_0)] bg-[size:20px_20px]"></div>
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] bg-size-[20px_20px]"></div>
             
             {/* Close Button */}
             <button 

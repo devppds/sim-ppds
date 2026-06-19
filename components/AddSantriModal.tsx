@@ -219,7 +219,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden scale-in-center overflow-y-auto max-h-[95vh]">
         {/* Header */}
         <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
@@ -243,7 +243,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
             {/* Left Column: Photo & Basic Info */}
             <div className="md:col-span-4 flex flex-col items-center space-y-6">
               <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <div className="w-40 h-40 rounded-[2rem] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-emerald-400 group-hover:bg-emerald-50/30">
+                <div className="w-40 h-40 rounded-4xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-emerald-400 group-hover:bg-emerald-50/30">
                   {formData.photo_url ? (
                     <img src={formData.photo_url} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
@@ -350,7 +350,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Provinsi</label>
-                    <select className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-700 appearance-none bg-no-repeat bg-[right_1rem_center] cursor-pointer" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })}>
+                    <select className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-700 appearance-none bg-no-repeat bg-position-[right_1rem_center] cursor-pointer" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })}>
                       <option value="">Pilih Provinsi</option>
                       {provinces.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
                     </select>
@@ -399,7 +399,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
 
           <div className="pt-6 flex gap-4">
             <button type="button" onClick={onClose} className="flex-1 py-4 rounded-2xl border border-slate-200 text-sm font-bold text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
-            <button type="submit" disabled={loading || uploading} className="flex-[2] py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:grayscale">
+            <button type="submit" disabled={loading || uploading} className="flex-2 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:grayscale">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               {loading ? "Menyimpan..." : "Simpan Santri"}
             </button>

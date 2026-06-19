@@ -160,7 +160,7 @@ export default function ManualAlumniModal({ isOpen, onClose, onSuccess, type }: 
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl overflow-hidden scale-in-center max-h-[90vh] overflow-y-auto">
         <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">

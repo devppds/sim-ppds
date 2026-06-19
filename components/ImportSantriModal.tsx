@@ -121,7 +121,7 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-120 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden scale-in-center overflow-y-auto max-h-[90vh]">
         {/* Header */}
         <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -205,7 +205,7 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
 
           {/* Guidelines */}
           <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100 flex gap-4">
-            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
             <div>
               <p className="text-[11px] font-black text-amber-800 uppercase tracking-widest mb-1">Panduan Import</p>
               <p className="text-xs font-bold text-amber-900/70 leading-relaxed">
@@ -231,7 +231,7 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
             <button
               disabled={loading || !previewData.length}
               onClick={handleImport}
-              className="flex-[2] py-4 rounded-2xl bg-indigo-600 text-white text-sm font-black shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 disabled:grayscale disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-95"
+              className="flex-2 py-4 rounded-2xl bg-indigo-600 text-white text-sm font-black shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 disabled:grayscale disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-95"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
               {loading ? "Sedang Import..." : "Import Sekarang"}
