@@ -38,3 +38,52 @@ export const paySPP = async (c: Context<{ Bindings: Env }>) => {
     return c.json({ success: false, error: "Gagal mencatat pembayaran" }, 500)
   }
 }
+
+export const getSPPConfig = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      "SELECT * FROM spp_config ORDER BY madrasah ASC, kelas_name ASC, status ASC"
+    ).all()
+    c.header('Cache-Control', 'public, max-age=10, s-maxage=10')
+    return c.json({ success: true, data: results })
+  } catch (error) {
+    console.error("Error fetching spp config:", error)
+    return c.json({ success: false, error: "Gagal mengambil konfigurasi SPP" }, 500)
+  }
+}
+
+export const addSPPConfig = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const body = await c.req.json()
+    const { status, kelas_name, madrasah, period_name, amount, description } = body
+
+    if (!status || !kelas_name || !madrasah || !period_name || amount === undefined) {
+      return c.json({ success: false, error: "Data tidak lengkap" }, 400)
+    }
+
+    await c.env.DB.prepare(`
+      INSERT INTO spp_config (status, kelas_name, madrasah, period_name, amount, description)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(status, kelas_name, madrasah, period_name, amount, description || '').run()
+
+    return c.json({ success: true, message: "Konfigurasi SPP berhasil disimpan" })
+  } catch (error) {
+    console.error("Error adding spp config:", error)
+    return c.json({ success: false, error: "Gagal menyimpan konfigurasi" }, 500)
+  }
+}
+
+export const deleteSPPConfig = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const id = c.req.param('id')
+    if (!id) {
+      return c.json({ success: false, error: "ID tidak valid" }, 400)
+    }
+
+    await c.env.DB.prepare("DELETE FROM spp_config WHERE id = ?").bind(id).run()
+    return c.json({ success: true, message: "Konfigurasi berhasil dihapus" })
+  } catch (error) {
+    console.error("Error deleting spp config:", error)
+    return c.json({ success: false, error: "Gagal menghapus konfigurasi" }, 500)
+  }
+}
