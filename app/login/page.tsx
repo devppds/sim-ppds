@@ -50,13 +50,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 md:p-8 relative overflow-hidden font-sans">
+    <div className="h-screen bg-slate-100 flex items-center justify-center p-4 md:p-6 relative overflow-hidden font-sans">
       {/* Abstract Background 3D Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-300/30 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-300/30 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Main Container Card */}
-      <div className="w-full max-w-6xl bg-white rounded-4xl shadow-2xl shadow-slate-300/50 flex flex-col md:flex-row overflow-hidden relative z-10 md:h-[700px]">
+      <div className="w-full max-w-6xl bg-white rounded-4xl shadow-2xl shadow-slate-300/50 flex flex-col md:flex-row overflow-hidden relative z-10 md:h-full">
         
         {/* LEFT PANEL - Informational (Scrollable but hidden scrollbar) */}
         <div className="w-full md:w-[50%] lg:w-[55%] relative p-8 md:p-12 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none bg-linear-to-br from-emerald-900 via-slate-900 to-slate-950 text-white flex flex-col justify-start">
@@ -221,7 +221,7 @@ export default function LoginPage() {
                   </button>
                   <div className={`px-6 overflow-hidden transition-all duration-300 ${openSection === 'syarat' ? 'max-h-96 pb-5 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <div className="text-sm text-slate-300 space-y-3 leading-relaxed">
-                      <p>• Aplikasi ini dikembangkan untuk <strong>penggunaan internal terbatas</strong> oleh civitas akademika dan struktural Ponpes Darussalam.</p>
+                      <p>• Aplikasi ini dikembangkan untuk <strong>penggunaan internal terbatas</strong> oleh struktural Ponpes Darussalam.</p>
                       <p>• Segala bentuk manipulasi data, penyalahgunaan akses, atau percobaan peretasan akan tercatat dalam <em>Audit Log</em> dan ditindaklanjuti secara hukum.</p>
                       <p>• Pengguna wajib bertanggung jawab terhadap aktivitas apa pun yang terjadi menggunakan kredensial akun miliknya.</p>
                       <p>• <em>Developer (DEVELZY)</em> dan Yayasan berhak mencabut akses sewaktu-waktu apabila ditemukan indikasi pelanggaran kebijakan privasi data santri.</p>
@@ -233,9 +233,14 @@ export default function LoginPage() {
             </div>
           </div>
           
-          <div className="mt-12 text-center relative z-10 pt-6 border-t border-white/10">
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Infrastruktur Teknologi oleh</p>
-            <p className="text-sm font-black text-slate-300 tracking-wider mt-1">DEVELZY CREATIVE</p>
+          <div className="mt-auto relative z-10 pt-6 border-t border-white/10 text-center">
+            <p className="text-[11px] text-slate-400 leading-relaxed italic">
+              Sistem cerdas ini dikembangkan oleh alumni Pondok Pesantren Darussalam Lirboyo.
+            </p>
+            <p className="text-[11px] text-slate-400 leading-relaxed italic mt-1">
+              Semoga aplikasi ini menjadi <strong className="text-emerald-400">jariyyah</strong> dan bermanfa'at bagi Pondok Pesantren Darussalam Lirboyo.
+            </p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-black mt-3">&copy; 2026 DEVELZY</p>
           </div>
         </div>
 
