@@ -40,7 +40,7 @@ export default function AddArsipModal({ isOpen, onClose, onSuccess }: AddArsipMo
     setUploading(true);
     const data = new FormData();
     data.append("file", file);
-    data.append("folder", "arsip_pondok");
+    data.append("folder", "sim-ppds/arsip");
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: data });

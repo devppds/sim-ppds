@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface ImportSantriModalProps {
   isOpen: boolean;
@@ -97,10 +98,10 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
         gender: "L" // Default
       }));
 
-      const res = await fetch("/api/santri/bulk", {
+      const res = await fetch(`${API_BASE_URL}/api/santri/bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: formattedData })
+        body: JSON.stringify(formattedData)
       });
 
       const json = await res.json() as any;

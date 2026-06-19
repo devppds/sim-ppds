@@ -40,7 +40,7 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
     setUploading(true);
     const data = new FormData();
     data.append("file", file);
-    data.append("folder", "finance_proofs");
+    data.append("folder", "sim-ppds/keuangan");
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: data });

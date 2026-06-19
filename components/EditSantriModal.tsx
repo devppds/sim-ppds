@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, Save, Edit3, Loader2, Camera, Search, Check, Plus, GraduationCap, MapPin } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Santri {
   id: number;
@@ -170,7 +171,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
     setUploading(true);
     const data = new FormData();
     data.append("file", file);
-    data.append("folder", "santri_photos");
+    data.append("folder", "sim-ppds/santri");
     try {
       const res = await fetch("/api/upload", { method: "POST", body: data });
       const json = await res.json() as any;
@@ -187,7 +188,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`/api/santri/${santri?.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/santri/${santri?.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

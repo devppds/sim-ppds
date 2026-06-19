@@ -1,5 +1,6 @@
 import { Context } from 'hono'
 import { Env } from '../index'
+import { triggerCloudinaryDelete } from '../utils/cloudinary'
 
 export const getTransactions = async (c: Context<{ Bindings: Env }>) => {
   try {
@@ -86,6 +87,12 @@ export const deleteTransaction = async (c: Context<{ Bindings: Env }>) => {
     if (!id) return c.json({ success: false, error: "ID wajib ada" }, 400);
 
     if (permanent) {
+      // Select old proof URL to delete from Cloudinary
+      const tx = await c.env.DB.prepare("SELECT proof_url FROM transactions WHERE id = ?").bind(id).first() as any;
+      if (tx && tx.proof_url) {
+        await triggerCloudinaryDelete(c, tx.proof_url);
+      }
+
       await c.env.DB.prepare("DELETE FROM transactions WHERE id = ?").bind(id).run();
       return c.json({ success: true, message: "Transaksi dihapus permanen" });
     } else {

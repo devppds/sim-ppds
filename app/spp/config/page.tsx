@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface SppConfig {
   id: number;
@@ -68,7 +69,7 @@ export default function SppConfigPage() {
   const fetchAllConfigs = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/spp/config?all=true");
+      const res = await fetch(`${API_BASE_URL}/api/spp/config?all=true`);
       const json = await res.json() as any;
       if (json.success) setConfigs(json.data);
     } catch (err) {
@@ -86,7 +87,7 @@ export default function SppConfigPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await fetch("/api/spp/config", {
+      const res = await fetch(`${API_BASE_URL}/api/spp/config`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

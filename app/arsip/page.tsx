@@ -204,7 +204,7 @@ export default function ArsipPage() {
                     <tr key={file.id} className="hover:bg-slate-50/50 transition-colors group">
                       <td className="px-6 py-5">
                         <div className="flex items-start gap-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all ${
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
                             file.category === 'Proposal' ? 'bg-amber-50 text-amber-600' : 
                             file.category === 'Surat' ? 'bg-indigo-50 text-indigo-600' : 
                             'bg-slate-100 text-slate-500'

@@ -109,7 +109,7 @@ export default function ManualAlumniModal({ isOpen, onClose, onSuccess, type }: 
     setUploading(true);
     const data = new FormData();
     data.append("file", file);
-    data.append("folder", "alumni_photos");
+    data.append("folder", "sim-ppds/alumni");
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: data });

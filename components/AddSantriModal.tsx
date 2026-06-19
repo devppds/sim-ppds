@@ -168,7 +168,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
     setUploading(true);
     const data = new FormData();
     data.append("file", file);
-    data.append("folder", "santri_photos");
+    data.append("folder", "sim-ppds/santri");
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: data });

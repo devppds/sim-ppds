@@ -1,5 +1,6 @@
 import { Context } from 'hono'
 import { Env } from '../index'
+import { triggerCloudinaryDelete } from '../utils/cloudinary'
 
 export const getArsipList = async (c: Context<{ Bindings: Env }>) => {
   try {
@@ -43,6 +44,12 @@ export const deleteArsip = async (c: Context<{ Bindings: Env }>) => {
     const id = c.req.param('id');
     if (!id) {
       return c.json({ success: false, error: "ID wajib ada" }, 400);
+    }
+
+    // Select old file URL to delete from Cloudinary
+    const arsip = await c.env.DB.prepare("SELECT url FROM arsip WHERE id = ?").bind(id).first() as any;
+    if (arsip && arsip.url) {
+      await triggerCloudinaryDelete(c, arsip.url);
     }
 
     await c.env.DB.prepare("DELETE FROM arsip WHERE id = ?").bind(id).run();

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Plus, User, Phone, Briefcase, Camera, Loader2, Home, UserPlus } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface AddPengurusModalProps {
   isOpen: boolean;
@@ -67,7 +68,7 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
     setUploading(true);
     const data = new FormData();
     data.append("file", file);
-    data.append("folder", "pengurus_photos");
+    data.append("folder", "sim-ppds/pengurus");
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: data });
@@ -92,7 +93,7 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
     setLoading(true);
 
     try {
-      const res = await fetch("/api/pengurus", {
+      const res = await fetch(`${API_BASE_URL}/api/pengurus`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

@@ -209,7 +209,7 @@ export default function AsramaPage() {
 
       {/* Detail Modal */}
       {selectedRoom && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 text-text-main">
+        <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 text-text-main">
           <div className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden scale-in-center flex flex-col max-h-[85vh]">
             <div className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-4">

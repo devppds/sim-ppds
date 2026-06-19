@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, User, Phone, Mail, Shield, Trash2, Edit3, LogOut, Home, Star, CheckCircle2 } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 import EditPengurusModal from "./EditPengurusModal";
 import ConfirmModal from "./ConfirmModal";
 
@@ -61,7 +62,7 @@ export default function PengurusDetailModal({ pengurus, isOpen, onClose, onUpdat
         ? `${now.getFullYear()}/${now.getFullYear() + 1}`
         : `${now.getFullYear() - 1}/${now.getFullYear()}`;
 
-      const res = await fetch(`/api/pengurus/${pengurus!.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/pengurus/${pengurus!.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -86,7 +87,7 @@ export default function PengurusDetailModal({ pengurus, isOpen, onClose, onUpdat
   async function handleDelete() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/pengurus/${pengurus!.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/pengurus/${pengurus!.id}`, {
         method: "DELETE",
       });
       if (res.ok) {

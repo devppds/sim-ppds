@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, User, Phone, Briefcase, Camera, Loader2, Home, Sparkles } from "lucide-react";
 import { useToast } from "./Toast";
+import { API_BASE_URL } from "@/lib/config";
 
 interface PromoteToPengurusModalProps {
   isOpen: boolean;
@@ -63,7 +64,7 @@ export default function PromoteToPengurusModal({ isOpen, onClose, onSuccess, san
     setUploading(true);
     const data = new FormData();
     data.append("file", file);
-    data.append("folder", "pengurus_photos");
+    data.append("folder", "sim-ppds/pengurus");
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: data });
@@ -87,7 +88,7 @@ export default function PromoteToPengurusModal({ isOpen, onClose, onSuccess, san
 
     try {
       // 1. Add as Pengurus
-      const resPengurus = await fetch("/api/pengurus", {
+      const resPengurus = await fetch(`${API_BASE_URL}/api/pengurus`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -103,7 +104,7 @@ export default function PromoteToPengurusModal({ isOpen, onClose, onSuccess, san
           : `${now.getFullYear() - 1}/${now.getFullYear()}`;
 
         // Mark santri as alumni with current academic year
-        await fetch(`/api/santri/${santri.id}`, {
+        await fetch(`${API_BASE_URL}/api/santri/${santri.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 

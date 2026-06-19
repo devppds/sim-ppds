@@ -230,7 +230,7 @@ export default function AlumniPage() {
                 onClick={() => activeType === 'santri' ? setSelectedSantri(item) : setSelectedPengurus(item)}
                 className="group bg-white rounded-[40px] border border-slate-100 p-6 shadow-sm hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all cursor-pointer relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[80px] -z-0 transition-transform group-hover:scale-110 opacity-30" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[80px] z-0 transition-transform group-hover:scale-110 opacity-30" />
                 
                 <div className="relative z-10">
                   <div className="flex items-start justify-between mb-6">
@@ -257,13 +257,13 @@ export default function AlumniPage() {
 
                   <div className="space-y-3 mt-6">
                     <div className="flex items-center gap-3 text-[11px] font-bold text-slate-500 bg-slate-50/50 p-2 rounded-2xl border border-slate-50">
-                      <div className="w-7 h-7 rounded-xl bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 flex-shrink-0">
+                      <div className="w-7 h-7 rounded-xl bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 shrink-0">
                         {activeType === 'santri' ? <MapPin className="w-3.5 h-3.5" /> : <Phone className="w-3.5 h-3.5" />}
                       </div>
                       <span className="truncate">{activeType === 'santri' ? (item.city || item.asal) : item.phone}</span>
                     </div>
                     <div className="flex items-center gap-3 text-[11px] font-bold text-indigo-600 bg-indigo-50/30 p-2 rounded-2xl border border-indigo-100/50">
-                        <div className="w-7 h-7 rounded-xl bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100 flex-shrink-0">
+                        <div className="w-7 h-7 rounded-xl bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100 shrink-0">
                             <Calendar className="w-3.5 h-3.5" />
                         </div>
                         <span className="font-black uppercase tracking-widest">Tahun Ajar {item.tahun_lulus || item.tahun_purna || '-'}</span>

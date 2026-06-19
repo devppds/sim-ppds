@@ -154,11 +154,16 @@ export async function DELETE(request: Request) {
     }
 
     // Protect Developer accounts from deletion by non-developers
-    const targetUser = await env.DB.prepare("SELECT username, role FROM users WHERE id = ?").bind(id).first() as any;
+    const targetUser = await env.DB.prepare("SELECT username, role, avatar_url FROM users WHERE id = ?").bind(id).first() as any;
     if (targetUser) {
       const isTargetDev = (targetUser.username || "").toLowerCase() === "developer" || (targetUser.role || "").toLowerCase() === "developer";
       if (isTargetDev && !isDev) {
         return NextResponse.json({ success: false, error: "Tidak memiliki hak akses untuk menghapus akun Developer" }, { status: 403 });
+      }
+
+      // Delete avatar from Cloudinary if exists
+      if (targetUser.avatar_url) {
+        await deleteFromCloudinary(targetUser.avatar_url, env);
       }
     }
 
@@ -170,3 +175,79 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+function parseCloudinaryUrl(url: string) {
+  if (!url || !url.includes("cloudinary.com")) return null;
+  try {
+    const parts = url.split("/");
+    const uploadIndex = parts.indexOf("upload");
+    if (uploadIndex === -1) return null;
+    
+    const resourceType = parts[uploadIndex - 1]; // "image", "raw", "video"
+    let versionIndex = uploadIndex + 1;
+    if (parts[versionIndex].startsWith("v") && /^\d+$/.test(parts[versionIndex].substring(1))) {
+      versionIndex++;
+    }
+    
+    const publicIdWithExt = parts.slice(versionIndex).join("/");
+    let publicId = publicIdWithExt;
+    if (resourceType === "image") {
+      const lastDot = publicIdWithExt.lastIndexOf(".");
+      if (lastDot !== -1) {
+        publicId = publicIdWithExt.substring(0, lastDot);
+      }
+    }
+    
+    return {
+      publicId: decodeURIComponent(publicId),
+      resourceType
+    };
+  } catch (error) {
+    console.error("Failed to parse Cloudinary URL:", url, error);
+    return null;
+  }
+}
+
+async function deleteFromCloudinary(url: string, env: any) {
+  const parsed = parseCloudinaryUrl(url);
+  if (!parsed) return false;
+
+  const { publicId, resourceType } = parsed;
+  const cloudName = env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = env.CLOUDINARY_API_KEY;
+  const apiSecret = env.CLOUDINARY_API_SECRET;
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    console.warn("Cloudinary configuration missing in environment");
+    return false;
+  }
+
+  const timestamp = Math.round(Date.now() / 1000);
+  const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(paramsToSign);
+  const hashBuffer = await crypto.subtle.digest("SHA-1", data);
+  const signature = Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  const body = new FormData();
+  body.append("public_id", publicId);
+  body.append("api_key", apiKey);
+  body.append("timestamp", timestamp.toString());
+  body.append("signature", signature);
+
+  try {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/destroy`,
+      { method: "POST", body }
+    );
+    const json = await res.json() as any;
+    return json.result === "ok";
+  } catch (error) {
+    console.error("Failed to delete asset from Cloudinary:", error);
+    return false;
+  }
+}
+

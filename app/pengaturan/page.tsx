@@ -276,7 +276,7 @@ export default function PengaturanPage() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("folder", "sim-ppds-avatars");
+    formData.append("folder", "sim-ppds/avatars");
 
     setUploadingPhoto(true);
     try {
