@@ -50,13 +50,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen bg-slate-100 flex items-center justify-center p-4 md:p-6 relative overflow-hidden font-sans">
+    <div className="h-screen bg-slate-100 flex items-center justify-center p-4 md:p-0 relative overflow-hidden font-sans">
       {/* Abstract Background 3D Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-300/30 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-300/30 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Main Container Card */}
-      <div className="w-full max-w-6xl bg-white rounded-4xl shadow-2xl shadow-slate-300/50 flex flex-col md:flex-row overflow-hidden relative z-10 md:h-full">
+      <div className="w-full max-w-6xl md:max-w-none bg-white rounded-2xl md:rounded-none shadow-2xl shadow-slate-300/50 flex flex-col md:flex-row overflow-hidden relative z-10 h-auto md:h-full">
         
         {/* LEFT PANEL - Informational (Scrollable but hidden scrollbar) */}
         <div className="w-full md:w-[50%] lg:w-[55%] relative p-8 md:p-12 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none bg-linear-to-br from-emerald-900 via-slate-900 to-slate-950 text-white flex flex-col justify-start">
