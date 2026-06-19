@@ -46,19 +46,22 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
   const academicYear = useMemo(() => {
     try {
       const now = new Date();
-      // Use islamic calendar to get Hijri month
+      // Use islamic calendar to get Hijri month and year
       const hijriFormatter = new Intl.DateTimeFormat('id-ID-u-ca-islamic', { month: 'numeric' });
       const hijriMonth = parseInt(hijriFormatter.format(now));
-      const year = now.getFullYear();
+      
+      const hijriYearFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic', { year: 'numeric' });
+      const hijriYearStr = hijriYearFormatter.format(now);
+      const year = parseInt(hijriYearStr.replace(/[^0-9]/g, ''));
       
       // If Hijri month is Syawal (10) or later
       if (hijriMonth >= 10) {
-        return `${year}/${year + 1}`;
+        return `${year}/${year + 1} H`;
       } else {
-        return `${year - 1}/${year}`;
+        return `${year - 1}/${year} H`;
       }
     } catch (e) {
-      return "2025/2026"; 
+      return "1445/1446 H"; 
     }
   }, []);
 

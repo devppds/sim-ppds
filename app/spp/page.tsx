@@ -41,10 +41,14 @@ export default function SPPPage() {
       const now = new Date();
       const hjFormatter = new Intl.DateTimeFormat('id-ID-u-ca-islamic', { month: 'numeric' });
       const hjMonth = parseInt(hjFormatter.format(now));
-      const year = now.getFullYear();
-      if (hjMonth >= 10) return `${year}/${year + 1}`;
-      return `${year - 1}/${year}`;
-    } catch { return "2025/2026"; }
+      
+      const hjYearFormatter = new Intl.DateTimeFormat('en-US-u-ca-islamic', { year: 'numeric' });
+      const hjYearStr = hjYearFormatter.format(now);
+      const year = parseInt(hjYearStr.replace(/[^0-9]/g, ''));
+      
+      if (hjMonth >= 10) return `${year}/${year + 1} H`;
+      return `${year - 1}/${year} H`;
+    } catch { return "1445/1446 H"; }
   }, []);
 
   const [academicYear, setAcademicYear] = useState(currentAutoYear);
@@ -53,7 +57,7 @@ export default function SPPPage() {
   // Generate Year List (History + Current + Next)
   const ACADEMIC_YEARS = useMemo(() => {
     const startYear = parseInt(currentAutoYear.split("/")[0]);
-    return [`${startYear - 1}/${startYear}`, currentAutoYear, `${startYear + 1}/${startYear + 2}`];
+    return [`${startYear - 1}/${startYear} H`, currentAutoYear, `${startYear + 1}/${startYear + 2} H`];
   }, [currentAutoYear]);
 
   const [searchQuery, setSearchQuery] = useState("");

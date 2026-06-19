@@ -208,7 +208,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
   }
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-120 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden scale-in-center overflow-y-auto max-h-[90vh]">
         <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -229,7 +229,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
               <div className="md:col-span-4 flex flex-col items-center">
                  <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                    <div className="w-32 h-32 rounded-[2rem] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-400">
+                    <div className="w-32 h-32 rounded-4xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-400">
                        {formData.photo_url ? <img src={formData.photo_url} alt="Santri" className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-slate-300" />}
                        {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-indigo-600" /></div>}
                     </div>
@@ -327,7 +327,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
 
            <div className="pt-6 flex gap-4">
               <button type="button" onClick={onClose} className="flex-1 py-4 rounded-3xl border border-slate-200 text-sm font-black text-slate-400 transition-all">Batal</button>
-              <button type="submit" disabled={loading || uploading} className="flex-[2] py-4 rounded-3xl bg-indigo-600 text-white text-sm font-black shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2">
+              <button type="submit" disabled={loading || uploading} className="flex-2 py-4 rounded-3xl bg-indigo-600 text-white text-sm font-black shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2">
                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                  Simpan Perubahan
               </button>

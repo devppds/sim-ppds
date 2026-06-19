@@ -35,6 +35,7 @@ export default function JamiyyahPage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
