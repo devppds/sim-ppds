@@ -62,7 +62,7 @@ export default function SPPPage() {
   const fetchSPPData = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/spp?period=${selectedPeriod}&academic_year=${academicYear}`);
+      const res = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/spp?period=${selectedPeriod}&academic_year=${academicYear}`);
       const json = await res.json() as any;
       if (json.success) {
         setData(json.data);
@@ -90,12 +90,12 @@ export default function SPPPage() {
           entryMonth = new Date(santri.tahun_masuk).getMonth() + 1;
       }
 
-      const configRes = await fetch(`/api/spp/config?status=${encodeURIComponent(santri.santri_status)}&kelas=${encodeURIComponent(santri.kelas)}&madrasah=${santri.madrasah || 'MHM'}&period=${selectedPeriod}${entryMonth ? `&entry_month=${entryMonth}` : ''}`);
+      const configRes = await fetch(`https://api-worker.ppdslirboyo.workers.dev/api/spp/config?status=${encodeURIComponent(santri.santri_status)}&kelas=${encodeURIComponent(santri.kelas)}&madrasah=${santri.madrasah || 'MHM'}&period=${selectedPeriod}${entryMonth ? `&entry_month=${entryMonth}` : ''}`);
       const configJson = await configRes.json() as any;
       const amount = configJson.amount || 1000000;
 
       // 2. Perform payment
-      const res = await fetch("/api/spp", {
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/spp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

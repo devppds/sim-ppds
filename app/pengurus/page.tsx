@@ -32,7 +32,7 @@ function PengurusContent() {
 
   async function fetchPengurus() {
     try {
-      const res = await fetch("/api/pengurus");
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/pengurus");
       const json = (await res.json()) as any;
       if (json.success) {
         setList(json.data);

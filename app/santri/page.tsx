@@ -70,7 +70,7 @@ function SantriContent() {
   async function fetchAllSantri() {
     setLoading(true);
     try {
-      const res = await fetch("/api/santri");
+      const res = await fetch("https://api-worker.ppdslirboyo.workers.dev/api/santri");
       const json = (await res.json()) as any;
       if (json.success) {
         setSantriList(json.data);

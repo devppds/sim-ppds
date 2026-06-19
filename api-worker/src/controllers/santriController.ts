@@ -1,53 +1,74 @@
-import { Context } from 'hono'
-import { Env } from '../index'
+import { Context } from 'hono';
+import { Env } from '../../index';
+ from "@cloudflare/next-on-pages";
+import { CloudflareEnv } from "@/types/env";
+import { canWrite } from "@/lib/auth";
 
-// Mengambil Santri dengan Pagination, Search, dan Filter
-export const getSantriPaginated = async (c: Context<{ Bindings: Env }>) => {
+"edge";
+
+// GET /api/santri - ambil semua santri dari D1
+export async function GET() {
   try {
-    const page = parseInt(c.req.query('page') || '1')
-    const limit = parseInt(c.req.query('limit') || '50')
-    const offset = (page - 1) * limit
-    const search = c.req.query('q') || ''
-    const kelas = c.req.query('kelas') || ''
-
-    let countQuery = "SELECT COUNT(*) as total FROM santri WHERE 1=1"
-    let dataQuery = "SELECT id, nisn, nik, name, kelas, asrama, asal, status, photo_url FROM santri WHERE 1=1"
-    const params: any[] = []
-
-    if (search) {
-      countQuery += " AND (name LIKE ? OR nisn LIKE ?)"
-      dataQuery += " AND (name LIKE ? OR nisn LIKE ?)"
-      params.push(`%${search}%`, `%${search}%`)
-    }
-
-    if (kelas) {
-      countQuery += " AND kelas = ?"
-      dataQuery += " AND kelas = ?"
-      params.push(kelas)
-    }
-
-    dataQuery += " ORDER BY name ASC LIMIT ? OFFSET ?"
+    const env = c.env; as unknown as { env: CloudflareEnv };
     
-    // Mengeksekusi query count dan data secara bersamaan (Batch)
-    const [countRes, dataRes] = await c.env.DB.batch([
-      c.env.DB.prepare(countQuery).bind(...params),
-      c.env.DB.prepare(dataQuery).bind(...params, limit, offset)
-    ])
+    // Query ke database D1 lokal/remote
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM santri WHERE status != 'Alumni' ORDER BY created_at DESC LIMIT 50"
+    ).all();
 
-    const total = (countRes.results[0] as any).total
-
-    return c.json({ 
-      success: true, 
-      data: dataRes.results,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      }
-    })
+    return c.json({ success: true, data: results });
   } catch (error) {
-    console.error("Error fetching santri:", error)
-    return c.json({ success: false, error: "Gagal mengambil data santri" }, 500)
+    console.error("Error fetching santri:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error atau Database belum siap" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/santri - tambah santri baru
+export async function POST(request: Request) {
+  try {
+    if (!await canWrite('SANTRI')) {
+      return c.json({ success: false, error: "Izin ditolak (Hanya Lihat/View-Only)" }, { status: 403 });
+    }
+    const env = c.env; as unknown as { env: CloudflareEnv };
+    const body = (await request.json()) as any;
+    const { 
+      nisn, nik, name, madrasah, kelas, asrama, asal, 
+      photo_url, street, rt_rw, province, city, 
+      district, village, postal_code, wali_name, wali_wa,
+      status = 'Baru'
+    } = body;
+
+    if (!nisn || !name || !kelas) {
+      return NextResponse.json(
+        { success: false, error: "NISN, nama, dan kelas wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    await env.DB.prepare(
+      `INSERT INTO santri (
+        nisn, nik, name, madrasah, kelas, asrama, asal, 
+        photo_url, street, rt_rw, province, city, 
+        district, village, postal_code, wali_name, wali_wa, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      nisn, nik, name, madrasah, kelas, asrama, asal, 
+      photo_url, street, rt_rw, province, city, 
+      district, village, postal_code, wali_name, wali_wa, status
+    ).run();
+
+    return NextResponse.json({
+      success: true,
+      message: "Santri berhasil ditambahkan",
+    });
+  } catch (error) {
+    console.error("Error adding santri:", error);
+    return NextResponse.json(
+      { success: false, error: "Gagal menambahkan data ke database" },
+      { status: 500 }
+    );
   }
 }

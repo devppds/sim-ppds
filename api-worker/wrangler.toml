@@ -6,3 +6,10 @@ compatibility_date = "2024-03-20"
 binding = "DB"
 database_name = "sim-ppds-db"
 database_id = "a3e061fa-af4a-4df8-80a0-a0d582a26af4"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+invocation_logs = true
