@@ -7,6 +7,7 @@ export const getPengurus = async (c: Context<{ Bindings: Env }>) => {
       "SELECT * FROM ustadz WHERE status = 'Aktif' ORDER BY created_at DESC"
     ).all()
     
+    c.header('Cache-Control', 'public, max-age=30, s-maxage=30')
     return c.json({ success: true, data: results })
   } catch (error) {
     console.error("Error fetching pengurus:", error)

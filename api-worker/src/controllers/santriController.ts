@@ -5,7 +5,7 @@ import { Env } from '../index'
 export const getSantriPaginated = async (c: Context<{ Bindings: Env }>) => {
   try {
     const page = parseInt(c.req.query('page') || '1')
-    const limit = parseInt(c.req.query('limit') || '50')
+    const limit = parseInt(c.req.query('limit') || '1000')
     const offset = (page - 1) * limit
     const search = c.req.query('q') || ''
     const kelas = c.req.query('kelas') || ''
@@ -35,6 +35,9 @@ export const getSantriPaginated = async (c: Context<{ Bindings: Env }>) => {
     ])
 
     const total = (countRes.results[0] as any).total
+
+    // Set Cache-Control header (Cache di CDN & Browser selama 30 detik untuk menghemat read D1)
+    c.header('Cache-Control', 'public, max-age=30, s-maxage=30')
 
     return c.json({ 
       success: true, 
