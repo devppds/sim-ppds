@@ -241,10 +241,10 @@ export default function SekretariatPage() {
                        onChange={(e) => setAnnouncementType(e.target.value)}
                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-slate-700"
                      >
-                       <option value="info">Info / Pengumuman Biasa</option>
-                       <option value="success">Success / Berita Baik</option>
-                       <option value="warning">Warning / Penting</option>
-                       <option value="danger">Urgent / Darurat</option>
+                        <option value="info">Informasi / Biasa</option>
+                        <option value="success">Sukses / Berita Baik</option>
+                        <option value="warning">Penting / Peringatan</option>
+                        <option value="danger">Darurat / Sangat Penting</option>
                      </select>
                   </div>
                   

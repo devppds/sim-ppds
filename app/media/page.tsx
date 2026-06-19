@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { Plus, Search, RefreshCw, X, Pencil, Trash2, CheckCircle2, AlertCircle, Video } from "lucide-react";
 
 export default function MediaPage() {
-  const tabs: any[] = [{"id":"bookings","label":"Booking Peralatan","api":"media/media_bookings","columns":[{"key":"event_name","label":"Nama Acara","type":"text","required":true},{"key":"date","label":"Tanggal Dipakai","type":"date","required":true},{"key":"equipment_needed","label":"Peralatan","type":"text","required":true},{"key":"status","label":"Status Peminjaman","type":"select","options":["Pending","Approved","Completed"]}]},{"id":"tickets","label":"Laporan Jaringan","api":"media/media_tickets","columns":[{"key":"issue_type","label":"Jenis Gangguan","type":"select","options":["WiFi","LAN","Hardware"]},{"key":"location","label":"Lokasi","type":"text","required":true},{"key":"status","label":"Status Perbaikan","type":"select","options":["Open","In Progress","Resolved"]}]}];
+  const tabs: any[] = [{"id":"bookings","label":"Booking Peralatan","api":"media/media_bookings","columns":[{"key":"event_name","label":"Nama Acara","type":"text","required":true},{"key":"date","label":"Tanggal Dipakai","type":"date","required":true},{"key":"equipment_needed","label":"Peralatan","type":"text","required":true},{"key":"status","label":"Status Peminjaman","type":"select","options":["Tertunda","Disetujui","Selesai"]}]},{"id":"tickets","label":"Laporan Jaringan","api":"media/media_tickets","columns":[{"key":"issue_type","label":"Jenis Gangguan","type":"select","options":["WiFi","LAN","Perangkat Keras"]},{"key":"location","label":"Lokasi","type":"text","required":true},{"key":"status","label":"Status Perbaikan","type":"select","options":["Buka","Dalam Proses","Selesai"]}]}];
   const [activeTab, setActiveTab] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -200,8 +200,8 @@ export default function MediaPage() {
                       <td key={col.key} className="px-6 py-4">
                         {col.key === 'status' ? (
                           <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
-                            ['Completed', 'Approved', 'Clean', 'Paid'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
-                            ['Warning', 'Draft', 'Pending', 'Unpaid'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
+                            ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas', 'Resolved'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
+                            ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
                             'bg-slate-100 text-slate-700'
                           }`}>
                             {item[col.key] || 'N/A'}

@@ -509,8 +509,8 @@ export default function ClearancePage() {
                       onChange={(e) => setOverrideForm({ ...overrideForm, status_keuangan: e.target.value })}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
                     >
-                      <option value="Clean">Clean (Lolos)</option>
-                      <option value="Blocked">Blocked (Terhambat)</option>
+                      <option value="Clean">Lolos</option>
+                      <option value="Blocked">Terhambat</option>
                     </select>
                   </div>
                   <div>
@@ -549,8 +549,8 @@ export default function ClearancePage() {
                       onChange={(e) => setOverrideForm({ ...overrideForm, status_keamanan: e.target.value })}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
                     >
-                      <option value="Clean">Clean (Lolos)</option>
-                      <option value="Blocked">Blocked (Terhambat)</option>
+                      <option value="Clean">Lolos</option>
+                      <option value="Blocked">Terhambat</option>
                     </select>
                   </div>
                   <div>
@@ -589,9 +589,9 @@ export default function ClearancePage() {
                       onChange={(e) => setOverrideForm({ ...overrideForm, acc_mustahiq: e.target.value as 'Pending' | 'Approved' | 'Rejected' })}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
                     >
-                      <option value="Pending">Pending (Ditangguhkan)</option>
-                      <option value="Approved">Approved (Disetujui)</option>
-                      <option value="Rejected">Rejected (Ditolak)</option>
+                      <option value="Pending">Ditangguhkan</option>
+                      <option value="Approved">Disetujui</option>
+                      <option value="Rejected">Ditolak</option>
                     </select>
                   </div>
                   <div>

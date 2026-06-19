@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { Plus, Search, RefreshCw, X, Pencil, Trash2, CheckCircle2, AlertCircle, Hammer } from "lucide-react";
 
 export default function PembangunanPage() {
-  const tabs: any[] = [{"id":"renovasi","label":"Proyek E-Renovasi","api":"pembangunan/pembangunan_renovasi","columns":[{"key":"project_name","label":"Nama Proyek","type":"text","required":true},{"key":"location","label":"Lokasi","type":"text","required":true},{"key":"requested_by","label":"Pemohon","type":"text"},{"key":"budget_estimation","label":"Estimasi Dana (Rp)","type":"number"},{"key":"status","label":"Status Proyek","type":"select","options":["Proposed","Approved","In Progress","Completed"]}]}];
+  const tabs: any[] = [{"id":"renovasi","label":"Proyek E-Renovasi","api":"pembangunan/pembangunan_renovasi","columns":[{"key":"project_name","label":"Nama Proyek","type":"text","required":true},{"key":"location","label":"Lokasi","type":"text","required":true},{"key":"requested_by","label":"Pemohon","type":"text"},{"key":"budget_estimation","label":"Estimasi Dana (Rp)","type":"number"},{"key":"status","label":"Status Proyek","type":"select","options":["Diajukan","Disetujui","Dalam Proses","Selesai"]}]}];
   const [activeTab, setActiveTab] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -200,8 +200,8 @@ export default function PembangunanPage() {
                       <td key={col.key} className="px-6 py-4">
                         {col.key === 'status' ? (
                           <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
-                            ['Completed', 'Approved', 'Clean', 'Paid'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
-                            ['Warning', 'Draft', 'Pending', 'Unpaid'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
+                            ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
+                            ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
                             'bg-slate-100 text-slate-700'
                           }`}>
                             {item[col.key] || 'N/A'}

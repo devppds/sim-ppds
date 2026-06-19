@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { Plus, Search, RefreshCw, X, Pencil, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 
 export default function KebersihanPage() {
-  const tabs: any[] = [{"id":"hygiene","label":"Hygiene Checks","api":"kbr/kbr_hygiene_checks","columns":[{"key":"area","label":"Area / Blok","type":"text","required":true},{"key":"checked_by","label":"Petugas KBR","type":"text","required":true},{"key":"date","label":"Tanggal Pengecekan","type":"date"},{"key":"status","label":"Status Area","type":"select","options":["Clean","Warning","Dirty"]},{"key":"notes","label":"Catatan Tambahan","type":"textarea"}]}];
+  const tabs: any[] = [{"id":"hygiene","label":"Hygiene Checks","api":"kbr/kbr_hygiene_checks","columns":[{"key":"area","label":"Area / Blok","type":"text","required":true},{"key":"checked_by","label":"Petugas KBR","type":"text","required":true},{"key":"date","label":"Tanggal Pengecekan","type":"date"},{"key":"status","label":"Status Area","type":"select","options":["Bersih","Peringatan","Kotor"]},{"key":"notes","label":"Catatan Tambahan","type":"textarea"}]}];
   const [activeTab, setActiveTab] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -200,8 +200,8 @@ export default function KebersihanPage() {
                       <td key={col.key} className="px-6 py-4">
                         {col.key === 'status' ? (
                           <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
-                            ['Completed', 'Approved', 'Clean', 'Paid'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
-                            ['Warning', 'Draft', 'Pending', 'Unpaid'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
+                            ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
+                            ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
                             'bg-slate-100 text-slate-700'
                           }`}>
                             {item[col.key] || 'N/A'}

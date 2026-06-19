@@ -121,7 +121,7 @@ export default function PusatKontrolPage() {
                    Pusat Kontrol <span className="text-rose-500">Core</span>
                 </h1>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                   Security Status: <span className="text-emerald-500">OPTIMAL</span> • Protokol CIA Aktif
+                   Status Keamanan: <span className="text-emerald-500">OPTIMAL</span> • Protokol CIA Aktif
                 </p>
              </div>
           </div>
@@ -272,7 +272,7 @@ export default function PusatKontrolPage() {
                                    </td>
                                    <td className="px-8 py-6 text-center">
                                       <div className="flex flex-col items-center gap-1">
-                                         <span className="text-[11px] font-bold text-slate-600">{u.last_login ? new Date(u.last_login).toLocaleDateString('id-ID') : 'Never'}</span>
+                                         <span className="text-[11px] font-bold text-slate-600">{u.last_login ? new Date(u.last_login).toLocaleDateString('id-ID') : 'Tidak Pernah'}</span>
                                          <span className="text-[9px] font-bold text-slate-400 uppercase">{u.last_login ? new Date(u.last_login).toLocaleTimeString('id-ID') : '-'}</span>
                                       </div>
                                    </td>
@@ -349,7 +349,7 @@ export default function PusatKontrolPage() {
                        </div>
                        <div className="flex justify-between items-center text-[11px] font-bold py-2 border-b border-slate-50">
                           <span className="text-slate-500">Up-time</span>
-                          <span className="text-emerald-500 uppercase">99.9% Strong</span>
+                          <span className="text-emerald-500 uppercase">99.9% Lancar</span>
                        </div>
                     </div>
                  </div>
@@ -364,11 +364,11 @@ export default function PusatKontrolPage() {
                  <div className="grid grid-cols-2 gap-3 mb-8">
                     <button className="flex flex-col items-center justify-center gap-2 p-6 bg-slate-50 rounded-3xl hover:bg-indigo-50 transition-all group border border-transparent hover:border-indigo-100">
                        <Download className="w-6 h-6 text-slate-400 group-hover:text-indigo-600" />
-                       <span className="text-[10px] font-black uppercase group-hover:text-indigo-600">JSON EXPORT</span>
+                       <span className="text-[10px] font-black uppercase group-hover:text-indigo-600">EKSPOR JSON</span>
                     </button>
                     <button className="flex flex-col items-center justify-center gap-2 p-6 bg-slate-50 rounded-3xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100">
                        <HardDrive className="w-6 h-6 text-slate-400 group-hover:text-emerald-600" />
-                       <span className="text-[10px] font-black uppercase group-hover:text-emerald-600">CSV SYNC</span>
+                       <span className="text-[10px] font-black uppercase group-hover:text-emerald-600">SINKRONISASI CSV</span>
                     </button>
                  </div>
                  <p className="text-[9px] font-medium text-slate-400 text-center italic">
@@ -380,12 +380,12 @@ export default function PusatKontrolPage() {
                  <div className="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform">
                     <ShieldCheck className="w-32 h-32 text-indigo-500" />
                  </div>
-                 <h3 className="text-sm font-black text-white uppercase italic mb-4">Hard Reset Security</h3>
+                 <h3 className="text-sm font-black text-white uppercase italic mb-4">Reset Keamanan Total</h3>
                  <p className="text-[11px] font-medium text-slate-400 mb-8 leading-relaxed">
                     Tindakan ini akan memblokir semua akses login kecuali Super Admin dan mengatur ulang semua protokol keamanan.
                  </p>
                  <button className="w-full py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-rose-900/40 relative z-10 hover:bg-rose-500 transition-all">
-                    Initiate Security Reset
+                    Inisiasi Reset Keamanan
                  </button>
               </div>
            </div>

@@ -37,7 +37,7 @@ export default function SekretarisIIIPage() {
             onClick={() => setActiveTab("rooms")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "rooms" ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
           >
-            <BedDouble className="w-4 h-4" /> Room Allocation
+            <BedDouble className="w-4 h-4" /> Alokasi Kamar
           </button>
           <button 
             onClick={() => setActiveTab("notulensi")}
@@ -92,7 +92,7 @@ export default function SekretarisIIIPage() {
                    {[
                      { blok: "Blok A", reported: "Ustadz Yusuf", count: 450, change: "+5", status: "Selesai" },
                      { blok: "Blok B", reported: "Ustadz Ali", count: 320, change: "-2", status: "Selesai" },
-                     { blok: "Blok C", reported: "Ustadz Hasan", count: 410, change: "0", status: "Menunggu Approval" }
+                     { blok: "Blok C", reported: "Ustadz Hasan", count: 410, change: "0", status: "Menunggu Persetujuan" }
                    ].map((item, i) => (
                      <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                        <td className="px-4 py-3 font-bold text-slate-800 flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function SekretarisIIIPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="md:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <BedDouble className="w-5 h-5 text-emerald-600" /> Room Allocation (Alokasi Kamar)
+                    <BedDouble className="w-5 h-5 text-emerald-600" /> Alokasi Kamar
                 </h2>
                 
                 <div className="space-y-4">
@@ -140,7 +140,7 @@ export default function SekretarisIIIPage() {
                                     {rm.filled}/{rm.capacity}
                                 </div>
                             </div>
-                            {rm.alert && <span className="text-[10px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded uppercase">Over Capacity</span>}
+                            {rm.alert && <span className="text-[10px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded uppercase">Kapasitas Penuh</span>}
                         </div>
                     ))}
                 </div>
@@ -153,7 +153,7 @@ export default function SekretarisIIIPage() {
                  <h3 className="font-bold text-slate-700 mb-2">Pemerataan Kamar</h3>
                  <p className="text-xs text-slate-500 mb-4">Fitur ini membantu pemerataan santri agar tidak ada kamar yang over-capacity.</p>
                  <button onClick={() => handleAction("Menjalankan algoritma pemerataan...")} className="w-full py-2 bg-emerald-600 text-white font-bold rounded-xl text-sm shadow-sm transition-all hover:bg-emerald-700">
-                     Auto-Distribute Santri
+                     Distribusikan Santri Otomatis
                  </button>
              </div>
           </div>
@@ -184,7 +184,7 @@ export default function SekretarisIIIPage() {
                                  <span className="flex items-center gap-1.5"><Mic className="w-3 h-3" /> Diikuti: 45 Pengurus</span>
                              </div>
                              <button className="flex items-center justify-center gap-2 w-full py-2 bg-slate-50 hover:bg-sky-50 text-slate-600 hover:text-sky-600 text-xs font-bold rounded-lg transition-colors border border-slate-200 group-hover:border-sky-200">
-                                 <Download className="w-3 h-3" /> Download PDF
+                                 <Download className="w-3 h-3" /> Unduh PDF
                              </button>
                          </div>
                      ))}

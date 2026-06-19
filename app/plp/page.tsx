@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { Plus, Search, RefreshCw, X, Pencil, Trash2, CheckCircle2, AlertCircle, Zap } from "lucide-react";
 
 export default function PlpPage() {
-  const tabs: any[] = [{"id":"meters","label":"Pencatatan Meteran","api":"plp/plp_meters","columns":[{"key":"location","label":"Lokasi / Asrama","type":"text","required":true},{"key":"month","label":"Bulan (YYYY-MM)","type":"month","required":true},{"key":"last_reading","label":"Meteran Awal","type":"number"},{"key":"current_reading","label":"Meteran Akhir","type":"number"},{"key":"amount","label":"Total Tagihan (Rp)","type":"number"},{"key":"status","label":"Status Pembayaran","type":"select","options":["Unpaid","Paid"]}]},{"id":"tickets","label":"Tiket Gangguan","api":"plp/plp_tickets","columns":[{"key":"location","label":"Lokasi","type":"text","required":true},{"key":"issue_description","label":"Kendala","type":"textarea","required":true},{"key":"reported_by","label":"Pelapor","type":"text"},{"key":"status","label":"Status Tiket","type":"select","options":["Open","In Progress","Resolved"]}]}];
+  const tabs: any[] = [{"id":"meters","label":"Pencatatan Meteran","api":"plp/plp_meters","columns":[{"key":"location","label":"Lokasi / Asrama","type":"text","required":true},{"key":"month","label":"Bulan (YYYY-MM)","type":"month","required":true},{"key":"last_reading","label":"Meteran Awal","type":"number"},{"key":"current_reading","label":"Meteran Akhir","type":"number"},{"key":"amount","label":"Total Tagihan (Rp)","type":"number"},{"key":"status","label":"Status Pembayaran","type":"select","options":["Belum Lunas","Lunas"]}]},{"id":"tickets","label":"Tiket Gangguan","api":"plp/plp_tickets","columns":[{"key":"location","label":"Lokasi","type":"text","required":true},{"key":"issue_description","label":"Kendala","type":"textarea","required":true},{"key":"reported_by","label":"Pelapor","type":"text"},{"key":"status","label":"Status Tiket","type":"select","options":["Buka","Dalam Proses","Selesai"]}]}];
   const [activeTab, setActiveTab] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -200,8 +200,8 @@ export default function PlpPage() {
                       <td key={col.key} className="px-6 py-4">
                         {col.key === 'status' ? (
                           <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
-                            ['Completed', 'Approved', 'Clean', 'Paid'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
-                            ['Warning', 'Draft', 'Pending', 'Unpaid'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
+                            ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas', 'Resolved'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
+                            ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
                             'bg-slate-100 text-slate-700'
                           }`}>
                             {item[col.key] || 'N/A'}

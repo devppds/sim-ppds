@@ -34,7 +34,7 @@ export default function SekretariatPublikasiPage() {
             onClick={() => setActiveTab("certificate")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "certificate" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
           >
-            <Award className="w-4 h-4" /> E-Certificate
+            <Award className="w-4 h-4" /> E-Sertifikat
           </button>
           <button 
             onClick={() => setActiveTab("proposal")}
@@ -46,7 +46,7 @@ export default function SekretariatPublikasiPage() {
             onClick={() => setActiveTab("broadcast")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === "broadcast" ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"}`}
           >
-            <Send className="w-4 h-4" /> Broadcast System
+            <Send className="w-4 h-4" /> Sistem Broadcast
           </button>
         </div>
 
@@ -54,7 +54,7 @@ export default function SekretariatPublikasiPage() {
         {activeTab === "certificate" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                <h2 className="text-lg font-bold text-slate-800 mb-4">Buat E-Certificate Pengurus</h2>
+                <h2 className="text-lg font-bold text-slate-800 mb-4">Buat E-Sertifikat Pengurus</h2>
                 <div className="space-y-4">
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Nama Santri / Pengurus</label>
@@ -73,7 +73,7 @@ export default function SekretariatPublikasiPage() {
                     </select>
                   </div>
                   <button onClick={handleGenerateCertificate} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all">
-                    Generate Certificate
+                    Buat Sertifikat
                   </button>
                 </div>
             </div>

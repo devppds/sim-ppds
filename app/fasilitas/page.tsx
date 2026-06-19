@@ -431,7 +431,7 @@ export default function FasilitasPage() {
                             </div>
                           )}
                           {b.status !== "Diajukan" && (
-                            <span className="text-xs text-slate-400">Processed</span>
+                            <span className="text-xs text-slate-400">Selesai Diproses</span>
                           )}
                         </td>
                       </tr>

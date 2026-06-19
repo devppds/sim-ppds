@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { Plus, Search, RefreshCw, X, Pencil, Trash2, CheckCircle2, AlertCircle, Music } from "lucide-react";
 
 export default function JamiyyahPage() {
-  const tabs: any[] = [{"id":"events","label":"Daftar Kegiatan","api":"jamiyyah/jamiyyah_events","columns":[{"key":"title","label":"Nama Kegiatan","type":"text","required":true},{"key":"description","label":"Deskripsi","type":"textarea"},{"key":"date","label":"Tanggal","type":"date","required":true},{"key":"location","label":"Lokasi","type":"text"},{"key":"status","label":"Status","type":"select","options":["Draft","Published","Completed"]}]},{"id":"assets","label":"Aset & Inventaris","api":"jamiyyah/jamiyyah_assets","columns":[{"key":"barcode","label":"Kode Barcode","type":"text","required":true},{"key":"name","label":"Nama Barang","type":"text","required":true},{"key":"condition","label":"Kondisi","type":"select","options":["Baik","Rusak","Hilang"]}]}];
+  const tabs: any[] = [{"id":"events","label":"Daftar Kegiatan","api":"jamiyyah/jamiyyah_events","columns":[{"key":"title","label":"Nama Kegiatan","type":"text","required":true},{"key":"description","label":"Deskripsi","type":"textarea"},{"key":"date","label":"Tanggal","type":"date","required":true},{"key":"location","label":"Lokasi","type":"text"},{"key":"status","label":"Status","type":"select","options":["Konsep","Dipublikasikan","Selesai"]}]},{"id":"assets","label":"Aset & Inventaris","api":"jamiyyah/jamiyyah_assets","columns":[{"key":"barcode","label":"Kode Barcode","type":"text","required":true},{"key":"name","label":"Nama Barang","type":"text","required":true},{"key":"condition","label":"Kondisi","type":"select","options":["Baik","Rusak","Hilang"]}]}];
   const [activeTab, setActiveTab] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -200,8 +200,8 @@ export default function JamiyyahPage() {
                       <td key={col.key} className="px-6 py-4">
                         {col.key === 'status' ? (
                           <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
-                            ['Completed', 'Approved', 'Clean', 'Paid'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
-                            ['Warning', 'Draft', 'Pending', 'Unpaid'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
+                            ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas', 'Dipublikasikan'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
+                            ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
                             'bg-slate-100 text-slate-700'
                           }`}>
                             {item[col.key] || 'N/A'}

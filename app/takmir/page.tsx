@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { Plus, Search, RefreshCw, X, Pencil, Trash2, CheckCircle2, AlertCircle, MoonStar } from "lucide-react";
 
 export default function TakmirPage() {
-  const tabs: any[] = [{"id":"schedules","label":"Jadwal Imam/Muadzin","api":"takmir/takmir_schedules","columns":[{"key":"role","label":"Tugas","type":"select","options":["Imam","Muadzin"]},{"key":"waktu_shalat","label":"Waktu Shalat","type":"select","options":["Subuh","Dzuhur","Ashar","Maghrib","Isya"]},{"key":"person_name","label":"Nama Petugas","type":"text","required":true},{"key":"date","label":"Tanggal","type":"date","required":true}]},{"id":"bookings","label":"Booking Masjid","api":"takmir/takmir_bookings","columns":[{"key":"event_name","label":"Nama Acara","type":"text","required":true},{"key":"date","label":"Tanggal","type":"date","required":true},{"key":"time_start","label":"Jam Mulai (HH:MM)","type":"time"},{"key":"time_end","label":"Jam Selesai (HH:MM)","type":"time"},{"key":"status","label":"Status Izin","type":"select","options":["Pending","Approved","Rejected"]}]}];
+  const tabs: any[] = [{"id":"schedules","label":"Jadwal Imam/Muadzin","api":"takmir/takmir_schedules","columns":[{"key":"role","label":"Tugas","type":"select","options":["Imam","Muadzin"]},{"key":"waktu_shalat","label":"Waktu Shalat","type":"select","options":["Subuh","Dzuhur","Ashar","Maghrib","Isya"]},{"key":"person_name","label":"Nama Petugas","type":"text","required":true},{"key":"date","label":"Tanggal","type":"date","required":true}]},{"id":"bookings","label":"Booking Masjid","api":"takmir/takmir_bookings","columns":[{"key":"event_name","label":"Nama Acara","type":"text","required":true},{"key":"date","label":"Tanggal","type":"date","required":true},{"key":"time_start","label":"Jam Mulai (HH:MM)","type":"time"},{"key":"time_end","label":"Jam Selesai (HH:MM)","type":"time"},{"key":"status","label":"Status Izin","type":"select","options":["Tertunda","Disetujui","Ditolak"]}]}];
   const [activeTab, setActiveTab] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -200,8 +200,8 @@ export default function TakmirPage() {
                       <td key={col.key} className="px-6 py-4">
                         {col.key === 'status' ? (
                           <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
-                            ['Completed', 'Approved', 'Clean', 'Paid'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
-                            ['Warning', 'Draft', 'Pending', 'Unpaid'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
+                            ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
+                            ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
                             'bg-slate-100 text-slate-700'
                           }`}>
                             {item[col.key] || 'N/A'}
