@@ -148,7 +148,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       return level === 'ROOT'; 
     }
     if (module === 'OPERASIONAL') {
-      return level === 'STAFF' || level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT';
+      return level === 'STAFF' || level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT' || level === 'OPERASIONAL';
     }
     return false;
   };
@@ -158,14 +158,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navGroups: NavGroup[] = [];
 
-  // 1. Menu Utama (Sekretariat)
+  // 1. Menu Utama (Semua Role Punya Dashboard)
+  const menuUtamaItems: NavItem[] = [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" }
+  ];
+
   if (canAccess('SEKRETARIAT')) {
-    navGroups.push({
-      label: "Menu Utama",
-      items: [
-        { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        {
-          href: "/santri",
+    menuUtamaItems.push(
+      {
+        href: "/santri",
           icon: Users,
           label: "Data Santri",
           badge: <Badge count={stats?.santri ?? null} color="bg-emerald-500/20 text-emerald-400" animate />
@@ -188,9 +189,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           ) : <Badge count={null} color="" />
         },
-      ],
-    });
+      ]
+    );
   }
+
+  navGroups.push({
+    label: "Menu Utama",
+    items: menuUtamaItems,
+  });
 
   // 2. Keuangan Section
   if (canAccess('KEUANGAN')) {

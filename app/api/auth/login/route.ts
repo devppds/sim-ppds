@@ -70,13 +70,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Akun dinonaktifkan" }, { status: 403 });
     }
 
+    let parsedAkses = [];
+    try {
+      if (user.akses) parsedAkses = JSON.parse(user.akses);
+    } catch(e) {}
+    const accessLevel = parsedAkses[0] || "STAFF";
+
     // Set Session Cookie (Simple for this phase, later can use JWT/Iron-Session)
     // We store minimal info: id, role, name, level
     const sessionData = { 
        id: user.id, 
        username: user.username, 
        role: user.role,
-       role_level: user.role_level || 'STAFF', 
+       role_level: accessLevel, 
        name: user.name,
        timestamp: Date.now() 
     };
