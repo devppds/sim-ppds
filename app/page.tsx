@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, ArrowRight, Sparkles, Layers, Wallet, Shield, Shirt, Trash2, Users, BookOpen, Building2, Camera, HelpCircle, FileText, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Download, ArrowRight, Sparkles, Layers, Wallet, Shield, Shirt, Trash2, Users, BookOpen, Building2, Camera, HelpCircle, FileText, ChevronDown, CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
 import { useRouter } from "next/navigation";
@@ -19,11 +19,22 @@ export default function LoginPage() {
   const [footerIndex, setFooterIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [platform, setPlatform] = useState<"android" | "ios" | "desktop" | "loading">("loading");
 
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     if (isStandalone) {
       router.replace('/login');
+    }
+
+    // Deteksi platform OS
+    const ua = navigator.userAgent;
+    if (/Android/i.test(ua)) {
+      setPlatform("android");
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      setPlatform("ios");
+    } else {
+      setPlatform("desktop");
     }
 
     // 2. Tangkap event install PWA dari browser
@@ -119,89 +130,168 @@ export default function LoginPage() {
           </p>
 
           {/* --- INSTALASI & DOWNLOAD SECTION --- */}
-          <div className="w-full bg-[#064e3b]/40 backdrop-blur-md border border-amber-500/20 rounded-3xl p-6 sm:p-8 shadow-2xl text-left transition-all duration-500 mb-8">
-            <div className="flex flex-col gap-6 items-start justify-between">
-              
-              <div className="w-full space-y-5">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Download className="w-5 h-5 text-amber-400" />
-                  {deferredPrompt ? "Install Aplikasi (Disarankan)" : "Cara Instalasi APK"}
-                </h2>
-                
-                {deferredPrompt ? (
-                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      </div>
-                      <span className="leading-relaxed">Perangkat Anda mendukung fitur <strong className="text-white">Progressive Web App</strong>.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      </div>
-                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Install Aplikasi</strong> di samping untuk memasang sistem langsung ke perangkat Anda.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      </div>
-                      <span className="leading-relaxed">Sistem akan otomatis muncul di layar utama tanpa perlu file APK.</span>
-                    </li>
-                  </ul>
-                ) : (
-                  <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                      <span className="leading-relaxed">Klik tombol <strong className="text-white">Download APK</strong> untuk mengunduh.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                      <span className="leading-relaxed">Buka file <code className="bg-[#021c14] border border-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[11px] ml-1">SIM-PPDS.apk</code> yang berhasil diunduh.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                      <span className="leading-relaxed">Jika muncul peringatan, izinkan <strong className="text-white">&quot;Instal dari Sumber Tidak Dikenal&quot;</strong>.</span>
-                    </li>
-                  </ul>
-                )}
+          <div className="w-full bg-[#064e3b]/40 backdrop-blur-md border border-amber-500/20 rounded-3xl p-6 sm:p-8 shadow-2xl text-left transition-all duration-500 mb-8 font-sans">
+            {platform === "loading" ? (
+              <div className="w-full flex flex-col items-center justify-center py-12">
+                <Loader2 className="w-10 h-10 animate-spin text-amber-500" />
+                <p className="text-sm font-bold text-emerald-100/60 mt-3">Mendeteksi perangkat Anda...</p>
               </div>
+            ) : (
+              <div className="flex flex-col gap-6 items-start justify-between">
+                <div className="w-full space-y-5">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Download className="w-5 h-5 text-amber-400" />
+                    {platform === "android" && "Instalasi Aplikasi Android (.APK)"}
+                    {platform === "ios" && "Instalasi Aplikasi iPhone / iOS"}
+                    {platform === "desktop" && "Instalasi Aplikasi PC / Desktop"}
+                  </h2>
 
-              <div className="w-full flex flex-col items-center justify-center pt-6 shrink-0 border-t border-emerald-800/50">
-                {deferredPrompt ? (
-                  <button 
-                    onClick={async () => {
-                      deferredPrompt.prompt();
-                      const { outcome } = await deferredPrompt.userChoice;
-                      if (outcome === 'accepted') {
-                        setDeferredPrompt(null);
-                      }
-                    }}
-                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
-                  >
-                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-                    <span>Install Aplikasi</span>
-                  </button>
-                ) : (
-                  <a 
-                    href="/download/SIM-PPDS.apk" 
-                    download
-                    onClick={handleDownload}
-                    className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
-                  >
-                    <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-                    <span>Download APK</span>
-                  </a>
-                )}
+                  {platform === "android" && (
+                    <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                      <li className="flex items-start gap-3">
+                        <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="leading-relaxed">Ketuk tombol <strong className="text-white">Download APK</strong> di bawah untuk mengunduh berkas aplikasi berkas <code className="bg-[#021c14] border border-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[11px] font-bold">.apk</code> resmi.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="leading-relaxed">Buka berkas <code className="bg-[#021c14] border border-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[11px] font-bold">SIM-PPDS.apk</code> dari folder Unduhan di Android Anda.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="leading-relaxed">Jika sistem mendeteksi sumber tidak dikenal, aktifkan opsi <strong className="text-white">&quot;Izinkan Instalasi dari Sumber Ini&quot;</strong> pada pengaturan browser/perangkat Anda.</span>
+                      </li>
+                    </ul>
+                  )}
+
+                  {platform === "ios" && (
+                    <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                      <li className="flex items-start gap-3">
+                        <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="leading-relaxed">Pastikan Anda membuka website ini melalui browser bawaan <strong className="text-white">Safari</strong> di iPhone Anda.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="leading-relaxed">Ketuk ikon <strong className="text-white">Share / Bagikan</strong> (persegi dengan panah menunjuk ke atas) di bagian bawah layar Safari.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="leading-relaxed">Gulir ke bawah pada lembar menu share, lalu pilih opsi <strong className="text-white">Tambahkan ke Layar Utama</strong> (Add to Home Screen).</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                        </div>
+                        <span className="leading-relaxed">Ketuk tombol <strong className="text-white">Tambah</strong> di pojok kanan atas untuk memasang shortcut PWA di layar utama.</span>
+                      </li>
+                    </ul>
+                  )}
+
+                  {platform === "desktop" && (
+                    <>
+                      {deferredPrompt ? (
+                        <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                          <li className="flex items-start gap-3">
+                            <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            </div>
+                            <span className="leading-relaxed">Komputer Anda mendukung fitur aplikasi <strong className="text-white">Progressive Web App (PWA)</strong>.</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            </div>
+                            <span className="leading-relaxed">Klik tombol <strong className="text-white">Pasang Aplikasi</strong> di bawah untuk memasang sistem langsung ke desktop Anda.</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <div className="bg-[#021c14] border border-emerald-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            </div>
+                            <span className="leading-relaxed">Shortcut aplikasi SIM-PPDS akan otomatis muncul di desktop PC/Laptop Anda.</span>
+                          </li>
+                        </ul>
+                      ) : (
+                        <ul className="space-y-4 text-sm text-emerald-100/80 font-medium">
+                          <li className="flex items-start gap-3">
+                            <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                            </div>
+                            <span className="leading-relaxed">Klik tombol **instalasi** (ikon monitor dengan panah ke bawah) di sebelah kanan address bar browser Anda.</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                            </div>
+                            <span className="leading-relaxed">Atau buka menu browser (ikon titik tiga di kanan atas) lalu pilih menu <strong className="text-white">Pasang SIM-PPDS</strong> (Save as App / Install SIM-PPDS).</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <div className="bg-[#021c14] border border-amber-500/30 rounded-full p-1 mt-0.5 shrink-0 shadow-sm">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                            </div>
+                            <span className="leading-relaxed">Aplikasi ini berjalan sebagai Progressive Web App (PWA) di desktop Anda tanpa membutuhkan file .EXE.</span>
+                          </li>
+                        </ul>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                <div className="w-full flex flex-col items-center justify-center pt-6 shrink-0 border-t border-emerald-800/50">
+                  {platform === "android" && (
+                    <a 
+                      href="/download/SIM-PPDS.apk" 
+                      download="SIM-PPDS.apk"
+                      onClick={handleDownload}
+                      className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
+                    >
+                      <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                      <span>Download APK (.apk)</span>
+                    </a>
+                  )}
+
+                  {platform === "ios" && (
+                    <div className="w-full py-4 px-6 bg-[#021c14]/40 border border-amber-500/20 text-amber-400 rounded-2xl text-center text-xs font-black uppercase tracking-wider">
+                      Instalasi PWA melalui Safari Share Menu (Tidak memerlukan file unduhan)
+                    </div>
+                  )}
+
+                  {platform === "desktop" && (
+                    <>
+                      {deferredPrompt ? (
+                        <button 
+                          onClick={async () => {
+                            deferredPrompt.prompt();
+                            const { outcome } = await deferredPrompt.userChoice;
+                            if (outcome === 'accepted') {
+                              setDeferredPrompt(null);
+                            }
+                          }}
+                          className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
+                        >
+                          <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                          <span>Pasang Aplikasi</span>
+                        </button>
+                      ) : (
+                        <div className="w-full py-4 px-6 bg-[#021c14]/40 border border-amber-500/20 text-amber-400 rounded-2xl text-center text-xs font-black uppercase tracking-wider">
+                          Gunakan Menu Browser atau Address Bar untuk Memasang Aplikasi ke Desktop
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-
-            </div>
+            )}
           </div>
         </div>
 
