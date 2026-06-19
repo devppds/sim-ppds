@@ -188,8 +188,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               <Badge count={stats.alumni_pengurus} color="bg-rose-500/20 text-rose-400" animate />
             </div>
           ) : <Badge count={null} color="" />
-        },
-      ]
+        }
     );
   }
 

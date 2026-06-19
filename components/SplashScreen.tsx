@@ -41,7 +41,7 @@ export default function SplashScreen() {
   return (
     <div
       id="splashScreen"
-      className={`splash-screen fixed inset-0 bg-gradient-to-br from-[#021c14] via-[#043425] to-[#021c14] z-[9999] flex flex-col items-center justify-between overflow-hidden transition-opacity duration-800 ${isFadingOut ? "opacity-0" : "opacity-100"}`}
+      className={`splash-screen fixed inset-0 bg-linear-to-br from-[#021c14] via-[#043425] to-[#021c14] z-9999 flex flex-col items-center justify-between overflow-hidden transition-opacity duration-800 ${isFadingOut ? "opacity-0" : "opacity-100"}`}
     >
       {/* Animated Floating Orbs */}
       <div className="absolute top-20 left-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl splash-orb-1"></div>
