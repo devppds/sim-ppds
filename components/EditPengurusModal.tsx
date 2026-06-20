@@ -46,11 +46,12 @@ export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus
 
   useEffect(() => {
     if (pengurus) {
+      const isPenasehat = pengurus.jabatan_tambahan?.startsWith("Penasehat Kamar");
       setFormData({
         name: pengurus.name,
         nik: pengurus.nik,
         jabatan: pengurus.jabatan,
-        jabatan_tambahan: pengurus.jabatan_tambahan || "",
+        jabatan_tambahan: isPenasehat ? "Penasehat Kamar" : "",
         kamar: pengurus.kamar || ROOMS[0],
         phone: pengurus.phone,
         photo_url: pengurus.photo_url,
@@ -91,11 +92,16 @@ export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus
     e.preventDefault();
     setLoading(true);
 
+    const payload = {
+      ...formData,
+      kamar: formData.jabatan_tambahan === "Penasehat Kamar" ? formData.kamar : ""
+    };
+
     try {
       const res = await fetch(`${API_BASE_URL}/api/pengurus/${pengurus.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json() as any;
@@ -214,28 +220,38 @@ export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus
 
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Jabatan Tambahan</label>
-              <input
-                type="text"
-                value={formData.jabatan_tambahan || ""}
-                onChange={(e) => setFormData({ ...formData, jabatan_tambahan: e.target.value })}
+              <select
+                value={formData.jabatan_tambahan === "Penasehat Kamar" ? "Penasehat Kamar" : "Tidak ada"}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData(prev => ({
+                    ...prev,
+                    jabatan_tambahan: val === "Penasehat Kamar" ? "Penasehat Kamar" : "",
+                    kamar: val === "Penasehat Kamar" ? prev.kamar || ROOMS[0] : ""
+                  }));
+                }}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-500 outline-none transition-all"
-                placeholder="Misal: Wali Kamar..."
-              />
+              >
+                <option value="Tidak ada">Tidak ada</option>
+                <option value="Penasehat Kamar">Penasehat Kamar</option>
+              </select>
             </div>
 
-            <div className="col-span-2">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Kamar (Asrama)</label>
-              <div className="relative group">
-                <Home className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                <select
-                  value={formData.kamar || ""}
-                  onChange={(e) => setFormData({ ...formData, kamar: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold appearance-none focus:bg-white focus:border-indigo-500 outline-none transition-all"
-                >
-                  {ROOMS.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
+            {formData.jabatan_tambahan === "Penasehat Kamar" && (
+              <div className="col-span-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Kamar yang Dinaungi</label>
+                <div className="relative group">
+                  <Home className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <select
+                    value={formData.kamar || ROOMS[0]}
+                    onChange={(e) => setFormData({ ...formData, kamar: e.target.value })}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold appearance-none focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                  >
+                    {ROOMS.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <button
