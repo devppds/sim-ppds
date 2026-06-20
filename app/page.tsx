@@ -69,8 +69,12 @@ export default function LoginPage() {
     setOpenSection(openSection === section ? null : section);
   };
 
-  const handleDownload = () => {
-    showToast("Mempersiapkan unduhan APK SIM-PPDS...", "success");
+  const handleDownloadApk = () => {
+    showToast("Mengunduh SIM-PPDS.apk...", "success");
+  };
+
+  const handleDownloadExe = () => {
+    showToast("Mengunduh SIM-PPDS_Setup.exe (~74MB)...", "success");
   };
 
   return (
@@ -287,9 +291,8 @@ export default function LoginPage() {
                 <div className="w-full flex flex-col items-center justify-center pt-6 shrink-0 border-t border-emerald-800/50">
                   {platform === "android" && (
                     <a 
-                      href="/download/SIM-PPDS.apk" 
-                      download="SIM-PPDS.apk"
-                      onClick={handleDownload}
+                      href="/api/download/apk"
+                      onClick={handleDownloadApk}
                       className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
                     >
                       <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
@@ -304,23 +307,30 @@ export default function LoginPage() {
                   )}
 
                   {platform === "desktop" && (
-                    <>
-                      {deferredPrompt ? (
+                    <div className="w-full flex flex-col gap-3 items-center">
+                      {deferredPrompt && (
                         <button 
-                          onClick={() => {
-                            setShowInstallModal(true);
-                          }}
-                          className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
+                          onClick={() => setShowInstallModal(true)}
+                          className="w-full sm:w-2/3 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base transition-all active:scale-95 group uppercase tracking-widest btn-blink"
                         >
                           <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-                          <span>Pasang Aplikasi</span>
+                          <span>Pasang Aplikasi (PWA)</span>
                         </button>
-                      ) : (
-                        <div className="w-full py-4 px-6 bg-[#021c14]/40 border border-amber-500/20 text-amber-400 rounded-2xl text-center text-xs font-black uppercase tracking-wider">
-                          Gunakan Menu Browser atau Address Bar untuk Memasang Aplikasi ke Desktop
-                        </div>
                       )}
-                    </>
+                      <a
+                        href="/api/download/exe"
+                        onClick={handleDownloadExe}
+                        className="w-full sm:w-2/3 inline-flex items-center justify-center gap-3 text-[#021c14] rounded-full py-4 px-8 font-black text-base transition-all active:scale-95 group uppercase tracking-widest btn-3d-gold"
+                      >
+                        <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                        <span>Download .EXE (Windows)</span>
+                      </a>
+                      {!deferredPrompt && (
+                        <p className="text-[11px] text-emerald-500/50 font-bold uppercase tracking-wider text-center">
+                          Atau pasang via menu browser (ikon install di address bar)
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
