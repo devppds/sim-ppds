@@ -35,7 +35,7 @@ jobs:
       - name: Copy APK to public folder
         run: |
           mkdir -p public/download
-          cp android/app/build/outputs/apk/release/app-release-unsigned.apk public/download/SIM-PPDS.apk
+          cp android/app/build/outputs/apk/release/app-release.apk public/download/SIM-PPDS.apk
           echo "APK size: $(du -sh public/download/SIM-PPDS.apk)"
 
       - name: Commit and Push APK
