@@ -49,30 +49,69 @@ jobs:
         env:
           RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
         run: |
-          # Ambil release terbaru dari sim-ppds-release
-          RELEASE=$(curl -s -H "Authorization: token $RELEASE_PAT" \
-            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest)
-          RELEASE_ID=$(echo "$RELEASE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-          RELEASE_TAG=$(echo "$RELEASE" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
-
-          echo "Upload APK ke release: $RELEASE_TAG (ID: $RELEASE_ID)"
-
-          # Hapus asset APK lama jika sudah ada (agar tidak duplikat)
-          EXISTING_ASSET=$(curl -s -H "Authorization: token $RELEASE_PAT" \
-            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets" | \
-            python3 -c "import sys,json; assets=json.load(sys.stdin); apk=[a for a in assets if a['name']=='SIM-PPDS.apk']; print(apk[0]['id'] if apk else '')")
-
-          if [ -n "$EXISTING_ASSET" ]; then
-            echo "Menghapus asset APK lama (ID: $EXISTING_ASSET)..."
-            curl -s -X DELETE -H "Authorization: token $RELEASE_PAT" \
-              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING_ASSET"
+          echo "=== Cek token ==="
+          if [ -z "$RELEASE_PAT" ]; then
+            echo "❌ ERROR: RELEASE_PAT secret kosong!"
+            exit 1
           fi
 
-          # Upload APK ke release
-          curl -s -X POST \
+          echo "=== Ambil release terbaru dari sim-ppds-release ==="
+          RELEASE=$(curl -s -H "Authorization: token $RELEASE_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest)
+
+          echo "API Response: $RELEASE"
+
+          # Validasi response mengandung 'id'
+          RELEASE_ID=$(echo "$RELEASE" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+if 'id' not in data:
+    print('ERROR:', data.get('message', 'Unknown error'), file=sys.stderr)
+    sys.exit(1)
+print(data['id'])
+")
+          RELEASE_TAG=$(echo "$RELEASE" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
+
+          echo "✅ Target release: $RELEASE_TAG (ID: $RELEASE_ID)"
+
+          echo "=== Hapus asset APK lama jika ada ==="
+          ASSETS=$(curl -s -H "Authorization: token $RELEASE_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets")
+
+          EXISTING_ASSET=$(echo "$ASSETS" | python3 -c "
+import sys, json
+assets = json.load(sys.stdin)
+apk = [a for a in assets if a['name'] == 'SIM-PPDS.apk']
+print(apk[0]['id'] if apk else '')
+")
+
+          if [ -n "$EXISTING_ASSET" ]; then
+            echo "Menghapus asset lama (ID: $EXISTING_ASSET)..."
+            curl -s -X DELETE \
+              -H "Authorization: token $RELEASE_PAT" \
+              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING_ASSET"
+            echo "Asset lama dihapus."
+          fi
+
+          echo "=== Upload APK ke release $RELEASE_TAG ==="
+          UPLOAD_RESULT=$(curl -s -X POST \
             -H "Authorization: token $RELEASE_PAT" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @public/download/SIM-PPDS.apk \
-            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS.apk"
+            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS.apk")
 
-          echo "✅ APK berhasil di-upload ke release $RELEASE_TAG!"
+          echo "Upload result: $UPLOAD_RESULT"
+
+          # Cek apakah upload berhasil
+          echo "$UPLOAD_RESULT" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+if 'id' in data:
+    print('✅ APK berhasil di-upload! Asset ID:', data['id'])
+    print('Download URL:', data.get('browser_download_url', 'N/A'))
+else:
+    print('❌ Upload gagal:', data.get('message', 'Unknown error'))
+    sys.exit(1)
+"
