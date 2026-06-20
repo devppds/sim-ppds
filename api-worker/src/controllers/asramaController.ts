@@ -4,7 +4,7 @@ import { Env } from '../index'
 export const getAsramaData = async (c: Context<{ Bindings: Env }>) => {
   try {
     const { results: santriResults } = await c.env.DB.prepare(
-      "SELECT name, asrama, kelas, status FROM santri WHERE asrama IS NOT NULL AND status NOT IN ('Alumni', 'Keluar')"
+      "SELECT name, asrama, kelas, status, jabatan FROM santri WHERE asrama IS NOT NULL AND status NOT IN ('Alumni', 'Keluar')"
     ).all();
 
     const { results: pengurusResults } = await c.env.DB.prepare(

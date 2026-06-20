@@ -472,7 +472,14 @@ export default function AsramaPage() {
                                <GraduationCap className="w-5 h-5 text-slate-400" />
                             </div>
                             <div className="flex-1">
-                               <p className="text-sm font-black text-slate-700 leading-none mb-1">{s.name}</p>
+                               <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-sm font-black text-slate-700 leading-none">{s.name}</p>
+                                  {s.jabatan && (
+                                     <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-black uppercase tracking-wider">
+                                        {s.jabatan}
+                                     </span>
+                                  )}
+                               </div>
                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.kelas}</p>
                             </div>
                          </div>
