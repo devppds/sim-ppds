@@ -19,8 +19,16 @@ export default function MasukPage() {
   const [loading, setLoading] = useState(false);
   const [footerIndex, setFooterIndex] = useState(0);
   const [fade, setFade] = useState(true);
+  const [isAppMode, setIsAppMode] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                          (window.navigator as any).standalone || 
+                          navigator.userAgent.includes('Electron');
+      setIsAppMode(!!isStandalone);
+    }
+
     const interval = setInterval(() => {
       setFade(false);
       setTimeout(() => {
@@ -68,15 +76,17 @@ export default function MasukPage() {
         <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[120px] pointer-events-none" />
 
         {/* Top Bar for back navigation */}
-        <div className="absolute top-0 left-0 w-full p-4 sm:p-6 z-20">
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-2 text-emerald-400/70 hover:text-emerald-400 transition-colors bg-[#021c14]/50 backdrop-blur-md px-4 py-2 rounded-full border border-emerald-500/20"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-bold uppercase tracking-wider">Kembali</span>
-          </Link>
-        </div>
+        {!isAppMode && (
+          <div className="absolute top-0 left-0 w-full p-4 sm:p-6 z-20">
+            <Link 
+              href="/" 
+              className="inline-flex items-center gap-2 text-emerald-400/70 hover:text-emerald-400 transition-colors bg-[#021c14]/50 backdrop-blur-md px-4 py-2 rounded-full border border-emerald-500/20"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm font-bold uppercase tracking-wider">Kembali</span>
+            </Link>
+          </div>
+        )}
 
         {/* Main Card */}
         <div className="w-full max-w-md bg-[#064e3b]/40 backdrop-blur-xl border border-amber-500/20 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.5)] shadow-amber-900/10 relative z-10 flex flex-col overflow-hidden">
