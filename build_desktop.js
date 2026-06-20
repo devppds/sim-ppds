@@ -104,10 +104,14 @@ async function startBuildAndRelease() {
 
     // 3. Bangun aplikasi desktop (.exe)
     console.log('\n--- 3. MEMBANGUN APLIKASI DESKTOP (.EXE) ---');
+    const distDir = path.join(__dirname, 'electron', 'dist');
+    if (fs.existsSync(distDir)) {
+      console.log('Membersihkan folder electron/dist lama agar tidak ada file sampah...');
+      fs.rmSync(distDir, { recursive: true, force: true });
+    }
     runCommand('npm run dist', path.join(__dirname, 'electron'));
 
     // 4. Temukan file .exe di electron/dist
-    const distDir = path.join(__dirname, 'electron', 'dist');
     if (!fs.existsSync(distDir)) {
       throw new Error('Direktori electron/dist tidak ditemukan setelah kompilasi!');
     }
