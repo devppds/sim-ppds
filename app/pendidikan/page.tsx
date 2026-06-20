@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import SearchableSantriSelect from "@/components/SearchableSantriSelect";
 
 interface Santri {
   id: number;
@@ -764,14 +765,13 @@ export default function PendidikanPage() {
             <div className="p-6 space-y-4 text-sm text-slate-600">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Santri</label>
-                <select 
-                  value={izinForm.santri_id}
-                  onChange={(e) => setIzinForm(prev => ({ ...prev, santri_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-hidden"
-                >
-                  <option value="">-- Pilih Santri --</option>
-                  {santriList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.kelas})</option>)}
-                </select>
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={izinForm.santri_id}
+                  onChange={(id) => setIzinForm(prev => ({ ...prev, santri_id: id }))}
+                  accentColor="blue"
+                  placeholder="Cari & pilih santri..."
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lembaga / Sekolah</label>
@@ -833,14 +833,13 @@ export default function PendidikanPage() {
             <div className="p-6 space-y-4 text-sm text-slate-600">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Santri</label>
-                <select 
-                  value={bkForm.santri_id}
-                  onChange={(e) => setBkForm(prev => ({ ...prev, santri_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-hidden"
-                >
-                  <option value="">-- Pilih Santri --</option>
-                  {santriList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.kelas})</option>)}
-                </select>
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={bkForm.santri_id}
+                  onChange={(id) => setBkForm(prev => ({ ...prev, santri_id: id }))}
+                  accentColor="violet"
+                  placeholder="Cari & pilih santri..."
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Masalah / Keluhan Santri</label>

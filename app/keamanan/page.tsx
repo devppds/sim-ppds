@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import SearchableSantriSelect from "@/components/SearchableSantriSelect";
 
 interface Santri {
   id: number;
@@ -803,14 +804,13 @@ export default function KeamananPage() {
             <div className="p-6 space-y-4 text-sm text-slate-600">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Santri</label>
-                <select 
-                  value={permitForm.santri_id}
-                  onChange={(e) => setPermitForm(prev => ({ ...prev, santri_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-hidden focus:border-rose-500"
-                >
-                  <option value="">-- Pilih Santri --</option>
-                  {santriList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.kelas})</option>)}
-                </select>
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={permitForm.santri_id}
+                  onChange={(id) => setPermitForm(prev => ({ ...prev, santri_id: id }))}
+                  accentColor="rose"
+                  placeholder="Cari & pilih santri..."
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Keperluan</label>
@@ -862,14 +862,13 @@ export default function KeamananPage() {
             <div className="p-6 space-y-4 text-sm text-slate-600">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Santri</label>
-                <select 
-                  value={skkbForm.santri_id}
-                  onChange={(e) => setSkkbForm(prev => ({ ...prev, santri_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-hidden"
-                >
-                  <option value="">-- Pilih Santri --</option>
-                  {santriList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.kelas})</option>)}
-                </select>
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={skkbForm.santri_id}
+                  onChange={(id) => setSkkbForm(prev => ({ ...prev, santri_id: id }))}
+                  accentColor="blue"
+                  placeholder="Cari & pilih santri..."
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Keperluan Pembuatan</label>
@@ -910,14 +909,13 @@ export default function KeamananPage() {
             <div className="p-6 space-y-4 text-sm text-slate-600">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Pemilik (Santri)</label>
-                <select 
-                  value={assetForm.santri_id}
-                  onChange={(e) => setAssetForm(prev => ({ ...prev, santri_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-hidden"
-                >
-                  <option value="">-- Pilih Santri --</option>
-                  {santriList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.kelas})</option>)}
-                </select>
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={assetForm.santri_id}
+                  onChange={(id) => setAssetForm(prev => ({ ...prev, santri_id: id }))}
+                  accentColor="emerald"
+                  placeholder="Cari & pilih santri..."
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Jenis Aset</label>
@@ -972,14 +970,13 @@ export default function KeamananPage() {
             <div className="p-6 space-y-4 text-sm text-slate-600">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Santri Terlapor</label>
-                <select 
-                  value={violForm.santri_id}
-                  onChange={(e) => setViolForm(prev => ({ ...prev, santri_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-hidden"
-                >
-                  <option value="">-- Pilih Santri --</option>
-                  {santriList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.kelas})</option>)}
-                </select>
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={violForm.santri_id}
+                  onChange={(id) => setViolForm(prev => ({ ...prev, santri_id: id }))}
+                  accentColor="amber"
+                  placeholder="Cari & pilih santri..."
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tingkat Kasus</label>

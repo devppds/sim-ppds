@@ -127,3 +127,146 @@ export const getDevStats = async (c: Context<{ Bindings: Env }>) => {
     return c.json({ success: false, error: error.message }, 500);
   }
 }
+
+export const getSeksiStats = async (c: Context<{ Bindings: Env }>) => {
+  try {
+    const role = c.req.query("role") || "";
+    const roleLower = role.toLowerCase();
+    
+    let membersPattern = "";
+    let stats: Record<string, any> = {};
+    let recentActivities: any[] = [];
+    
+    if (roleLower === 'keamanan') {
+      membersPattern = 'Seksi Keamanan%';
+      
+      const activePermits = await c.env.DB.prepare("SELECT COUNT(*) as count FROM perizinan WHERE status = 'Keluar'").first<number>("count") || 0;
+      const totalSkkb = await c.env.DB.prepare("SELECT COUNT(*) as count FROM skkb").first<number>("count") || 0;
+      const totalAssets = await c.env.DB.prepare("SELECT COUNT(*) as count FROM santri_assets").first<number>("count") || 0;
+      const totalViolations = await c.env.DB.prepare("SELECT COUNT(*) as count FROM pelanggaran").first<number>("count") || 0;
+      
+      stats = {
+        active_permits: activePermits,
+        total_skkb: totalSkkb,
+        total_assets: totalAssets,
+        total_violations: totalViolations
+      };
+      
+      const { results } = await c.env.DB.prepare(`
+        SELECT 'Perizinan' as type, s.name || ' izin: ' || p.keperluan as description, p.created_at as time
+        FROM perizinan p
+        JOIN santri s ON p.santri_id = s.id
+        UNION ALL
+        SELECT 'Pelanggaran' as type, s.name || ' melanggar: ' || l.deskripsi as description, l.created_at as time
+        FROM pelanggaran l
+        JOIN santri s ON l.santri_id = s.id
+        ORDER BY time DESC LIMIT 5
+      `).all();
+      recentActivities = results || [];
+      
+    } else if (roleLower === 'pendidikan') {
+      membersPattern = 'Seksi Pendidikan%';
+      
+      const totalClasses = await c.env.DB.prepare("SELECT COUNT(*) as count FROM jadwal_pengajian").first<number>("count") || 0;
+      const totalBk = await c.env.DB.prepare("SELECT COUNT(*) as count FROM bimbingan_log").first<number>("count") || 0;
+      const totalIzinSekolah = await c.env.DB.prepare("SELECT COUNT(*) as count FROM perizinan WHERE keperluan LIKE 'Sekolah%' OR keperluan LIKE 'Musyawarah%'").first<number>("count") || 0;
+      const pendingIzin = await c.env.DB.prepare("SELECT COUNT(*) as count FROM perizinan WHERE (keperluan LIKE 'Sekolah%' OR keperluan LIKE 'Musyawarah%') AND status = 'Diajukan'").first<number>("count") || 0;
+      
+      stats = {
+        total_classes: totalClasses,
+        total_bk: totalBk,
+        total_izin_sekolah: totalIzinSekolah,
+        pending_izin_sekolah: pendingIzin
+      };
+      
+      const { results } = await c.env.DB.prepare(`
+        SELECT 'Bimbingan BK' as type, s.name || ' konseling: ' || b.keluhan as description, b.created_at as time
+        FROM bimbingan_log b
+        JOIN santri s ON b.santri_id = s.id
+        UNION ALL
+        SELECT 'Izin Sekolah' as type, s.name || ' mengajukan: ' || p.keperluan as description, p.created_at as time
+        FROM perizinan p
+        JOIN santri s ON p.santri_id = s.id
+        WHERE p.keperluan LIKE 'Sekolah%' OR p.keperluan LIKE 'Musyawarah%'
+        ORDER BY time DESC LIMIT 5
+      `).all();
+      recentActivities = results || [];
+      
+    } else if (roleLower === 'bendahara' || roleLower === 'keuangan' || roleLower === 'seksi keuangan') {
+      membersPattern = 'Seksi Keuangan%';
+      
+      const totalIncome = await c.env.DB.prepare("SELECT SUM(amount) as total FROM transactions WHERE type = 'Pemasukan' AND deleted_at IS NULL").first<number>("total") || 0;
+      const totalExpense = await c.env.DB.prepare("SELECT SUM(amount) as total FROM transactions WHERE type = 'Pengeluaran' AND deleted_at IS NULL").first<number>("total") || 0;
+      const totalPayments = await c.env.DB.prepare("SELECT COUNT(*) as count FROM spp_payments WHERE status = 'Lunas'").first<number>("count") || 0;
+      
+      stats = {
+        total_income: totalIncome,
+        total_expense: totalExpense,
+        total_payments: totalPayments,
+        balance: totalIncome - totalExpense
+      };
+      
+      const { results } = await c.env.DB.prepare(`
+        SELECT 'Transaksi' as type, description || ' (' || type || ')' as description, created_at as time
+        FROM transactions
+        WHERE deleted_at IS NULL
+        ORDER BY time DESC LIMIT 5
+      `).all();
+      recentActivities = results || [];
+      
+    } else {
+      if (roleLower === 'plp') membersPattern = 'Seksi PLP%';
+      else if (roleLower === 'kbr') membersPattern = 'Seksi Kebersihan%';
+      else if (roleLower === 'media') membersPattern = 'Seksi Dokumentasi%';
+      else if (roleLower === 'takmir') membersPattern = 'Takmir%';
+      else if (roleLower === 'jamiyyah' || roleLower === 'jam\'iyyah') membersPattern = 'Seksi Jam%';
+      else if (roleLower === 'pembangunan') membersPattern = 'Seksi Pembangunan%';
+      else if (roleLower === 'bump') membersPattern = 'Seksi BUMP%';
+      else if (roleLower === 'klinik' || roleLower === 'kesehatan') membersPattern = 'Seksi Kesehatan%';
+      else if (roleLower === 'logistik' || roleLower === 'humasy') membersPattern = 'Seksi Humasy%';
+      else if (roleLower === 'fasilitas') membersPattern = 'Seksi Fasilitas%';
+      else membersPattern = `%${role}%`;
+      
+      let customCount = 0;
+      try {
+        if (roleLower === 'plp') {
+          customCount = await c.env.DB.prepare("SELECT COUNT(*) as count FROM plp_meters").first<number>("count") || 0;
+        } else if (roleLower === 'kbr') {
+          customCount = await c.env.DB.prepare("SELECT COUNT(*) as count FROM kbr_hygiene_checks").first<number>("count") || 0;
+        } else if (roleLower === 'media') {
+          customCount = await c.env.DB.prepare("SELECT COUNT(*) as count FROM media_bookings").first<number>("count") || 0;
+        } else if (roleLower === 'takmir') {
+          customCount = await c.env.DB.prepare("SELECT COUNT(*) as count FROM takmir_schedules").first<number>("count") || 0;
+        } else if (roleLower === 'pembangunan') {
+          customCount = await c.env.DB.prepare("SELECT COUNT(*) as count FROM pembangunan_renovasi").first<number>("count") || 0;
+        }
+      } catch (e) {}
+
+      stats = {
+        custom_records: customCount
+      };
+      
+      recentActivities = [];
+    }
+
+    let members: any[] = [];
+    if (membersPattern) {
+      const { results } = await c.env.DB.prepare(
+        "SELECT id, name, phone, jabatan, kamar, photo_url, status FROM ustadz WHERE (jabatan LIKE ? OR jabatan_tambahan LIKE ?) AND status = 'Aktif' ORDER BY name ASC"
+      ).bind(membersPattern, membersPattern).all();
+      members = results || [];
+    }
+    
+    return c.json({
+      success: true,
+      section: role,
+      stats,
+      members,
+      activities: recentActivities
+    });
+    
+  } catch (error: any) {
+    console.error("Seksi Stats Error:", error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+}

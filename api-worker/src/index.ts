@@ -25,7 +25,7 @@ import plpRoutes from './routes/plp'
 import jamiyyahRoutes from './routes/jamiyyah'
 
 
-import { getDashboardStats, getMenuStats, getDevStats } from './controllers/statsController'
+import { getDashboardStats, getMenuStats, getDevStats, getSeksiStats } from './controllers/statsController'
 import { getAsramaData } from './controllers/asramaController'
 import { getArsipList, createArsip, deleteArsip, updateArsip } from './controllers/arsipController'
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from './controllers/keuanganController'
@@ -118,6 +118,7 @@ app.post('/api/settings', async (c) => {
 // Stats Endpoints
 app.get('/api/stats', getDashboardStats)
 app.get('/api/stats/menu', getMenuStats)
+app.get('/api/stats/seksi', getSeksiStats)
 app.get('/api/dev/stats', getDevStats)
 
 // Asrama Endpoints

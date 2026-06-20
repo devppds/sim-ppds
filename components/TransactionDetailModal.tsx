@@ -24,6 +24,9 @@ interface Transaction {
   description: string;
   date: string;
   proof_url?: string;
+  santri_id?: number | null;
+  santri_name?: string;
+  santri_nisn?: string;
 }
 
 interface Props {
@@ -89,7 +92,7 @@ export default function TransactionDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-250 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden scale-in-center border border-slate-100 flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -196,6 +199,17 @@ export default function TransactionDetailModal({
                       <p className="text-sm font-bold text-slate-700">{formData.category}</p>
                    </div>
                 </div>
+
+                {formData.santri_name && (
+                   <div className="space-y-1 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
+                      <div className="flex items-center gap-2 text-indigo-500">
+                         <span className="text-[10px] font-black uppercase tracking-widest">Terhubung ke Santri</span>
+                      </div>
+                      <p className="text-sm font-bold text-indigo-700 mt-1">
+                         {formData.santri_name} ({formData.santri_nisn})
+                      </p>
+                   </div>
+                 )}
 
                 <div className="space-y-2">
                    <div className="flex items-center gap-2 text-slate-400">

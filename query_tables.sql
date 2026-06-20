@@ -1,1 +1,1 @@
-PRAGMA table_info(users);
+SELECT name FROM sqlite_master WHERE type='table';

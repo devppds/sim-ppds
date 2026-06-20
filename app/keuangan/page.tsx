@@ -16,7 +16,8 @@ import {
   Download,
   CheckCircle,
   Users,
-  Eye
+  Eye,
+  Search
 } from "lucide-react";
 import AddTransactionModal from "@/components/AddTransactionModal";
 import TransactionDetailModal from "@/components/TransactionDetailModal";
@@ -32,6 +33,9 @@ interface Transaction {
   date: string;
   proof_url?: string;
   deleted_at?: string;
+  santri_id?: number | null;
+  santri_name?: string;
+  santri_nisn?: string;
 }
 
 export default function KeuanganPage() {
@@ -42,6 +46,7 @@ export default function KeuanganPage() {
   const [showTrashed, setShowTrashed] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [activeTab, setActiveTab] = useState<"ledger" | "budgeting" | "neraca" | "monitoring">("ledger");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [proposals, setProposals] = useState<any[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(true);
@@ -168,6 +173,17 @@ export default function KeuanganPage() {
     }).format(val);
   };
 
+  const filteredData = data.filter((t) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      (t.description?.toLowerCase() || "").includes(query) ||
+      (t.category?.toLowerCase() || "").includes(query) ||
+      (t.santri_name?.toLowerCase() || "").includes(query) ||
+      (t.santri_nisn?.toLowerCase() || "").includes(query)
+    );
+  });
+
   return (
     <DashboardLayout>
       <div className="fade-up fade-up-1 space-y-6">
@@ -256,13 +272,23 @@ export default function KeuanganPage() {
 
             {/* Transaction Table */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-slate-800 text-sm tracking-tight">
+              <div className="px-6 py-4 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+                  <h3 className="font-bold text-slate-800 text-sm tracking-tight whitespace-nowrap">
                     {showTrashed ? 'Recycle Bin Transaksi' : 'Buku Besar (Ledger)'}
                   </h3>
+                  <div className="relative max-w-xs w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Cari deskripsi, kategori, atau nama santri..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-indigo-500 bg-white font-medium text-slate-600"
+                    />
+                  </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                     {!showTrashed && (
                       <button 
                         onClick={() => setIsModalOpen(true)}
@@ -302,14 +328,16 @@ export default function KeuanganPage() {
                           <td colSpan={5} className="px-6 py-4"><div className="h-4 bg-slate-50 rounded w-full"></div></td>
                         </tr>
                       ))
-                    ) : data.length === 0 ? (
+                    ) : filteredData.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-medium">
-                          {showTrashed ? 'Recycle Bin Kosong' : 'Belum ada transaksi'}
+                          {data.length === 0 
+                            ? (showTrashed ? 'Recycle Bin Kosong' : 'Belum ada transaksi')
+                            : 'Transaksi tidak ditemukan'}
                         </td>
                       </tr>
                     ) : (
-                      data.map((t) => (
+                      filteredData.map((t) => (
                         <tr 
                           key={t.id} 
                           onClick={() => setSelectedTx(t)}
@@ -326,7 +354,12 @@ export default function KeuanganPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-slate-700">{t.description}</span>
+                              <span className="text-sm font-bold text-slate-700 block">{t.description}</span>
+                              {t.santri_name && (
+                                <span className="inline-block mt-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 uppercase">
+                                  Santri: {t.santri_name} ({t.santri_nisn})
+                                </span>
+                              )}
                           </td>
                           <td className="px-6 py-4 text-center">
                             {t.proof_url ? (

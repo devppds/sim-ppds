@@ -5,10 +5,14 @@ import { triggerCloudinaryDelete } from '../utils/cloudinary'
 export const getTransactions = async (c: Context<{ Bindings: Env }>) => {
   try {
     const showTrashed = c.req.query("trashed") === "true";
-    const whereClause = showTrashed ? "WHERE deleted_at IS NOT NULL" : "WHERE deleted_at IS NULL";
+    const whereClause = showTrashed ? "WHERE t.deleted_at IS NOT NULL" : "WHERE t.deleted_at IS NULL";
     
     const { results } = await c.env.DB.prepare(
-      `SELECT * FROM transactions ${whereClause} ORDER BY date DESC, id DESC LIMIT 100`
+      `SELECT t.*, s.name as santri_name, s.nisn as santri_nisn 
+       FROM transactions t 
+       LEFT JOIN santri s ON t.santri_id = s.id 
+       ${whereClause} 
+       ORDER BY t.date DESC, t.id DESC LIMIT 100`
     ).all();
 
     const summary = await c.env.DB.prepare(`
@@ -40,7 +44,8 @@ export const createTransaction = async (c: Context<{ Bindings: Env }>) => {
       amount, 
       description = "", 
       date = new Date().toISOString().split('T')[0],
-      proof_url = null 
+      proof_url = null,
+      santri_id = null
     } = body;
 
     if (!type || !category || !amount) {
@@ -48,8 +53,8 @@ export const createTransaction = async (c: Context<{ Bindings: Env }>) => {
     }
 
     await c.env.DB.prepare(
-      "INSERT INTO transactions (type, category, amount, description, date, proof_url) VALUES (?, ?, ?, ?, ?, ?)"
-    ).bind(type, category, amount, description, date, proof_url).run();
+      "INSERT INTO transactions (type, category, amount, description, date, proof_url, santri_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).bind(type, category, amount, description, date, proof_url, santri_id ? parseInt(String(santri_id)) : null).run();
 
     return c.json({ success: true, message: "Transaksi berhasil dicatat" });
   } catch (error) {
@@ -62,15 +67,15 @@ export const updateTransaction = async (c: Context<{ Bindings: Env }>) => {
   try {
     const id = c.req.param('id');
     const body = await c.req.json() as any;
-    const { type, category, amount, description, date, proof_url } = body;
+    const { type, category, amount, description, date, proof_url, santri_id = null } = body;
 
     if (!id) return c.json({ success: false, error: "ID wajib ada" }, 400);
 
     await c.env.DB.prepare(`
       UPDATE transactions 
-      SET type = ?, category = ?, amount = ?, description = ?, date = ?, proof_url = ?, updated_at = datetime('now')
+      SET type = ?, category = ?, amount = ?, description = ?, date = ?, proof_url = ?, santri_id = ?, updated_at = datetime('now')
       WHERE id = ?
-    `).bind(type, category, amount, description, date, proof_url, id).run();
+    `).bind(type, category, amount, description, date, proof_url, santri_id ? parseInt(String(santri_id)) : null, id).run();
 
     return c.json({ success: true, message: "Transaksi diperbarui" });
   } catch (error) {

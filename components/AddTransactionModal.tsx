@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { X, Save, Plus, Camera, Loader2, ArrowUpCircle, ArrowDownCircle, FileText, Calendar, Wallet } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { X, Save, Plus, Camera, Loader2, ArrowUpCircle, ArrowDownCircle, Calendar, Wallet } from "lucide-react";
 import { useToast } from "./Toast";
 import { API_BASE_URL } from "@/lib/config";
+import SearchableSantriSelect from "./SearchableSantriSelect";
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -28,8 +29,25 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
     amount: "",
     description: "",
     date: new Date().toISOString().split('T')[0],
-    proof_url: ""
+    proof_url: "",
+    santri_id: ""
   });
+
+  const [santriList, setSantriList] = useState<any[]>([]);
+  const [showSantriSelect, setShowSantriSelect] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch(`${API_BASE_URL}/api/santri`)
+        .then(res => res.json())
+        .then((json: any) => {
+          if (json.success) {
+            setSantriList(json.data);
+          }
+        })
+        .catch(err => console.error("Error fetching santri in AddTransactionModal:", err));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -72,7 +90,8 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           ...formData, 
-          amount: parseInt(formData.amount) 
+          amount: parseInt(formData.amount),
+          santri_id: formData.santri_id ? parseInt(formData.santri_id) : null
         }),
       });
 
@@ -88,8 +107,10 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
           amount: "",
           description: "",
           date: new Date().toISOString().split('T')[0],
-          proof_url: ""
+          proof_url: "",
+          santri_id: ""
         });
+        setShowSantriSelect(false);
       } else {
         showToast(json.error || "Gagal menyimpan data", "error");
       }
@@ -199,11 +220,39 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }: AddT
             />
           </div>
 
+          <div className="space-y-1.5 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hubungkan ke Santri</label>
+              <input 
+                type="checkbox" 
+                checked={showSantriSelect}
+                onChange={(e) => {
+                  setShowSantriSelect(e.target.checked);
+                  if (!e.target.checked) {
+                    setFormData(prev => ({ ...prev, santri_id: "" }));
+                  }
+                }}
+                className="w-4 h-4 text-indigo-650 focus:ring-indigo-500 rounded border-slate-300 cursor-pointer"
+              />
+            </div>
+            {showSantriSelect && (
+              <div className="mt-2.5">
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={formData.santri_id}
+                  onChange={(id) => setFormData(prev => ({ ...prev, santri_id: id }))}
+                  placeholder="Cari nama atau NISN santri..."
+                  accentColor={formData.type === 'Pemasukan' ? 'emerald' : 'rose'}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Bukti Transaksi (Opsional)</label>
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="group cursor-pointer p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all flex flex-col items-center gap-2"
+              className="group cursor-pointer p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/30 transition-all flex flex-col items-center gap-2 relative"
             >
               {formData.proof_url ? (
                 <div className="w-full aspect-video rounded-xl overflow-hidden">
