@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
 
 interface Santri {
@@ -29,6 +29,36 @@ export default function SearchableSantriSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Session checks for role-based restrictions
+  const [session, setSession] = useState<any>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then(res => res.json())
+      .then((data: any) => {
+        if (data.success && data.session) {
+          setSession(data.session);
+        }
+      })
+      .catch(e => console.error("Session fetch error", e))
+      .finally(() => setSessionLoading(false));
+  }, []);
+
+  const hasFullAccess = useMemo(() => {
+    if (sessionLoading || !session) return false;
+    const level = session.role_level;
+    const role = (session.role || "").toUpperCase();
+    return level === 'SEKRETARIAT' || 
+      level === 'VIEW_ALL' || 
+      level === 'ROOT' || 
+      role.includes("SEKRETARIS") || 
+      role.includes("SEKRETARIAT") ||
+      role === "DEVELOPER" ||
+      role === "MUDIR" ||
+      role.includes("SUPER");
+  }, [session, sessionLoading]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -98,7 +128,11 @@ export default function SearchableSantriSelect({
             />
           </div>
           <div className="max-h-60 overflow-y-auto custom-scrollbar">
-            {filtered.length === 0 ? (
+            {(!hasFullAccess && search.trim().length < 2) ? (
+              <div className="p-4 text-center text-xs text-slate-400 font-bold">
+                Ketik minimal 2 karakter untuk mencari...
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="p-4 text-center text-xs text-slate-400 font-bold">
                 Santri tidak ditemukan
               </div>
@@ -140,3 +174,4 @@ export default function SearchableSantriSelect({
     </div>
   );
 }
+

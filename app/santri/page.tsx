@@ -37,6 +37,7 @@ function SantriContent() {
   const [santriList, setSantriList] = useState<Santri[]>([]);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -53,17 +54,19 @@ function SantriContent() {
   const [searchingRestricted, setSearchingRestricted] = useState(false);
 
   useEffect(() => {
-    const sessionCookie = document.cookie.split('; ').find(row => row.startsWith('sim_ppds_session='));
-    if (sessionCookie) {
-      try {
-        const decoded = decodeURIComponent(sessionCookie.split('=')[1]);
-        setSession(JSON.parse(decoded));
-      } catch (e) { console.error(e); }
-    }
+    fetch("/api/auth/session")
+      .then(res => res.json())
+      .then((data: any) => {
+        if (data.success && data.session) {
+          setSession(data.session);
+        }
+      })
+      .catch(e => console.error("Session fetch error", e))
+      .finally(() => setSessionLoading(false));
   }, []);
 
   const hasFullAccess = useMemo(() => {
-    if (!session) return true; // Default true during loading
+    if (sessionLoading || !session) return false;
     const level = session.role_level;
     const role = (session.role || "").toUpperCase();
     return level === 'SEKRETARIAT' || 
@@ -74,7 +77,7 @@ function SantriContent() {
       role === "DEVELOPER" ||
       role === "MUDIR" ||
       role.includes("SUPER");
-  }, [session]);
+  }, [session, sessionLoading]);
 
   const canWrite = session?.role_level === 'ROOT' || session?.role_level === 'ADMIN';
   
@@ -120,7 +123,7 @@ function SantriContent() {
   }, [deepId, fetchDetail]);
 
   const fetchAllSantri = useCallback(async () => {
-    if (!hasFullAccess) return;
+    if (sessionLoading || !hasFullAccess) return;
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/santri`);
@@ -142,14 +145,16 @@ function SantriContent() {
     } finally {
       setTimeout(() => setLoading(false), 600);
     }
-  }, [hasFullAccess, deepId]);
+  }, [sessionLoading, hasFullAccess, deepId]);
 
   useEffect(() => {
-    fetchAllSantri();
-    const handleUpdate = () => fetchAllSantri();
-    window.addEventListener('santri-updated', handleUpdate);
-    return () => window.removeEventListener('santri-updated', handleUpdate);
-  }, [deepId, fetchAllSantri]);
+    if (!sessionLoading && hasFullAccess) {
+      fetchAllSantri();
+      const handleUpdate = () => fetchAllSantri();
+      window.addEventListener('santri-updated', handleUpdate);
+      return () => window.removeEventListener('santri-updated', handleUpdate);
+    }
+  }, [sessionLoading, hasFullAccess, deepId, fetchAllSantri]);
 
   // Search effect for restricted view
   useEffect(() => {
@@ -255,6 +260,15 @@ function SantriContent() {
       maximumFractionDigits: 0,
     }).format(val);
   };
+
+  if (sessionLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-indigo-650 animate-spin"></div>
+        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-4">Memuat Sesi...</p>
+      </div>
+    );
+  }
 
   if (session && !hasFullAccess) {
     if (selectedSantriId) {

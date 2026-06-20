@@ -172,32 +172,35 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" }
   ];
 
+  if (session) {
+    menuUtamaItems.push({
+      href: "/santri",
+      icon: Users,
+      label: "Data Santri",
+      badge: <Badge count={stats?.santri ?? null} color="bg-emerald-500/20 text-emerald-400" animate />
+    });
+  }
+
   if (canAccess('SEKRETARIAT')) {
     menuUtamaItems.push(
-      {
-        href: "/santri",
-          icon: Users,
-          label: "Data Santri",
-          badge: <Badge count={stats?.santri ?? null} color="bg-emerald-500/20 text-emerald-400" animate />
-        },
-        { 
-          href: "/pengurus", 
-          icon: UserCheck, 
-          label: "Data Pengurus",
-          badge: <Badge count={stats?.pengurus ?? null} color="bg-blue-500/20 text-blue-400" animate />
-        },
-        { 
-          href: "/alumni", 
-          icon: Archive, 
-          label: "Data Alumni",
-          customBadge: stats ? (
-            <div className="flex gap-1">
-              <Badge count={stats.alumni_santri} color="bg-amber-500/20 text-amber-400" animate />
-              <div className="w-px h-3 bg-white/10 self-center" />
-              <Badge count={stats.alumni_pengurus} color="bg-rose-500/20 text-rose-400" animate />
-            </div>
-          ) : <Badge count={null} color="" />
-        }
+      { 
+        href: "/pengurus", 
+        icon: UserCheck, 
+        label: "Data Pengurus",
+        badge: <Badge count={stats?.pengurus ?? null} color="bg-blue-500/20 text-blue-400" animate />
+      },
+      { 
+        href: "/alumni", 
+        icon: Archive, 
+        label: "Data Alumni",
+        customBadge: stats ? (
+          <div className="flex gap-1">
+            <Badge count={stats.alumni_santri} color="bg-amber-500/20 text-amber-400" animate />
+            <div className="w-px h-3 bg-white/10 self-center" />
+            <Badge count={stats.alumni_pengurus} color="bg-rose-500/20 text-rose-400" animate />
+          </div>
+        ) : <Badge count={null} color="" />
+      }
     );
   }
 
