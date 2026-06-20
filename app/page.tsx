@@ -42,11 +42,6 @@ export default function LoginPage() {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault(); // Mencegah prompt bawaan muncul
       setDeferredPrompt(e); // Simpan event untuk dipanggil tombol khusus kita
-      
-      // Tampilkan modal kustom secara otomatis setelah 2 detik
-      setTimeout(() => {
-        setShowInstallModal(true);
-      }, 2000);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
