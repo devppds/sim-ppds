@@ -180,12 +180,17 @@ async function startBuildAndRelease() {
     }
 
     // B. Buat rilis baru
-    const tag_name = `v1.0.0`;
+    const tag_name = `2.0.25`;
     console.log(`Membuat rilis baru di GitHub dengan tag ${tag_name}...`);
+    // Bersihkan tag-tag lama secara eksplisit untuk mencegah tabrakan ref
+    await githubRequest('DELETE', `/repos/${repoOwner}/${repoName}/git/refs/tags/2.0.25`, token).catch(() => {});
+    await githubRequest('DELETE', `/repos/${repoOwner}/${repoName}/git/refs/tags/v1.0.0`, token).catch(() => {});
+    await githubRequest('DELETE', `/repos/${repoOwner}/${repoName}/git/refs/tags/v2.0.25`, token).catch(() => {});
+
     const createRes = await githubRequest('POST', `/repos/${repoOwner}/${repoName}/releases`, token, {
       tag_name: tag_name,
       target_commitish: 'main',
-      name: 'Rilis SIM-PPDS Desktop',
+      name: 'Rilis SIM-PPDS Desktop v2.0.25',
       body: 'Unduh file instaler SIM-PPDS Desktop (.exe) terbaru dari aset di bawah.',
       draft: false,
       prerelease: false
