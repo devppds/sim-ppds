@@ -130,7 +130,6 @@ export default function DeveloperPage() {
       fetchDbStats();
       fetchReports();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDev]);
 
   // Run test on specific endpoint
@@ -295,7 +294,7 @@ export default function DeveloperPage() {
         <div className="max-w-2xl mx-auto p-4 sm:p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           
           {/* Banner sesuai instruksi gambar */}
-          <div className="border-4 border-double border-amber-800/20 bg-amber-50/10 p-6 sm:p-8 rounded-[2rem] text-center space-y-4">
+          <div className="border-4 border-double border-amber-800/20 bg-amber-50/10 p-6 sm:p-8 rounded-4xl text-center space-y-4">
             <div className="flex justify-center">
               <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center border border-amber-200">
                 <ShieldAlert className="w-8 h-8 text-amber-700" />
