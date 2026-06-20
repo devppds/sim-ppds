@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [footerIndex, setFooterIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallModal, setShowInstallModal] = useState(false);
   const [platform, setPlatform] = useState<"android" | "ios" | "desktop" | "loading">("loading");
 
   useEffect(() => {
@@ -41,6 +42,11 @@ export default function LoginPage() {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault(); // Mencegah prompt bawaan muncul
       setDeferredPrompt(e); // Simpan event untuk dipanggil tombol khusus kita
+      
+      // Tampilkan modal kustom secara otomatis setelah 2 detik
+      setTimeout(() => {
+        setShowInstallModal(true);
+      }, 2000);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
@@ -88,6 +94,37 @@ export default function LoginPage() {
         .icon-float-6 { animation: float3D 4.1s ease-in-out infinite 1.2s; }
         .icon-float-7 { animation: float3D 3.8s ease-in-out infinite 0.3s; }
         .icon-float-8 { animation: float3D 4.3s ease-in-out infinite 0.7s; }
+
+        .btn-3d-gold {
+          background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+          border-bottom: 4px solid #b45309;
+          text-shadow: 0 1px 1px rgba(0,0,0,0.15);
+          transition: all 0.1s ease;
+        }
+        .btn-3d-gold:hover {
+          background: linear-gradient(to bottom, #f59e0b, #d97706);
+          transform: translateY(1px);
+          border-bottom-width: 3px;
+        }
+        .btn-3d-gold:active {
+          transform: translateY(4px);
+          border-bottom-width: 0px;
+        }
+
+        .btn-3d-dark {
+          background: linear-gradient(to bottom, #064e3b, #022c22);
+          border-bottom: 4px solid #02140f;
+          transition: all 0.1s ease;
+        }
+        .btn-3d-dark:hover {
+          background: linear-gradient(to bottom, #022c22, #011c15);
+          transform: translateY(1px);
+          border-bottom-width: 3px;
+        }
+        .btn-3d-dark:active {
+          transform: translateY(4px);
+          border-bottom-width: 0px;
+        }
       `}} />
       {/* Premium Texture / Orbs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-900/20 rounded-full blur-[120px] pointer-events-none" />
@@ -270,12 +307,8 @@ export default function LoginPage() {
                     <>
                       {deferredPrompt ? (
                         <button 
-                          onClick={async () => {
-                            deferredPrompt.prompt();
-                            const { outcome } = await deferredPrompt.userChoice;
-                            if (outcome === 'accepted') {
-                              setDeferredPrompt(null);
-                            }
+                          onClick={() => {
+                            setShowInstallModal(true);
                           }}
                           className="w-full sm:w-2/3 md:w-1/2 inline-flex items-center justify-center gap-3 text-white rounded-full py-4 px-8 font-black text-base md:text-lg transition-all active:scale-95 group uppercase tracking-widest btn-blink"
                         >
@@ -385,6 +418,50 @@ export default function LoginPage() {
           {footerTexts[footerIndex]}
         </p>
       </footer>
+
+      {/* Custom 3D Install PWA Modal */}
+      {showInstallModal && deferredPrompt && (
+        <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-[#021c14]/65 backdrop-blur-xs animate-in fade-in duration-300">
+          <div className="bg-linear-to-b from-[#064e3b] to-[#022c22] border-t-2 border-t-amber-400 border-x border-x-amber-400/20 border-b-8 border-b-amber-950 w-full max-w-sm rounded-[32px] p-6 text-center shadow-[0_30px_70px_-15px_rgba(245,158,11,0.3)] animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            {/* Ambient gold glow in card */}
+            <div className="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+            
+            {/* Logo Wrapper with 3D shadow */}
+            <div className="w-20 h-20 mx-auto mb-5 bg-[#021c14] border-t-2 border-t-[#10b981]/30 border-x border-x-[#10b981]/10 border-b-4 border-b-emerald-950 rounded-2xl p-3 flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.3)] select-none">
+              <img src="/logopondok.png" alt="Logo" className="w-full h-full object-contain animate-pulse" />
+            </div>
+
+            <h3 className="text-xl font-black text-white uppercase tracking-wider mb-1">Instal Aplikasi</h3>
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-4">SIM-PPDS Enterprise</p>
+            
+            <p className="text-sm text-emerald-100/70 leading-relaxed font-medium mb-6">
+              Pasang aplikasi di perangkat Anda untuk akses cepat, performa maksimal, dan fitur offline lengkap.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={async () => {
+                  deferredPrompt.prompt();
+                  const { outcome } = await deferredPrompt.userChoice;
+                  if (outcome === 'accepted') {
+                    setDeferredPrompt(null);
+                  }
+                  setShowInstallModal(false);
+                }}
+                className="w-full py-4 text-[#021c14] font-black text-sm rounded-2xl uppercase tracking-widest btn-3d-gold cursor-pointer"
+              >
+                Instal Sekarang
+              </button>
+              <button 
+                onClick={() => setShowInstallModal(false)}
+                className="w-full py-4 text-emerald-100/80 font-black text-sm rounded-2xl uppercase tracking-widest btn-3d-dark cursor-pointer border border-[#10b981]/10"
+              >
+                Nanti Saja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

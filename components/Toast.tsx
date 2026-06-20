@@ -39,38 +39,38 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-200 flex flex-col items-center gap-3 pointer-events-none">
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-200 flex flex-col items-center gap-3 pointer-events-none w-full max-w-sm px-4">
         {toasts.map((toast) => (
           <div
             key={toast.id}
             className={`
               pointer-events-auto
-              flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border
+              flex items-center gap-4 px-5 py-4 rounded-2xl border w-full
               animate-in slide-in-from-top-10 fade-in duration-300
-              ${toast.type === "success" ? "bg-white border-emerald-100 text-emerald-800" : ""}
-              ${toast.type === "error" ? "bg-white border-rose-100 text-rose-800" : ""}
-              ${toast.type === "warning" ? "bg-white border-amber-100 text-amber-800" : ""}
-              ${toast.type === "info" ? "bg-white border-indigo-100 text-indigo-800" : ""}
+              ${toast.type === "success" ? "bg-[#022c22]/95 border-t-2 border-t-emerald-400 border-b-4 border-b-emerald-950 border-x border-x-emerald-400/20 text-white shadow-[0_15px_30px_-5px_rgba(16,185,129,0.35)]" : ""}
+              ${toast.type === "error" ? "bg-[#270c15]/95 border-t-2 border-t-rose-400 border-b-4 border-b-rose-950 border-x border-x-rose-400/20 text-white shadow-[0_15px_30px_-5px_rgba(244,63,94,0.35)]" : ""}
+              ${toast.type === "warning" ? "bg-[#2d1a0c]/95 border-t-2 border-t-amber-400 border-b-4 border-b-amber-950 border-x border-x-amber-400/20 text-white shadow-[0_15px_30px_-5px_rgba(245,158,11,0.35)]" : ""}
+              ${toast.type === "info" ? "bg-[#0c1020]/95 border-t-2 border-t-indigo-400 border-b-4 border-b-indigo-950 border-x border-x-indigo-400/20 text-white shadow-[0_15px_30px_-5px_rgba(99,102,241,0.35)]" : ""}
             `}
           >
             <div className={`
-              w-10 h-10 rounded-xl flex items-center justify-center shrink-0
-              ${toast.type === "success" ? "bg-emerald-50 text-emerald-500" : ""}
-              ${toast.type === "error" ? "bg-rose-50 text-rose-500" : ""}
-              ${toast.type === "warning" ? "bg-amber-50 text-amber-500" : ""}
-              ${toast.type === "info" ? "bg-indigo-50 text-indigo-500" : ""}
+              w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-inner border
+              ${toast.type === "success" ? "bg-emerald-500/20 border-emerald-400/30 text-emerald-300" : ""}
+              ${toast.type === "error" ? "bg-rose-500/20 border-rose-400/30 text-rose-300" : ""}
+              ${toast.type === "warning" ? "bg-amber-500/20 border-amber-400/30 text-amber-300" : ""}
+              ${toast.type === "info" ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-300" : ""}
             `}>
               {toast.type === "success" && <CheckCircle2 className="w-5 h-5" />}
               {toast.type === "error" && <XCircle className="w-5 h-5" />}
               {toast.type === "warning" && <AlertCircle className="w-5 h-5" />}
               {toast.type === "info" && <Info className="w-5 h-5" />}
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-black tracking-tight">{toast.message}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-black tracking-wide leading-snug">{toast.message}</p>
             </div>
             <button 
               onClick={() => removeToast(toast.id)}
-              className="p-1 hover:bg-slate-50 rounded-lg text-slate-400"
+              className="p-1.5 hover:bg-white/10 active:scale-90 rounded-lg text-white/40 hover:text-white transition-all shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
