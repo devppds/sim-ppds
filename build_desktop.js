@@ -221,7 +221,7 @@ async function startBuildAndRelease() {
 
     // 7. Commit dan push codingan ke sim-ppds (coding repository)
     console.log('\n--- 6. MELAKUKAN GIT PUSH CODING KE REPOSITORI UTAMA ---');
-    runCommand('git add electron/package.json electron/main.js build_desktop.js .gitignore', __dirname);
+    runCommand('git add electron/ build_desktop.js .gitignore', __dirname);
     const mainGitStatus = execSync('git status --porcelain', { cwd: __dirname }).toString().trim();
     if (mainGitStatus) {
       runCommand('git commit -m "Fitur: Perbarui alur otomatisasi rilis dengan GitHub Release API"', __dirname);
