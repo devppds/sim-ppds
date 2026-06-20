@@ -1,0 +1,45 @@
+{
+  "name": "sim-ppds-desktop",
+  "version": "1.0.0",
+  "description": "Sistem Informasi Manajemen PPDS Desktop App",
+  "main": "main.js",
+  "author": {
+    "name": "PPDS Developer",
+    "email": "dev@ppds.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devppds/sim-ppds.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^30.0.9",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.ppds.sim",
+    "productName": "SIM-PPDS",
+    "publish": null,
+    "win": {
+      "icon": "icon.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SIM-PPDS",
+      "runAfterFinish": true
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
