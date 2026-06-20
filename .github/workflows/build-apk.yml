@@ -44,3 +44,35 @@ jobs:
           git config --global user.email "action@github.com"
           git add public/download/SIM-PPDS.apk
           git diff-index --quiet HEAD || (git commit -m "Auto-build Android APK [skip ci]" && git push origin master)
+
+      - name: Upload APK ke Release sim-ppds-release
+        env:
+          RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
+        run: |
+          # Ambil release terbaru dari sim-ppds-release
+          RELEASE=$(curl -s -H "Authorization: token $RELEASE_PAT" \
+            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest)
+          RELEASE_ID=$(echo "$RELEASE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+          RELEASE_TAG=$(echo "$RELEASE" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
+
+          echo "Upload APK ke release: $RELEASE_TAG (ID: $RELEASE_ID)"
+
+          # Hapus asset APK lama jika sudah ada (agar tidak duplikat)
+          EXISTING_ASSET=$(curl -s -H "Authorization: token $RELEASE_PAT" \
+            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets" | \
+            python3 -c "import sys,json; assets=json.load(sys.stdin); apk=[a for a in assets if a['name']=='SIM-PPDS.apk']; print(apk[0]['id'] if apk else '')")
+
+          if [ -n "$EXISTING_ASSET" ]; then
+            echo "Menghapus asset APK lama (ID: $EXISTING_ASSET)..."
+            curl -s -X DELETE -H "Authorization: token $RELEASE_PAT" \
+              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING_ASSET"
+          fi
+
+          # Upload APK ke release
+          curl -s -X POST \
+            -H "Authorization: token $RELEASE_PAT" \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            --data-binary @public/download/SIM-PPDS.apk \
+            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS.apk"
+
+          echo "✅ APK berhasil di-upload ke release $RELEASE_TAG!"
