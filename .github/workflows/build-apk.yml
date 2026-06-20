@@ -49,54 +49,49 @@ jobs:
         env:
           RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
         run: |
+          set -e
+
           echo "=== Cek token ==="
           if [ -z "$RELEASE_PAT" ]; then
-            echo "❌ ERROR: RELEASE_PAT secret kosong!"
+            echo "ERROR: RELEASE_PAT secret kosong!"
             exit 1
           fi
 
           echo "=== Ambil release terbaru dari sim-ppds-release ==="
-          RELEASE=$(curl -s -H "Authorization: token $RELEASE_PAT" \
+          RELEASE=$(curl -sf \
+            -H "Authorization: token $RELEASE_PAT" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/devppds/sim-ppds-release/releases/latest)
 
           echo "API Response: $RELEASE"
 
-          # Validasi response mengandung 'id'
-          RELEASE_ID=$(echo "$RELEASE" | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-if 'id' not in data:
-    print('ERROR:', data.get('message', 'Unknown error'), file=sys.stderr)
-    sys.exit(1)
-print(data['id'])
-")
-          RELEASE_TAG=$(echo "$RELEASE" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
+          if ! echo "$RELEASE" | jq -e '.id' > /dev/null 2>&1; then
+            echo "ERROR: $(echo "$RELEASE" | jq -r '.message // "Unknown error - token mungkin tidak punya akses"')"
+            exit 1
+          fi
 
-          echo "✅ Target release: $RELEASE_TAG (ID: $RELEASE_ID)"
+          RELEASE_ID=$(echo "$RELEASE" | jq -r '.id')
+          RELEASE_TAG=$(echo "$RELEASE" | jq -r '.tag_name')
+          echo "Target release: $RELEASE_TAG (ID: $RELEASE_ID)"
 
           echo "=== Hapus asset APK lama jika ada ==="
-          ASSETS=$(curl -s -H "Authorization: token $RELEASE_PAT" \
+          ASSETS=$(curl -sf \
+            -H "Authorization: token $RELEASE_PAT" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets")
 
-          EXISTING_ASSET=$(echo "$ASSETS" | python3 -c "
-import sys, json
-assets = json.load(sys.stdin)
-apk = [a for a in assets if a['name'] == 'SIM-PPDS.apk']
-print(apk[0]['id'] if apk else '')
-")
+          EXISTING_ASSET=$(echo "$ASSETS" | jq -r '.[] | select(.name == "SIM-PPDS.apk") | .id // empty')
 
           if [ -n "$EXISTING_ASSET" ]; then
             echo "Menghapus asset lama (ID: $EXISTING_ASSET)..."
-            curl -s -X DELETE \
+            curl -sf -X DELETE \
               -H "Authorization: token $RELEASE_PAT" \
               "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING_ASSET"
             echo "Asset lama dihapus."
           fi
 
           echo "=== Upload APK ke release $RELEASE_TAG ==="
-          UPLOAD_RESULT=$(curl -s -X POST \
+          UPLOAD_RESULT=$(curl -sf -X POST \
             -H "Authorization: token $RELEASE_PAT" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @public/download/SIM-PPDS.apk \
@@ -104,14 +99,11 @@ print(apk[0]['id'] if apk else '')
 
           echo "Upload result: $UPLOAD_RESULT"
 
-          # Cek apakah upload berhasil
-          echo "$UPLOAD_RESULT" | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-if 'id' in data:
-    print('✅ APK berhasil di-upload! Asset ID:', data['id'])
-    print('Download URL:', data.get('browser_download_url', 'N/A'))
-else:
-    print('❌ Upload gagal:', data.get('message', 'Unknown error'))
-    sys.exit(1)
-"
+          DOWNLOAD_URL=$(echo "$UPLOAD_RESULT" | jq -r '.browser_download_url // empty')
+          if [ -n "$DOWNLOAD_URL" ]; then
+            echo "APK berhasil di-upload!"
+            echo "Download URL: $DOWNLOAD_URL"
+          else
+            echo "Upload gagal: $(echo "$UPLOAD_RESULT" | jq -r '.message // "Unknown error"')"
+            exit 1
+          fi
