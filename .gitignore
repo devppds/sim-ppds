@@ -44,3 +44,7 @@ _worker.js
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# electron & release
+/electron/dist/
+/release-temp/
