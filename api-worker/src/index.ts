@@ -29,6 +29,7 @@ import { getDashboardStats, getMenuStats, getDevStats, getSeksiStats } from './c
 import { getAsramaData } from './controllers/asramaController'
 import { getArsipList, createArsip, deleteArsip, updateArsip } from './controllers/arsipController'
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from './controllers/keuanganController'
+import { getDeveloperReports, createDeveloperReport, updateDeveloperReportStatus } from './controllers/developerController'
 import { getNotifications, markNotificationsRead, createNotification } from './controllers/notificationsController'
 import { getSearchResults } from './controllers/searchController'
 import { getAlumniList, createAlumni } from './controllers/alumniController'
@@ -120,6 +121,9 @@ app.get('/api/stats', getDashboardStats)
 app.get('/api/stats/menu', getMenuStats)
 app.get('/api/stats/seksi', getSeksiStats)
 app.get('/api/dev/stats', getDevStats)
+app.get('/api/developer/reports', getDeveloperReports)
+app.post('/api/developer/reports', createDeveloperReport)
+app.put('/api/developer/reports/:id', updateDeveloperReportStatus)
 
 // Asrama Endpoints
 app.get('/api/asrama', getAsramaData)

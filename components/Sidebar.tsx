@@ -310,13 +310,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       items: configItems
     });
   }
-  if (session && (session.role || "").toUpperCase() === 'DEVELOPER') {
-    navGroups.push({
-      label: "Developer Only",
-      items: [
-        { href: "/developer", icon: Wrench, label: "Developer Portal", premium: true }
-      ]
-    });
+  if (session) {
+    const roleLower = (session.role || "").toLowerCase();
+    const usernameLower = (session.username || "").toLowerCase();
+    const isAnggota = roleLower.includes("anggota") || usernameLower.includes("anggota");
+    if (!isAnggota) {
+      navGroups.push({
+        label: "Dukungan Sistem",
+        items: [
+          { href: "/developer", icon: Wrench, label: "Developer", premium: true }
+        ]
+      });
+    }
   }
   const getInitials = (name: string | undefined | null) => {
     if (!name) return "??";
