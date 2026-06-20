@@ -32,16 +32,6 @@ jobs:
         working-directory: android
         run: gradle assembleRelease
 
-      - name: Verify APK exists
-        run: |
-          APK_PATH="android/app/build/outputs/apk/release/app-release-unsigned.apk"
-          if [ ! -f "$APK_PATH" ]; then
-            echo "ERROR: APK tidak ditemukan di $APK_PATH"
-            find android/app/build -name "*.apk" 2>/dev/null || echo "Tidak ada APK yang ditemukan"
-            exit 1
-          fi
-          echo "APK ditemukan: $(du -sh $APK_PATH)"
-
       - name: Copy APK to public folder
         run: |
           mkdir -p public/download
@@ -61,83 +51,35 @@ jobs:
         run: |
           set -e
 
-          # Validasi token
-          if [ -z "$RELEASE_PAT" ]; then
-            echo "ERROR: Secret RELEASE_PAT tidak ditemukan atau kosong!"
-            echo "Pastikan RELEASE_PAT sudah ditambahkan di Settings > Secrets > Actions"
-            exit 1
-          fi
-
-          # Test token validity
-          USER_INFO=$(curl -sf \
-            -H "Authorization: token $RELEASE_PAT" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/user 2>&1 || true)
-
-          if ! echo "$USER_INFO" | jq -e '.login' > /dev/null 2>&1; then
-            echo "ERROR: Token RELEASE_PAT tidak valid!"
-            echo "Response: $USER_INFO"
-            echo "Buat token baru di: https://github.com/settings/tokens (scope: repo)"
-            exit 1
-          fi
-          echo "Token valid, login sebagai: $(echo "$USER_INFO" | jq -r '.login')"
-
-          # Ambil release terbaru dari sim-ppds-release
           RELEASE=$(curl -sf \
             -H "Authorization: token $RELEASE_PAT" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest 2>&1 || true)
-
-          echo "Release API response: $RELEASE"
-
-          if ! echo "$RELEASE" | jq -e '.id' > /dev/null 2>&1; then
-            echo "ERROR: Tidak bisa akses repo sim-ppds-release!"
-            echo "Pastikan token punya scope 'repo' dan akses ke devppds/sim-ppds-release"
-            exit 1
-          fi
+            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest)
 
           RELEASE_ID=$(echo "$RELEASE" | jq -r '.id')
           RELEASE_TAG=$(echo "$RELEASE" | jq -r '.tag_name')
-          echo "Target release: $RELEASE_TAG (ID: $RELEASE_ID)"
+          echo "Upload ke release: $RELEASE_TAG (ID: $RELEASE_ID)"
 
-          # Hapus asset APK lama jika ada
-          ASSETS=$(curl -sf \
+          EXISTING=$(curl -sf \
             -H "Authorization: token $RELEASE_PAT" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets" 2>&1 || true)
+            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets" \
+            | jq -r '[.[] | select(.name == "SIM-PPDS.apk")] | first | .id // empty')
 
-          EXISTING_ASSET_ID=$(echo "$ASSETS" | jq -r '[.[] | select(.name == "SIM-PPDS.apk")] | first | .id // empty')
-
-          if [ -n "$EXISTING_ASSET_ID" ]; then
-            echo "Menghapus APK lama (asset ID: $EXISTING_ASSET_ID)..."
+          if [ -n "$EXISTING" ]; then
             curl -sf -X DELETE \
               -H "Authorization: token $RELEASE_PAT" \
-              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING_ASSET_ID"
-            echo "APK lama berhasil dihapus"
-          else
-            echo "Tidak ada APK lama, langsung upload"
+              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING"
+            echo "APK lama dihapus"
           fi
 
-          # Upload APK baru
-          echo "Mengupload SIM-PPDS.apk ke release $RELEASE_TAG..."
-          UPLOAD=$(curl -sf -X POST \
+          RESULT=$(curl -sf -X POST \
             -H "Authorization: token $RELEASE_PAT" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @public/download/SIM-PPDS.apk \
-            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS.apk" 2>&1 || true)
+            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS.apk")
 
-          echo "Upload response: $UPLOAD"
-
-          if echo "$UPLOAD" | jq -e '.browser_download_url' > /dev/null 2>&1; then
-            DOWNLOAD_URL=$(echo "$UPLOAD" | jq -r '.browser_download_url')
-            echo ""
-            echo "================================================"
-            echo "APK BERHASIL DI-UPLOAD!"
-            echo "Release: $RELEASE_TAG"
-            echo "Download: $DOWNLOAD_URL"
-            echo "================================================"
-          else
-            echo "ERROR: Upload gagal!"
-            echo "$(echo "$UPLOAD" | jq -r '.message // "Unknown error"')"
-            exit 1
-          fi
+          echo "================================================"
+          echo "APK BERHASIL DI-UPLOAD!"
+          echo "Release : $RELEASE_TAG"
+          echo "Download: $(echo "$RESULT" | jq -r '.browser_download_url')"
+          echo "================================================"
