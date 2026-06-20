@@ -29,14 +29,24 @@ jobs:
           gradle-version: '8.4'
 
       - name: Build APK
+        working-directory: android
+        run: gradle assembleRelease
+
+      - name: Verify APK exists
         run: |
-          cd android
-          gradle assembleRelease
+          APK_PATH="android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "ERROR: APK tidak ditemukan di $APK_PATH"
+            find android/app/build -name "*.apk" 2>/dev/null || echo "Tidak ada APK yang ditemukan"
+            exit 1
+          fi
+          echo "APK ditemukan: $(du -sh $APK_PATH)"
 
       - name: Copy APK to public folder
         run: |
           mkdir -p public/download
           cp android/app/build/outputs/apk/release/app-release-unsigned.apk public/download/SIM-PPDS.apk
+          echo "APK size: $(du -sh public/download/SIM-PPDS.apk)"
 
       - name: Commit and Push APK
         run: |
@@ -51,22 +61,38 @@ jobs:
         run: |
           set -e
 
-          echo "=== Cek token ==="
+          # Validasi token
           if [ -z "$RELEASE_PAT" ]; then
-            echo "ERROR: RELEASE_PAT secret kosong!"
+            echo "ERROR: Secret RELEASE_PAT tidak ditemukan atau kosong!"
+            echo "Pastikan RELEASE_PAT sudah ditambahkan di Settings > Secrets > Actions"
             exit 1
           fi
 
-          echo "=== Ambil release terbaru dari sim-ppds-release ==="
+          # Test token validity
+          USER_INFO=$(curl -sf \
+            -H "Authorization: token $RELEASE_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/user 2>&1 || true)
+
+          if ! echo "$USER_INFO" | jq -e '.login' > /dev/null 2>&1; then
+            echo "ERROR: Token RELEASE_PAT tidak valid!"
+            echo "Response: $USER_INFO"
+            echo "Buat token baru di: https://github.com/settings/tokens (scope: repo)"
+            exit 1
+          fi
+          echo "Token valid, login sebagai: $(echo "$USER_INFO" | jq -r '.login')"
+
+          # Ambil release terbaru dari sim-ppds-release
           RELEASE=$(curl -sf \
             -H "Authorization: token $RELEASE_PAT" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest)
+            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest 2>&1 || true)
 
-          echo "API Response: $RELEASE"
+          echo "Release API response: $RELEASE"
 
           if ! echo "$RELEASE" | jq -e '.id' > /dev/null 2>&1; then
-            echo "ERROR: $(echo "$RELEASE" | jq -r '.message // "Unknown error - token mungkin tidak punya akses"')"
+            echo "ERROR: Tidak bisa akses repo sim-ppds-release!"
+            echo "Pastikan token punya scope 'repo' dan akses ke devppds/sim-ppds-release"
             exit 1
           fi
 
@@ -74,36 +100,44 @@ jobs:
           RELEASE_TAG=$(echo "$RELEASE" | jq -r '.tag_name')
           echo "Target release: $RELEASE_TAG (ID: $RELEASE_ID)"
 
-          echo "=== Hapus asset APK lama jika ada ==="
+          # Hapus asset APK lama jika ada
           ASSETS=$(curl -sf \
             -H "Authorization: token $RELEASE_PAT" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets")
+            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets" 2>&1 || true)
 
-          EXISTING_ASSET=$(echo "$ASSETS" | jq -r '.[] | select(.name == "SIM-PPDS.apk") | .id // empty')
+          EXISTING_ASSET_ID=$(echo "$ASSETS" | jq -r '[.[] | select(.name == "SIM-PPDS.apk")] | first | .id // empty')
 
-          if [ -n "$EXISTING_ASSET" ]; then
-            echo "Menghapus asset lama (ID: $EXISTING_ASSET)..."
+          if [ -n "$EXISTING_ASSET_ID" ]; then
+            echo "Menghapus APK lama (asset ID: $EXISTING_ASSET_ID)..."
             curl -sf -X DELETE \
               -H "Authorization: token $RELEASE_PAT" \
-              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING_ASSET"
-            echo "Asset lama dihapus."
+              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING_ASSET_ID"
+            echo "APK lama berhasil dihapus"
+          else
+            echo "Tidak ada APK lama, langsung upload"
           fi
 
-          echo "=== Upload APK ke release $RELEASE_TAG ==="
-          UPLOAD_RESULT=$(curl -sf -X POST \
+          # Upload APK baru
+          echo "Mengupload SIM-PPDS.apk ke release $RELEASE_TAG..."
+          UPLOAD=$(curl -sf -X POST \
             -H "Authorization: token $RELEASE_PAT" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @public/download/SIM-PPDS.apk \
-            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS.apk")
+            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS.apk" 2>&1 || true)
 
-          echo "Upload result: $UPLOAD_RESULT"
+          echo "Upload response: $UPLOAD"
 
-          DOWNLOAD_URL=$(echo "$UPLOAD_RESULT" | jq -r '.browser_download_url // empty')
-          if [ -n "$DOWNLOAD_URL" ]; then
-            echo "APK berhasil di-upload!"
-            echo "Download URL: $DOWNLOAD_URL"
+          if echo "$UPLOAD" | jq -e '.browser_download_url' > /dev/null 2>&1; then
+            DOWNLOAD_URL=$(echo "$UPLOAD" | jq -r '.browser_download_url')
+            echo ""
+            echo "================================================"
+            echo "APK BERHASIL DI-UPLOAD!"
+            echo "Release: $RELEASE_TAG"
+            echo "Download: $DOWNLOAD_URL"
+            echo "================================================"
           else
-            echo "Upload gagal: $(echo "$UPLOAD_RESULT" | jq -r '.message // "Unknown error"')"
+            echo "ERROR: Upload gagal!"
+            echo "$(echo "$UPLOAD" | jq -r '.message // "Unknown error"')"
             exit 1
           fi
