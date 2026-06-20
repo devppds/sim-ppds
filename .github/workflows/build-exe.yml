@@ -1,0 +1,102 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Install Electron dependencies
+        working-directory: electron
+        run: npm ci
+
+      - name: Build EXE
+        working-directory: electron
+        run: npm run dist
+
+      - name: Locate and rename installer
+        shell: bash
+        run: |
+          EXE_FILE=$(find electron/dist -maxdepth 1 -name "*.exe" ! -name "*blockmap*" | head -n 1)
+          if [ -z "$EXE_FILE" ]; then
+            echo "ERROR: Installer .exe tidak ditemukan di electron/dist/"
+            exit 1
+          fi
+          echo "Ditemukan installer: $EXE_FILE"
+          cp "$EXE_FILE" electron/dist/SIM-PPDS_Setup.exe
+          echo "Installer disalin ke electron/dist/SIM-PPDS_Setup.exe"
+
+      - name: Upload EXE ke Release sim-ppds-release
+        shell: bash
+        env:
+          RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
+        run: |
+          set -e
+
+          RELEASE=$(curl -s \
+            -H "Authorization: token $RELEASE_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/devppds/sim-ppds-release/releases/latest)
+
+          echo "Release API response: $RELEASE"
+
+          RELEASE_ID=$(echo "$RELEASE" | jq -r '.id')
+          RELEASE_TAG=$(echo "$RELEASE" | jq -r '.tag_name')
+
+          if [ "$RELEASE_ID" = "null" ] || [ -z "$RELEASE_ID" ]; then
+            echo "ERROR: Tidak bisa ambil release. Response di atas."
+            exit 1
+          fi
+
+          echo "Upload ke release: $RELEASE_TAG (ID: $RELEASE_ID)"
+
+          ASSETS=$(curl -s \
+            -H "Authorization: token $RELEASE_PAT" \
+            "https://api.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets")
+
+          EXISTING=$(echo "$ASSETS" | jq -r '[.[] | select(.name == "SIM-PPDS_Setup.exe")] | first | .id // empty')
+
+          if [ -n "$EXISTING" ]; then
+            curl -s -X DELETE \
+              -H "Authorization: token $RELEASE_PAT" \
+              "https://api.github.com/repos/devppds/sim-ppds-release/releases/assets/$EXISTING"
+            echo "EXE lama dihapus"
+          fi
+
+          RESULT=$(curl -s -X POST \
+            -H "Authorization: token $RELEASE_PAT" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @electron/dist/SIM-PPDS_Setup.exe \
+            "https://uploads.github.com/repos/devppds/sim-ppds-release/releases/$RELEASE_ID/assets?name=SIM-PPDS_Setup.exe")
+
+          echo "Upload result: $RESULT"
+
+          DOWNLOAD_URL=$(echo "$RESULT" | jq -r '.browser_download_url // empty')
+          if [ -z "$DOWNLOAD_URL" ]; then
+            echo "ERROR: Upload gagal - $(echo "$RESULT" | jq -r '.message // "unknown"')"
+            exit 1
+          fi
+
+          echo "================================================"
+          echo "EXE BERHASIL DI-UPLOAD!"
+          echo "Release : $RELEASE_TAG"
+          echo "Download: $DOWNLOAD_URL"
+          echo "================================================"

@@ -47,8 +47,8 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${plusJakartaSans.variable} h-full antialiased`}>
-        <PwaRegistry />
         <ToastProvider>
+          <PwaRegistry />
           {children}
         </ToastProvider>
       </body>
