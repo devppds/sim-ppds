@@ -231,7 +231,7 @@ export default function AsramaPage() {
                 <div 
                   key={room.name}
                   onClick={() => setSelectedRoom(room)}
-                  className="group bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-600/5 transition-all cursor-pointer active:scale-95"
+                  className="group bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-600/5 transition-all cursor-pointer active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Kamar</span>
@@ -257,7 +257,7 @@ export default function AsramaPage() {
                       <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
                     </div>
 
-                    <div className="pt-3 border-t border-slate-50">
+                    <div className="pt-3 border-t border-slate-100">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Penanggung Jawab</p>
                       {room.pengurus.length > 0 ? (
                          <div className="flex items-center gap-2">
@@ -412,8 +412,8 @@ export default function AsramaPage() {
       {/* Detail Modal */}
       {selectedRoom && (
         <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 text-text-main">
-          <div className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden scale-in-center flex flex-col max-h-[85vh]">
-            <div className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden scale-in-center flex flex-col max-h-[85vh]">
+            <div className="p-8 border-b border-slate-100 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-600/20 uppercase font-black">
                      {selectedRoom.name.split(' ')[selectedRoom.name.split(' ').length - 1]}
@@ -495,7 +495,7 @@ export default function AsramaPage() {
                </div>
             </div>
 
-            <div className="p-8 border-t border-slate-50 bg-slate-50/50 shrink-0">
+            <div className="p-8 border-t border-slate-100 bg-slate-50/50 shrink-0">
                <button 
                  onClick={() => setSelectedRoom(null)}
                  className="w-full py-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-2xl text-sm font-black transition-all active:scale-95 shadow-sm uppercase tracking-widest"

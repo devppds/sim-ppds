@@ -290,7 +290,7 @@ export default function DeveloperPage() {
   if (!isDev) {
     return (
       <>
-        <div className="max-w-2xl mx-auto p-4 sm:p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="max-w-2xl mx-auto p-4 sm:p-8 bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           
           {/* Banner sesuai instruksi gambar */}
           <div className="border-4 border-double border-amber-800/20 bg-amber-50/10 p-6 sm:p-8 rounded-4xl text-center space-y-4">
@@ -595,7 +595,7 @@ export default function DeveloperPage() {
               <div className="lg:col-span-2 space-y-6">
                 
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-50">
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
                       <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
                         <Activity className="w-5 h-5 text-emerald-500" /> Uji Fungsional & Latensi API

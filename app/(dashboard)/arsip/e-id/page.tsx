@@ -207,7 +207,7 @@ export default function SekretarisIIPage() {
                   style={cardTemplateUrl ? { backgroundImage: `url(${cardTemplateUrl})` } : {}}
                 >
                     <div className="absolute top-0 right-0 p-3 opacity-20"><KeyRound className="w-16 h-16 text-white" /></div>
-                    <div className="text-white z-10 drop-shadow-md">
+                    <div className="text-white z-10 drop-shadow-sm">
                         <div className="text-[10px] font-black uppercase tracking-widest opacity-80">Kartu Tanda Keluarga (KTK)</div>
                         <div className="text-lg font-bold mt-1">{selectedSantri ? selectedSantri.name : "Ahmad Fauzi Rahman"}</div>
                         <div className="text-xs opacity-90">NISN: {selectedSantri ? selectedSantri.nisn : "1122334455"}</div>
@@ -224,7 +224,7 @@ export default function SekretarisIIPage() {
                         ) : (
                           <div className="w-12 h-12 bg-white/25 rounded-md backdrop-blur-xs"></div>
                         )}
-                        <div className="text-white text-[8px] opacity-70 drop-shadow-md font-bold">PP Darussalam Lirboyo</div>
+                        <div className="text-white text-[8px] opacity-70 drop-shadow-sm font-bold">PP Darussalam Lirboyo</div>
                     </div>
                 </div>
 

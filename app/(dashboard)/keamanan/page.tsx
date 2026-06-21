@@ -722,7 +722,7 @@ export default function KeamananPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {filteredAssetList.map((asset) => (
-                      <div key={asset.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all">
+                      <div key={asset.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-sm transition-all">
                         <div className="flex items-start justify-between">
                           <div className="p-3 bg-emerald-50 rounded-xl">
                             <QrCode className="w-6 h-6 text-emerald-600" />

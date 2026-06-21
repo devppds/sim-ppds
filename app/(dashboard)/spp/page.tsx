@@ -262,7 +262,7 @@ export default function SPPPage() {
 
         {/* Global Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-linear-to-br from-indigo-600 to-indigo-700 p-6 rounded-[2.5rem] text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
+            <div className="bg-linear-to-br from-indigo-600 to-indigo-700 p-6 rounded-2xl text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
                   <Wallet className="w-32 h-32" />
                </div>
@@ -273,7 +273,7 @@ export default function SPPPage() {
                </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
                <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Siswa Lunas</p>
                   <h3 className="text-3xl font-black text-slate-800 mt-2">{loading ? "..." : `${summary.paid_count} / ${summary.total_count}`}</h3>
@@ -286,7 +286,7 @@ export default function SPPPage() {
                </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Belum Bayar</p>
                <h3 className="text-3xl font-black text-rose-500 mt-2">{loading ? "..." : summary.total_count - summary.paid_count}</h3>
                <button 
@@ -302,8 +302,8 @@ export default function SPPPage() {
         </div>
 
         {/* List Data */}
-        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-           <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row justify-between gap-6 bg-slate-50/10">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+           <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-6 bg-slate-50/10">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input 
@@ -326,7 +326,7 @@ export default function SPPPage() {
                     </button>
                     
                     {isYearDropdownOpen && (
-                      <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-2xl border border-slate-50 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                      <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
                         {ACADEMIC_YEARS.map(year => (
                           <button
                             key={year}
@@ -357,7 +357,7 @@ export default function SPPPage() {
            <div className="overflow-x-auto">
              <table className="w-full">
                 <thead>
-                   <tr className="bg-slate-50/30 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                   <tr className="bg-slate-50/30 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                       <th className="px-8 py-5 text-left">Foto & Profil</th>
                       <th className="px-8 py-5 text-left">Status & Madrasah</th>
                       <th className="px-8 py-5 text-center">Periode {selectedPeriod}</th>

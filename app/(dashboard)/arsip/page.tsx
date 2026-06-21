@@ -133,7 +133,7 @@ export default function ArsipPage() {
             { label: "Surat Masuk", count: files.filter(f => f.flow_type === 'Masuk').length, icon: ArrowDownLeft, color: "text-emerald-600", bg: "bg-emerald-50" },
             { label: "Surat Keluar", count: files.filter(f => f.flow_type === 'Keluar').length, icon: ArrowUpRight, color: "text-rose-600", bg: "bg-rose-50" }
           ].map((stat, i) => (
-            <div key={i} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex items-center gap-4">
+            <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
               <div className={`w-14 h-14 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center`}>
                 <stat.icon className="w-7 h-7" />
               </div>
@@ -145,7 +145,7 @@ export default function ArsipPage() {
           ))}
         </div>
 
-        <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           {/* Table Header / Search */}
           <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
             <div className="relative flex-1 w-full">

@@ -60,7 +60,7 @@ function PengurusContent() {
     } finally {
       setLoading(false);
     }
-  }, [deepId]);
+  }, [deepId, selectedPengurus]);
 
   useEffect(() => {
     fetchPengurus();

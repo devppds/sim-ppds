@@ -271,7 +271,7 @@ export default function KeuanganPage() {
 
             {/* Transaction Table */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+              <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                   <h3 className="font-bold text-slate-800 text-sm tracking-tight whitespace-nowrap">
                     {showTrashed ? 'Recycle Bin Transaksi' : 'Buku Besar (Ledger)'}
@@ -558,7 +558,7 @@ export default function KeuanganPage() {
 
           return (
              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+               <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
                   <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/20">
                       <div>
                           <h2 className="text-lg font-black text-slate-800 tracking-tight">Monitoring Laporan Bulanan Seksi</h2>

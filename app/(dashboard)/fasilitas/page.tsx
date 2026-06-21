@@ -285,7 +285,7 @@ export default function FasilitasPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-slate-800">Tiket Pelaporan & Perbaikan</h2>
-              <button onClick={() => setIsTicketModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-indigo-700 transition-all">
+              <button onClick={() => setIsTicketModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-indigo-700 transition-all">
                 <Plus className="w-4 h-4" /> Laporkan Kerusakan
               </button>
             </div>
@@ -372,7 +372,7 @@ export default function FasilitasPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-slate-800">Booking / Penggunaan Aula Masjid</h2>
-              <button onClick={() => setIsBookingModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-blue-700 transition-all">
+              <button onClick={() => setIsBookingModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-all">
                 <Plus className="w-4 h-4" /> Ajukan Booking Masjid
               </button>
             </div>
@@ -446,7 +446,7 @@ export default function FasilitasPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-slate-800">Jadwal Imam & Muadzin Masjid Darussalam</h2>
-              <button onClick={() => setIsJadwalModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-emerald-700 transition-all">
+              <button onClick={() => setIsJadwalModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-emerald-700 transition-all">
                 <Plus className="w-4 h-4" /> Atur Jadwal Petugas
               </button>
             </div>
@@ -463,7 +463,7 @@ export default function FasilitasPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {jadwal.map((j) => (
-                  <div key={j.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all flex flex-col justify-between">
+                  <div key={j.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-sm transition-all flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                       <span className="px-2.5 py-0.5 text-[10px] font-black uppercase rounded-md bg-emerald-50 text-emerald-600">
                         {j.hari}

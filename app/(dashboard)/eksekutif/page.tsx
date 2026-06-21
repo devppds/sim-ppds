@@ -351,7 +351,7 @@ export default function EksekutifPage() {
                                   setReviewApproval(appr);
                                   setReviewNote("");
                                 }}
-                                className="px-4 py-2 bg-indigo-600 text-white text-xs font-black rounded-xl shadow-md shadow-indigo-600/10 hover:bg-indigo-700 transition-all uppercase tracking-widest"
+                                className="px-4 py-2 bg-indigo-600 text-white text-xs font-black rounded-xl shadow-sm shadow-indigo-600/10 hover:bg-indigo-700 transition-all uppercase tracking-widest"
                               >
                                 Tinjau
                               </button>
@@ -425,7 +425,7 @@ export default function EksekutifPage() {
                     {agendaList.map((agenda) => (
                       <div 
                         key={agenda.id} 
-                        className="p-4 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-all space-y-2 relative group"
+                        className="p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all space-y-2 relative group"
                       >
                         <div className="flex items-start justify-between">
                           <span className="text-[9px] font-black text-indigo-600 uppercase bg-indigo-50 px-2.5 py-1 rounded-full">
@@ -465,7 +465,7 @@ export default function EksekutifPage() {
                         <p className="text-[11px] text-slate-400 leading-relaxed">{agenda.description}</p>
                         
                         {(agenda.time_start || agenda.location) && (
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-400 pt-1 border-t border-slate-50 mt-2 font-semibold">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-400 pt-1 border-t border-slate-100 mt-2 font-semibold">
                             {agenda.time_start && (
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3 text-slate-300" /> {agenda.time_start} {agenda.time_end ? `- ${agenda.time_end}` : ""}
@@ -491,8 +491,8 @@ export default function EksekutifPage() {
       {/* Agenda Dialog */}
       {isAgendaModalOpen && (
         <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 text-text-main">
-          <div className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden scale-in-center flex flex-col">
-            <div className="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden scale-in-center flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-black text-slate-800 uppercase tracking-wider">
                 {editingAgenda ? "Edit Agenda Kegiatan" : "Tambah Agenda Kegiatan"}
               </h3>
@@ -583,8 +583,8 @@ export default function EksekutifPage() {
       {/* Approval Process Modal */}
       {reviewApproval && (
         <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 text-text-main">
-          <div className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden scale-in-center flex flex-col">
-            <div className="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden scale-in-center flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-black text-slate-800 uppercase tracking-wider">Evaluasi Pengajuan</h3>
               <button onClick={() => setReviewApproval(null)} className="p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
                 <X className="w-5 h-5" />

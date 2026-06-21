@@ -582,7 +582,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Profil Pesantren */}
         {activeTab === "profile_pesantren" && isAdmin && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <Home className="w-4 h-4 text-indigo-500" /> Identitas Lembaga Pesantren
             </h3>
@@ -666,7 +666,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Aplikasi & Notifikasi */}
         {activeTab === "app_settings" && isAdmin && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <Settings className="w-4 h-4 text-indigo-500" /> Konfigurasi Aplikasi & Notifikasi Real-time
             </h3>
@@ -770,7 +770,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Akun Pengguna */}
         {activeTab === "user_management" && (isAdmin || isSeksiAdmin) && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
@@ -884,7 +884,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Profil Saya */}
         {activeTab === "personal_profile" && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <User className="w-4 h-4 text-indigo-500" /> Informasi Data Diri Pribadi
             </h3>
@@ -977,7 +977,7 @@ export default function PengaturanPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-2 duration-300">
             {/* Create SPP Tariff Form */}
             <div className="lg:col-span-1">
-              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm sticky top-6">
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm sticky top-6">
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
                   <Plus className="w-4 h-4 text-emerald-500" /> Tambah Tarif SPP
                 </h3>
@@ -1083,8 +1083,8 @@ export default function PengaturanPage() {
 
             {/* SPP Tariff List */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-slate-50 bg-slate-50/10">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="p-8 border-b border-slate-100 bg-slate-50/10">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                     <Wallet className="w-4 h-4 text-indigo-500" /> Konfigurasi Tarif Aktif ({sppRates.length})
                   </h3>
@@ -1150,7 +1150,7 @@ export default function PengaturanPage() {
 
         {/* Tab Content: Keamanan (Ganti Password) */}
         {activeTab === "security" && (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full max-w-xl animate-in slide-in-from-bottom-2 duration-300">
+          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full max-w-xl animate-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
               <Lock className="w-4 h-4 text-rose-500" /> Perbarui Password Akun
             </h3>

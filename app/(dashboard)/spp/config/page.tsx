@@ -137,7 +137,7 @@ export default function SppConfigPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
            {/* Form Section */}
            <div className="lg:col-span-4 space-y-6">
-              <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 sticky top-4">
+              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 sticky top-4">
                  <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
                        <Plus className="w-5 h-5" />
@@ -209,7 +209,7 @@ export default function SppConfigPage() {
                                 <button 
                                   key={c} 
                                   type="button" 
-                                  className="w-full px-4 py-3 text-left text-xs font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-b border-slate-50 last:border-0"
+                                  className="w-full px-4 py-3 text-left text-xs font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-b border-slate-100 last:border-0"
                                   onClick={() => {
                                      setFormData({...formData, kelas_name: c});
                                      setClassQuery(c);
@@ -292,8 +292,8 @@ export default function SppConfigPage() {
 
            {/* Table Section */}
            <div className="lg:col-span-8 space-y-6">
-              <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 overflow-hidden min-h-[600px]">
-                 <div className="p-8 border-b border-slate-50 bg-slate-50/10 flex items-center justify-between">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/20 overflow-hidden min-h-[600px]">
+                 <div className="p-8 border-b border-slate-100 bg-slate-50/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                        <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                           <Receipt className="w-5 h-5" />
@@ -305,7 +305,7 @@ export default function SppConfigPage() {
                  <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                        <thead>
-                          <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 whitespace-nowrap">
+                          <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 whitespace-nowrap">
                              <th className="px-8 py-4 text-left">Madrasah & Status</th>
                              <th className="px-8 py-4 text-left">Jenjang</th>
                              <th className="px-8 py-4 text-left">Periode</th>
@@ -368,7 +368,7 @@ export default function SppConfigPage() {
                     </table>
                  </div>
 
-                 <div className="p-6 bg-slate-50/10 border-t border-slate-50 rounded-b-[2.5rem]">
+                 <div className="p-6 bg-slate-50/10 border-t border-slate-100 rounded-b-[2.5rem]">
                     <div className="flex items-start gap-3 text-slate-400">
                        <Info className="w-4 h-4 mt-0.5 shrink-0" />
                        <div className="text-[10px] font-bold leading-relaxed">

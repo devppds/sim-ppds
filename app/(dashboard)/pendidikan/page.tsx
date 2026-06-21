@@ -463,7 +463,7 @@ export default function PendidikanPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {filteredJadwalList.map((j) => (
-                      <div key={j.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all flex flex-col justify-between">
+                      <div key={j.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-sm transition-all flex flex-col justify-between">
                         <div>
                           <div className="flex justify-between items-start">
                             <span className="px-2.5 py-0.5 text-[10px] font-black uppercase rounded-md bg-indigo-50 text-indigo-600">
@@ -479,7 +479,7 @@ export default function PendidikanPage() {
                             <p className="text-xs text-slate-400 mt-2 italic">&quot;{j.keterangan || '-'}&quot;</p>
                           </div>
                         </div>
-                        <div className="mt-6 border-t border-slate-50 pt-4 flex items-center justify-between text-xs text-slate-400">
+                        <div className="mt-6 border-t border-slate-100 pt-4 flex items-center justify-between text-xs text-slate-400">
                           <span>Lokasi: <strong className="text-slate-600">{j.lokasi || "Masjid"}</strong></span>
                         </div>
                       </div>
@@ -602,7 +602,7 @@ export default function PendidikanPage() {
               ) : (
                 <div className="space-y-4">
                   {filteredBkList.map((bk) => (
-                    <div key={bk.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-md transition-all flex flex-col md:flex-row justify-between gap-4">
+                    <div key={bk.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-sm transition-all flex flex-col md:flex-row justify-between gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-slate-400 font-bold">{bk.tanggal}</span>

@@ -367,7 +367,7 @@ export default function BumpPage() {
                   </div>
                 ) : (
                   filteredProducts.map((p) => (
-                    <div key={p.id} onClick={() => addToCart(p)} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs relative hover:shadow-md hover:scale-[1.02] cursor-pointer transition-all flex flex-col justify-between">
+                    <div key={p.id} onClick={() => addToCart(p)} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs relative hover:shadow-sm hover:scale-[1.02] cursor-pointer transition-all flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-mono font-bold">{p.sku}</span>
@@ -400,7 +400,7 @@ export default function BumpPage() {
                     </div>
                   )}
                   {cart.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center text-xs pb-3 border-b border-slate-50">
+                    <div key={item.id} className="flex justify-between items-center text-xs pb-3 border-b border-slate-100">
                       <div className="flex-1 pr-3">
                         <div className="font-bold text-slate-800 line-clamp-1">{item.nama_barang}</div>
                         <div className="text-[10px] text-slate-400 mt-0.5">{formatIDR(item.harga_jual)} x {item.quantity}</div>
@@ -437,7 +437,7 @@ export default function BumpPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-sm border-t border-slate-50 pt-3">
+                <div className="flex justify-between items-center text-sm border-t border-slate-100 pt-3">
                   <span className="font-bold text-slate-800">Total Belanja</span>
                   <span className="text-lg font-black text-emerald-600">{formatIDR(totalAmount)}</span>
                 </div>

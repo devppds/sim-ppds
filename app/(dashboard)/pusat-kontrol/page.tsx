@@ -169,7 +169,7 @@ export default function PusatKontrolPage() {
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-2 duration-300">
               {/* Add User Section */}
               <div className="lg:col-span-1 space-y-6">
-                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                 <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
                     <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
                        <UserPlus className="w-4 h-4 text-emerald-500" /> Tambah Personel
                     </h3>
@@ -245,7 +245,7 @@ export default function PusatKontrolPage() {
               {/* User List Table */}
               <div className="lg:col-span-2">
                  <div className="bg-white rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden h-full">
-                    <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                    <div className="p-8 border-b border-slate-100 flex items-center justify-between">
                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest italic">
                           Database Personel Sistem
                        </h3>
@@ -363,16 +363,16 @@ export default function PusatKontrolPage() {
 
         {activeTab === "system" && (
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in zoom-in-95 duration-300">
-              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-between">
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
                  <div>
                     <h3 className="text-sm font-black text-slate-800 uppercase italic mb-2">Database Engine</h3>
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6">Cloudflare D1 SQL Server</p>
                     <div className="space-y-3">
-                       <div className="flex justify-between items-center text-[11px] font-bold py-2 border-b border-slate-50">
+                       <div className="flex justify-between items-center text-[11px] font-bold py-2 border-b border-slate-100">
                           <span className="text-slate-500">Kapasitas</span>
                           <span className="text-slate-800">12.5 MB / 500 MB</span>
                        </div>
-                       <div className="flex justify-between items-center text-[11px] font-bold py-2 border-b border-slate-50">
+                       <div className="flex justify-between items-center text-[11px] font-bold py-2 border-b border-slate-100">
                           <span className="text-slate-500">Up-time</span>
                           <span className="text-emerald-500 uppercase">99.9% Lancar</span>
                        </div>
@@ -383,7 +383,7 @@ export default function PusatKontrolPage() {
                  </button>
               </div>
 
-              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+              <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
                  <h3 className="text-sm font-black text-slate-800 uppercase italic mb-2">Manual Backup</h3>
                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8">Arsip Data Seluruh Pesantren</p>
                  <div className="grid grid-cols-2 gap-3 mb-8">
@@ -401,7 +401,7 @@ export default function PusatKontrolPage() {
                  </p>
               </div>
 
-              <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden group">
+              <div className="bg-slate-900 p-8 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden group">
                  <div className="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform">
                     <ShieldCheck className="w-32 h-32 text-indigo-500" />
                  </div>

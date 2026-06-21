@@ -273,7 +273,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Members Section */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden lg:col-span-2">
-              <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/20">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
                 <div>
                   <h3 className="font-extrabold text-slate-800 text-base">Anggota Seksi (Staf & Pembimbing)</h3>
                   <p className="text-[10px] text-slate-400 uppercase font-black tracking-wider mt-0.5">Daftar Anggota Pengurus di Bawah Koordinasi Anda</p>
@@ -298,7 +298,7 @@ export default function DashboardPage() {
                 ) : (
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-left">
+                      <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-left">
                         <th className="px-6 py-3">Nama Anggota</th>
                         <th className="px-6 py-3">Jabatan Spesifik</th>
                         <th className="px-6 py-3">Kamar</th>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
 
             {/* Section Activity Log */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-50 bg-slate-50/20">
+              <div className="p-6 border-b border-slate-100 bg-slate-50/20">
                 <h3 className="font-extrabold text-slate-800 text-base">Aktivitas Anggota Seksi</h3>
                 <p className="text-[10px] text-slate-400 uppercase font-black tracking-wider mt-0.5">Laporan Masukan & Kasus Terbaru Anggota</p>
               </div>

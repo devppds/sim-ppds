@@ -361,7 +361,7 @@ export default function SekretarisIIIPage() {
       {/* Modal Notulensi */}
       {isNotulenModalOpen && (
         <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden scale-in-center p-6 space-y-4">
+          <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden scale-in-center p-6 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <h3 className="text-lg font-black text-slate-800">Buat Notulensi Rapat Baru</h3>
               <button onClick={() => setIsNotulenModalOpen(false)} className="p-2 rounded-full hover:bg-slate-200 text-slate-400">

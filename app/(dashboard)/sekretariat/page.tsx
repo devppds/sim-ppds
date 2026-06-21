@@ -196,7 +196,7 @@ export default function SekretariatPage() {
                <h2 className="text-lg font-bold text-slate-800">Draft Surat Keluar</h2>
                <button 
                  onClick={() => setIsArsipModalOpen(true)}
-                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg transition-all shadow-md"
+                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg transition-all shadow-sm"
                >
                  <Plus className="w-4 h-4" /> Buat Draft Surat
                </button>
