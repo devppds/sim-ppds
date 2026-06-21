@@ -185,12 +185,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       label: "E-Budgeting",
       customBadge: <span className="text-[9px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-black">NEW</span>
     });
-    menuUtamaItems.push({
-      href: "/jadwal-jaga",
-      icon: Calendar,
-      label: "Jadwal & Jaga",
-      dot: true
-    });
+    if (!session.role.includes("Ketua") && session.role !== "Mudir") {
+      menuUtamaItems.push({
+        href: "/jadwal-jaga",
+        icon: Calendar,
+        label: "Jadwal & Jaga",
+        dot: true
+      });
+    }
   }
 
   if (canAccess('SEKRETARIAT')) {

@@ -1,0 +1,1 @@
+ALTER TABLE santri ADD COLUMN nis TEXT;

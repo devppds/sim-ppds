@@ -44,6 +44,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
   
   const [formData, setFormData] = useState({
     nisn: "",
+    nis: "",
     nik: "",
     name: "",
     madrasah: "" as "MHM" | "MIU" | "",
@@ -264,7 +265,11 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
               
               <div className="w-full space-y-4 pt-4 border-t border-slate-50">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">NISN</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">NIS (Pondok)</label>
+                  <input type="text" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-700" value={formData.nis} onChange={(e) => setFormData({ ...formData, nis: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">NISN (Nasional)</label>
                   <input required type="text" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-700" value={formData.nisn} onChange={(e) => setFormData({ ...formData, nisn: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">

@@ -12,7 +12,7 @@ export const getSantriPaginated = async (c: Context<{ Bindings: Env }>) => {
     const kelas = c.req.query('kelas') || ''
 
     let countQuery = "SELECT COUNT(*) as total FROM santri WHERE 1=1"
-    let dataQuery = "SELECT id, nisn, nik, name, kelas, asrama, asal, status, photo_url FROM santri WHERE 1=1"
+    let dataQuery = "SELECT id, nisn, nis, nik, name, kelas, asrama, asal, status, photo_url FROM santri WHERE 1=1"
     const params: any[] = []
 
     if (search) {
@@ -60,7 +60,7 @@ export const createSantri = async (c: Context<{ Bindings: Env }>) => {
   try {
     const body = await c.req.json()
     const {
-      nisn, nik, name, birth_date, birth_place, gender = 'L',
+      nisn, nis, nik, name, birth_date, birth_place, gender = 'L',
       asal, madrasah, kelas, asrama, photo_url, status = 'Biasa',
       street, rt_rw, province, city, district, village, postal_code,
       wali_name, wali_wa, wali_phone, tahun_masuk, tahun_lulus
@@ -72,12 +72,12 @@ export const createSantri = async (c: Context<{ Bindings: Env }>) => {
 
     await c.env.DB.prepare(`
       INSERT INTO santri (
-        nisn, nik, name, birth_date, birth_place, gender, asal, madrasah, kelas, asrama,
+        nisn, nis, nik, name, birth_date, birth_place, gender, asal, madrasah, kelas, asrama,
         photo_url, status, street, rt_rw, province, city, district, village, postal_code,
         wali_name, wali_wa, wali_phone, tahun_masuk, tahun_lulus
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      nisn, nik || null, name, birth_date || null, birth_place || null, gender,
+      nisn || null, nis || null, nik || null, name, birth_date || null, birth_place || null, gender,
       asal || null, madrasah || null, kelas, asrama || null, photo_url || null, status,
       street || null, rt_rw || null, province || null, city || null, district || null, village || null, postal_code || null,
       wali_name || null, wali_wa || null, wali_phone || null, tahun_masuk || null, tahun_lulus || null
@@ -100,7 +100,7 @@ export const updateSantri = async (c: Context<{ Bindings: Env }>) => {
 
     const body = await c.req.json()
     const {
-      nisn, nik, name, birth_date, birth_place, gender,
+      nisn, nis, nik, name, birth_date, birth_place, gender,
       asal, madrasah, kelas, asrama, photo_url, status,
       street, rt_rw, province, city, district, village, postal_code,
       wali_name, wali_wa, wali_phone, tahun_masuk, tahun_lulus
@@ -118,14 +118,14 @@ export const updateSantri = async (c: Context<{ Bindings: Env }>) => {
 
     await c.env.DB.prepare(`
       UPDATE santri SET
-        nisn = ?, nik = ?, name = ?, birth_date = ?, birth_place = ?, gender = ?,
+        nisn = ?, nis = ?, nik = ?, name = ?, birth_date = ?, birth_place = ?, gender = ?,
         asal = ?, madrasah = ?, kelas = ?, asrama = ?, photo_url = ?, status = ?,
         street = ?, rt_rw = ?, province = ?, city = ?, district = ?, village = ?, postal_code = ?,
         wali_name = ?, wali_wa = ?, wali_phone = ?, tahun_masuk = ?, tahun_lulus = ?,
         updated_at = datetime('now')
       WHERE id = ?
     `).bind(
-      nisn, nik || null, name, birth_date || null, birth_place || null, gender || 'L',
+      nisn || null, nis || null, nik || null, name, birth_date || null, birth_place || null, gender || 'L',
       asal || null, madrasah || null, kelas, asrama || null, photo_url || null, status || 'Biasa',
       street || null, rt_rw || null, province || null, city || null, district || null, village || null, postal_code || null,
       wali_name || null, wali_wa || null, wali_phone || null, tahun_masuk || null, tahun_lulus || null,
@@ -171,12 +171,12 @@ export const createSantriBulk = async (c: Context<{ Bindings: Env }>) => {
     const statements = list.map(s => {
       return c.env.DB.prepare(`
         INSERT OR REPLACE INTO santri (
-          nisn, nik, name, gender, asal, madrasah, kelas, asrama, photo_url, status,
+          nisn, nis, nik, name, gender, asal, madrasah, kelas, asrama, photo_url, status,
           street, rt_rw, province, city, district, village, postal_code,
           wali_name, wali_wa, wali_phone, tahun_masuk, tahun_lulus
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
-        s.nisn || "", s.nik || null, s.name, s.gender || 'L', s.asal || null, s.madrasah || null,
+        s.nisn || null, s.nis || null, s.nik || null, s.name, s.gender || 'L', s.asal || null, s.madrasah || null,
         s.kelas, s.asrama || null, s.photo_url || null, s.status || 'Biasa',
         s.street || null, s.rt_rw || null, s.province || null, s.city || null, s.district || null, s.village || null, s.postal_code || null,
         s.wali_name || null, s.wali_wa || null, s.wali_phone || null, s.tahun_masuk || null, s.tahun_lulus || null

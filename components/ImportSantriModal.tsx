@@ -47,26 +47,41 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
     reader.readAsBinaryString(file);
   };
 
+  const KELAS_LIST = [
+    "I ALY", "I MA", "I TSN", "I ULA", "I ULYA", "I WUSTHO",
+    "II ALY", "II MA", "II TSN", "II ULA", "II ULYA", "II WUSTHO",
+    "III ALY", "III MA", "III TSN", "III ULA", "III ULYA", "III WUSTHO",
+    "MA I-II", "MA III-IV", "MA V-IV", "MA V-VI", "SP", "SP I", "SP II", "V IBT", "VI IBT"
+  ];
+
+  const ASRAMA_LIST = [
+    "DS A 02", "DS A 03", "DS A 04", "DS A 06", "DS A 07", "DS A 08", "DS A 09", "DS A 10", "DS A 11", "DS A 13", "DS A 14",
+    "DS B 01", "DS B 04", "DS B 05", "DS B 06", "DS B 07", "DS B 09", "DS B 10", "DS B 11", "DS B 2",
+    "DS C 03", "DS C 04", "DS C 05", "DS C 06", "DS C 07", "DS C 08", "DS C 09", "DS C 10", "DS C 13", "DS C 14", "DS C 15"
+  ];
+
   const downloadSample = () => {
     const sampleData = [
       {
+        NIS: "12345",
         NISN: "0012345001",
         NIK: "3501010101010001",
         Nama: "Ahmad Santri Contoh",
-        Madrasah: "MHM",
-        Kelas: "Ibtida' 1",
-        Asrama: "DS A 01",
+        "Madrasah (1=MHM, 2=MIU) / Formal (Manual)": 1,
+        "Kelas (Isi Angka / Manual)": 4,
+        "Asrama (Isi Angka / Manual)": 1,
         Asal: "Surabaya",
         "Wali WA": "081234567890",
         "Nama Wali": "Bpk. Abdullah"
       },
       {
+        NIS: "12346",
         NISN: "0012345002",
         NIK: "3501010101010002",
         Nama: "Zaki Santri Contoh",
-        Madrasah: "MIU",
-        Kelas: "Ula 1",
-        Asrama: "DS B 05",
+        "Madrasah (1=MHM, 2=MIU) / Formal (Manual)": "MTs",
+        "Kelas (Isi Angka / Manual)": "VII A",
+        "Asrama (Isi Angka / Manual)": 12,
         Asal: "Malang",
         "Wali WA": "081299998888",
         "Nama Wali": "Ibu Siti"
@@ -74,9 +89,60 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
     ];
 
     const ws = XLSX.utils.json_to_sheet(sampleData);
+    
+    // Create reference sheet
+    const refData: any[] = [];
+    const maxLen = Math.max(KELAS_LIST.length, ASRAMA_LIST.length);
+    for (let i = 0; i < maxLen; i++) {
+      refData.push({
+        "Kode Kelas": i < KELAS_LIST.length ? i + 1 : "",
+        "Nama Kelas": i < KELAS_LIST.length ? KELAS_LIST[i] : "",
+        "   ": "",
+        "Kode Asrama": i < ASRAMA_LIST.length ? i + 1 : "",
+        "Nama Asrama": i < ASRAMA_LIST.length ? ASRAMA_LIST[i] : ""
+      });
+    }
+    const wsRef = XLSX.utils.json_to_sheet(refData);
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template Import");
+    XLSX.utils.book_append_sheet(wb, wsRef, "Kode Referensi");
     XLSX.writeFile(wb, "Template_Import_Santri.xlsx");
+  };
+
+  const getVal = (item: any, prefix: string) => {
+    // Exact match first
+    const exactKey = Object.keys(item).find(k => k.toLowerCase() === prefix.toLowerCase());
+    if (exactKey) return item[exactKey]?.toString() || "";
+    
+    // Prefix match
+    const key = Object.keys(item).find(k => k.toLowerCase().startsWith(prefix.toLowerCase()));
+    return key ? item[key]?.toString() || "" : "";
+  };
+
+  const mapMadrasah = (val: string) => {
+    const v = val.trim();
+    if (v === "1") return "MHM";
+    if (v === "2") return "MIU";
+    return v; // Return raw (MTs, MA, etc) for formal
+  };
+
+  const mapKelas = (val: string) => {
+    const v = val.trim();
+    const num = parseInt(v);
+    if (!isNaN(num) && num >= 1 && num <= KELAS_LIST.length) {
+      return KELAS_LIST[num - 1];
+    }
+    return v;
+  };
+
+  const mapAsrama = (val: string) => {
+    const v = val.trim();
+    const num = parseInt(v);
+    if (!isNaN(num) && num >= 1 && num <= ASRAMA_LIST.length) {
+      return ASRAMA_LIST[num - 1];
+    }
+    return v;
   };
 
   const handleImport = async () => {
@@ -86,15 +152,16 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
     try {
       // Map keys to database format
       const formattedData = previewData.map(item => ({
-        nisn: item.NISN?.toString() || "",
-        nik: item.NIK?.toString() || "",
-        name: item.Nama?.toString() || "",
-        madrasah: item.Madrasah?.toString() || "",
-        kelas: item.Kelas?.toString() || "",
-        asrama: item.Asrama?.toString() || "",
-        asal: item.Asal?.toString() || "",
-        wali_wa: item["Wali WA"]?.toString() || "",
-        wali_name: item["Nama Wali"]?.toString() || "",
+        nis: getVal(item, "nis"),
+        nisn: getVal(item, "nisn"),
+        nik: getVal(item, "nik"),
+        name: getVal(item, "nama"),
+        madrasah: mapMadrasah(getVal(item, "madrasah")),
+        kelas: mapKelas(getVal(item, "kelas")),
+        asrama: mapAsrama(getVal(item, "asrama")),
+        asal: getVal(item, "asal"),
+        wali_wa: getVal(item, "wali wa"),
+        wali_name: getVal(item, "nama wali"),
         gender: "L" // Default
       }));
 

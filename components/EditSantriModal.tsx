@@ -8,6 +8,7 @@ import { API_BASE_URL } from "@/lib/config";
 interface Santri {
   id: number;
   nisn: string;
+  nis?: string;
   nik?: string;
   name: string;
   madrasah: string;
@@ -61,6 +62,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     nisn: "",
+    nis: "",
     nik: "",
     name: "",
     madrasah: "" as "MHM" | "MIU" | "",
@@ -105,6 +107,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
     if (santri) {
       setFormData({
         nisn: santri.nisn || "",
+        nis: santri.nis || "",
         nik: santri.nik || "",
         name: santri.name || "",
         madrasah: (santri.madrasah as any) || "",
@@ -239,8 +242,12 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
                  
                  <div className="mt-6 w-full space-y-4">
                     <div className="space-y-1">
-                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">NISN</label>
-                       <input readOnly value={formData.nisn} className="w-full px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 border border-slate-200 text-xs font-bold outline-none cursor-not-allowed" />
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">NIS (Pondok)</label>
+                       <input value={formData.nis} onChange={e => setFormData({...formData, nis: e.target.value})} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold outline-none focus:border-indigo-500 transition-all" />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">NISN (Nasional)</label>
+                       <input value={formData.nisn} onChange={e => setFormData({...formData, nisn: e.target.value})} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold outline-none focus:border-indigo-500 transition-all" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">NIK (KTP/KK)</label>

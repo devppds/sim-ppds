@@ -165,7 +165,8 @@ export default function SantriDetailModal({ santri, isOpen, onClose, onUpdate }:
               <div>
                 <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-tight">{santri.name}</h2>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <div className="px-2 py-0.5 bg-indigo-50 text-[10px] font-black text-indigo-600 rounded-md uppercase tracking-wider">NISN: {santri.nisn || "-"}</div>
+                    <div className="px-2 py-0.5 bg-indigo-50 text-[10px] font-black text-indigo-600 rounded-md uppercase tracking-wider">NIS: {santri.nis || "-"}</div>
+                    <div className="px-2 py-0.5 bg-slate-50 text-[10px] font-black text-slate-500 rounded-md uppercase tracking-wider border border-slate-100">NISN: {santri.nisn || "-"}</div>
                     {santri.nik && <div className="px-2 py-0.5 bg-slate-100 text-[10px] font-black text-slate-500 rounded-md uppercase tracking-wider">NIK: {santri.nik}</div>}
                 </div>
               </div>

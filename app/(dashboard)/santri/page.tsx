@@ -13,6 +13,7 @@ import { API_BASE_URL } from "@/lib/config";
 
 interface Santri {
   id: number;
+  nis?: string;
   nisn: string;
   nik?: string;
   name: string;
@@ -248,6 +249,7 @@ function SantriContent() {
     try {
       const exportData = filteredSantri.map(s => ({
         ID: s.id,
+        NIS: s.nis,
         NISN: s.nisn,
         NIK: s.nik,
         Nama: s.name,
@@ -342,7 +344,7 @@ function SantriContent() {
                   )}
                 </div>
                 <h3 className="text-xl font-black text-slate-800 mt-4 leading-tight">{s.name}</h3>
-                <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">NISN: {s.nisn || "-"}</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">NIS: {s.nis || "-"} &bull; NISN: {s.nisn || "-"}</p>
               </div>
 
               <div className="border-t border-slate-100 pt-6 space-y-4">
