@@ -81,8 +81,8 @@ export function middleware(request: NextRequest) {
       const isKeuangan = level === 'KEUANGAN' || role.includes('BENDAHARA') || role.includes('KEUANGAN') || level === 'RESTRICTED_SPP' || role === 'SEKSI KEUANGAN';
       const isRoot = level === 'ROOT' || role === 'DEVELOPER' || role === 'MUDIR' || role.includes('SUPER');
 
-      // 1. Pusat Kontrol: ROOT Only (Super Admin)
-      if (pathname.startsWith("/pusat-kontrol") && !isRoot) {
+      // 1. Pusat Kontrol: ROOT and SEKRETARIAT
+      if (pathname.startsWith("/pusat-kontrol") && !(isRoot || isSekretariat)) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
