@@ -73,28 +73,30 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
         Asal: "Surabaya",
         "Wali WA": "081234567890",
         "Nama Wali": "Bpk. Abdullah"
-      },
+    // Generate simple sample template using XLSX
+    const ws = XLSX.utils.json_to_sheet([
       {
-        NIS: "12346",
-        NISN: "0012345002",
-        NIK: "3501010101010002",
-        Nama: "Zaki Santri Contoh",
-        "Madrasah (1=MHM, 2=MIU) / Formal (Manual)": "MTs",
-        "Kelas (Isi Angka / Manual)": "VII A",
-        "Asrama (Isi Angka / Manual)": 12,
-        Asal: "Malang",
-        "Wali WA": "081299998888",
-        "Nama Wali": "Ibu Siti"
+        "NIS": "12345",
+        "NISN": "0123456789",
+        "NIK": "3512345678901234",
+        "Nama": "Ahmad Santri",
+        "Madrasah (Ketik 1 utk MHM, 2 utk MIU)": "1",
+        "Kelas (Ketik Angka 1-6)": "1",
+        "Asrama (Ketik Angka Sesuai Kode)": "1",
+        "Asal": "Surabaya",
+        "Nama Wali": "Bapak Ahmad",
+        "Wali WA": "081234567890"
       }
-    ];
+    ]);
 
-    const ws = XLSX.utils.json_to_sheet(sampleData);
-    
-    // Create reference sheet
-    const refData: any[] = [];
+    // Add reference sheet
+    const refData = [];
     const maxLen = Math.max(KELAS_LIST.length, ASRAMA_LIST.length);
     for (let i = 0; i < maxLen; i++) {
       refData.push({
+        "Kode Madrasah": i === 0 ? 1 : i === 1 ? 2 : "",
+        "Nama Madrasah": i === 0 ? "MHM" : i === 1 ? "MIU" : "",
+        " ": "",
         "Kode Kelas": i < KELAS_LIST.length ? i + 1 : "",
         "Nama Kelas": i < KELAS_LIST.length ? KELAS_LIST[i] : "",
         "   ": "",
