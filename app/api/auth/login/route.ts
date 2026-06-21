@@ -76,9 +76,9 @@ export async function POST(request: Request) {
 
     // Look up the user in D1 with their access level
     const user = await env.DB.prepare(
-      `SELECT u.id, u.username, u.full_name as name, u.role, u.is_active, j.level as role_level, j.akses
+      `SELECT u.id, u.username, u.full_name as name, u.role, u.is_active, j.akses_level as role_level
        FROM users u 
-       LEFT JOIN jabatan j ON u.role = j.name 
+       LEFT JOIN jabatan j ON u.role = j.nama 
        WHERE u.username = ? AND u.password = ?`
     ).bind(username, hashedPassword).first() as any;
 
@@ -90,11 +90,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Akun dinonaktifkan" }, { status: 403 });
     }
 
-    let parsedAkses = [];
-    try {
-      if (user.akses) parsedAkses = JSON.parse(user.akses);
-    } catch(e) {}
-    const accessLevel = parsedAkses[0] || "STAFF";
+    const accessLevel = user.role_level || "STAFF";
 
     // Set Session Cookie (Simple for this phase, later can use JWT/Iron-Session)
     // We store minimal info: id, role, name, level
