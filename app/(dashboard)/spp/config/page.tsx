@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 interface SppConfig {
   id: number;
@@ -111,6 +112,22 @@ export default function SppConfigPage() {
       }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Hapus konfigurasi tarif ini?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/spp/config/${id}`, { method: "DELETE" });
+      const json = await res.json() as any;
+      if (json.success) {
+        showToast("Konfigurasi dihapus", "success");
+        fetchAllConfigs();
+      } else {
+        showToast(json.error || "Gagal menghapus", "error");
+      }
+    } catch (err) {
+      showToast("Gagal menghapus", "error");
     }
   };
 
@@ -302,71 +319,78 @@ export default function SppConfigPage() {
                     </div>
                  </div>
 
-                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                       <thead>
-                          <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 whitespace-nowrap">
-                             <th className="px-8 py-4 text-left">Madrasah & Status</th>
-                             <th className="px-8 py-4 text-left">Jenjang</th>
-                             <th className="px-8 py-4 text-left">Periode</th>
-                             <th className="px-8 py-4 text-right">Tarif</th>
-                             <th className="px-8 py-4 text-center">Aksi</th>
-                          </tr>
-                       </thead>
-                       <tbody className="divide-y divide-slate-100">
-                          {loading ? (
-                             Array(6).fill(0).map((_, i) => (
-                               <tr key={i} className="animate-pulse">
-                                 <td colSpan={5} className="px-8 py-8"><div className="h-10 bg-slate-50 rounded-xl w-full" /></td>
-                               </tr>
-                             ))
-                          ) : configs.length === 0 ? (
-                             <tr>
-                               <td colSpan={5} className="px-8 py-32 text-center">
-                                  <Info className="w-16 h-16 text-slate-100 mx-auto mb-4" />
-                                  <p className="text-slate-300 font-bold uppercase tracking-widest text-xs">Belum ada konfigurasi tarif</p>
-                               </td>
-                             </tr>
-                          ) : (
-                             configs.map(c => (
-                               <tr key={c.id} className="hover:bg-slate-50/50 transition-colors group">
-                                 <td className="px-8 py-6">
-                                    <div className="flex items-center gap-3">
-                                       <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${
-                                          c.madrasah === 'MHM' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'
-                                       }`}>
-                                          {c.madrasah}
-                                       </span>
-                                       <span className="font-black text-slate-700 uppercase tracking-tighter">{c.status}</span>
-                                    </div>
-                                    {c.is_new_student && <span className="text-[9px] font-black text-amber-500 ml-12 italic px-1.5 bg-amber-50 rounded inline-block mt-1">Masuk Bulan {c.entry_month}</span>}
-                                 </td>
-                                 <td className="px-8 py-6 whitespace-nowrap">
-                                    <div className="flex items-center gap-2 text-slate-600 font-bold text-xs uppercase">
-                                       <GraduationCap className="w-4 h-4 opacity-30" /> {c.kelas_name}
-                                    </div>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black ${
-                                       c.period_name === 'Semua' ? 'bg-slate-100 text-slate-500' : 'bg-indigo-50 text-indigo-600'
-                                    }`}>
-                                       {c.period_name}
-                                    </span>
-                                 </td>
-                                 <td className="px-8 py-6 text-right whitespace-nowrap">
-                                    <span className="font-black text-slate-800 text-sm tracking-tighter">{formatIDR(c.amount)}</span>
-                                 </td>
-                                 <td className="px-8 py-6 text-center">
-                                    <button className="p-2 text-slate-300 hover:text-rose-500 transition-colors bg-white border border-slate-100 rounded-xl shadow-sm hover:border-rose-100">
-                                       <Trash2 className="w-4 h-4" />
-                                    </button>
-                                 </td>
-                               </tr>
-                             ))
-                          )}
-                       </tbody>
-                    </table>
+                 <div className="p-4">
+                    <DataTable
+                      data={configs}
+                      columns={[
+                        {
+                          header: "Madrasah & Status",
+                          render: (c: SppConfig) => (
+                            <div className="flex flex-col gap-1 items-start">
+                               <div className="flex items-center gap-3">
+                                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${
+                                     c.madrasah === 'MHM' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'
+                                  }`}>
+                                     {c.madrasah}
+                                  </span>
+                                  <span className="font-black text-slate-700 uppercase tracking-tighter">{c.status}</span>
+                               </div>
+                               {c.is_new_student ? <span className="text-[9px] font-black text-amber-500 italic px-1.5 bg-amber-50 rounded mt-1">Masuk Bulan {c.entry_month}</span> : null}
+                            </div>
+                          )
+                        },
+                        {
+                          header: "Jenjang",
+                          render: (c: SppConfig) => (
+                            <div className="flex items-center gap-2 text-slate-600 font-bold text-xs uppercase">
+                               <GraduationCap className="w-4 h-4 opacity-30" /> {c.kelas_name}
+                            </div>
+                          )
+                        },
+                        {
+                          header: "Periode",
+                          render: (c: SppConfig) => (
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black ${
+                               c.period_name === 'Semua' ? 'bg-slate-100 text-slate-500' : 'bg-indigo-50 text-indigo-600'
+                            }`}>
+                               {c.period_name}
+                            </span>
+                          )
+                        },
+                        {
+                          header: "Tarif",
+                          render: (c: SppConfig) => (
+                            <div className="flex justify-end">
+                               <span className="font-black text-slate-800 text-sm tracking-tighter">{formatIDR(c.amount)}</span>
+                            </div>
+                          )
+                        },
+                        {
+                          header: "Aksi",
+                          render: (c: SppConfig) => (
+                            <div className="flex justify-center">
+                               <button 
+                                 onClick={() => handleDelete(c.id)}
+                                 className="p-2 text-slate-300 hover:text-rose-500 transition-colors bg-white border border-slate-100 rounded-xl shadow-sm hover:border-rose-100"
+                               >
+                                  <Trash2 className="w-4 h-4" />
+                               </button>
+                            </div>
+                          )
+                        }
+                      ]}
+                      sortOptions={[
+                        { label: "Status (A-Z)", value: "status-asc", sortFn: (a: SppConfig, b: SppConfig) => a.status.localeCompare(b.status) },
+                        { label: "Status (Z-A)", value: "status-desc", sortFn: (a: SppConfig, b: SppConfig) => b.status.localeCompare(a.status) },
+                        { label: "Tarif Terendah", value: "amount-asc", sortFn: (a: SppConfig, b: SppConfig) => a.amount - b.amount },
+                        { label: "Tarif Tertinggi", value: "amount-desc", sortFn: (a: SppConfig, b: SppConfig) => b.amount - a.amount }
+                      ]}
+                      defaultSortValue="status-asc"
+                      loading={loading}
+                      emptyMessage="Belum ada konfigurasi tarif"
+                    />
                  </div>
+
 
                  <div className="p-6 bg-slate-50/10 border-t border-slate-100 rounded-b-[2.5rem]">
                     <div className="flex items-start gap-3 text-slate-400">

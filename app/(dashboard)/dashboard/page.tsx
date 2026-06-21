@@ -8,6 +8,7 @@ import SantriTable from "@/components/SantriTable";
 import { API_BASE_URL } from "@/lib/config";
 import { useRouter } from "next/navigation";
 import { Shield, BookOpen, Users, User, Zap, Video, MoonStar, Hammer, HeartPulse, Store, Wrench, Package, ArrowRight, Loader2, Phone, AlertCircle } from "lucide-react";
+import { DataTable } from "@/components/DataTable";
 
 // SVG paths for Lucide icons (inner paths only)
 const ICONS = {
@@ -285,30 +286,13 @@ export default function DashboardPage() {
                 )}
               </div>
               
-              <div className="overflow-x-auto">
-                {seksiLoading ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                    <Loader2 className="w-8 h-8 animate-spin text-indigo-650 mb-3" />
-                    <p className="text-xs font-bold uppercase tracking-wider">Memuat daftar anggota...</p>
-                  </div>
-                ) : !seksiData || seksiData.members.length === 0 ? (
-                  <div className="text-center py-20 text-slate-400 text-xs font-bold italic">
-                    Belum ada anggota terdaftar untuk seksi ini
-                  </div>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-left">
-                        <th className="px-6 py-3">Nama Anggota</th>
-                        <th className="px-6 py-3">Jabatan Spesifik</th>
-                        <th className="px-6 py-3">Kamar</th>
-                        <th className="px-6 py-3 text-right">Kontak</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
-                      {seksiData.members.map((m: any) => (
-                        <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-3.5">
+              <div className="p-4">
+                <DataTable
+                  data={seksiData?.members || []}
+                  columns={[
+                    {
+                      header: "Nama Anggota",
+                      render: (m: any) => (
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-teal-500 flex items-center justify-center text-white font-black text-xs shrink-0 overflow-hidden">
                                 {m.photo_url ? (
@@ -319,28 +303,39 @@ export default function DashboardPage() {
                               </div>
                               <span className="font-extrabold text-slate-800 uppercase text-xs">{m.name}</span>
                             </div>
-                          </td>
-                          <td className="px-6 py-3.5 text-xs text-slate-500 font-medium">{m.jabatan}</td>
-                          <td className="px-6 py-3.5 text-xs text-slate-600">{m.kamar || "-"}</td>
-                          <td className="px-6 py-3.5 text-right">
-                            {m.phone ? (
-                              <a 
-                                href={`https://wa.me/${m.phone.replace(/[^0-9]/g, '')}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 text-emerald-600 hover:text-emerald-700 transition-all rounded-lg text-[10px] font-black uppercase"
-                              >
-                                <Phone className="w-3 h-3" /> WhatsApp
-                              </a>
-                            ) : (
-                              <span className="text-[10px] text-slate-350">Tidak ada nomor</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                      )
+                    },
+                    {
+                      header: "Jabatan Spesifik",
+                      render: (m: any) => <span className="text-xs text-slate-500 font-medium">{m.jabatan}</span>
+                    },
+                    {
+                      header: "Kamar",
+                      render: (m: any) => <span className="text-xs text-slate-600">{m.kamar || "-"}</span>
+                    },
+                    {
+                      header: <div className="text-right">Kontak</div>,
+                      render: (m: any) => (
+                            <div className="text-right">
+                              {m.phone ? (
+                                <a 
+                                  href={`https://wa.me/${m.phone.replace(/[^0-9]/g, '')}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 text-emerald-600 hover:text-emerald-700 transition-all rounded-lg text-[10px] font-black uppercase"
+                                >
+                                  <Phone className="w-3 h-3" /> WhatsApp
+                                </a>
+                              ) : (
+                                <span className="text-[10px] text-slate-350">Tidak ada nomor</span>
+                              )}
+                            </div>
+                      )
+                    }
+                  ]}
+                  loading={seksiLoading}
+                  emptyMessage="Belum ada anggota terdaftar untuk seksi ini"
+                />
               </div>
             </div>
 

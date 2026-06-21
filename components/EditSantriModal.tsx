@@ -210,7 +210,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
 
   return (
     <div className="fixed inset-0 z-120 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden scale-in-center overflow-y-auto max-h-[90vh]">
+      <div className="bg-white w-full max-w-[90vw] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl rounded-[40px] shadow-2xl overflow-hidden scale-in-center overflow-y-auto max-h-[90vh]">
         <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
@@ -250,8 +250,8 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
               </div>
 
               <div className="md:col-span-8 space-y-6">
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2 space-y-1">
+                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="col-span-2 lg:col-span-3 space-y-1">
                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Lengkap</label>
                        <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-sm font-bold outline-none focus:border-indigo-500 transition-all" />
                     </div>
@@ -279,8 +279,8 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
                        <MapPin className="w-4 h-4" />
                        <span className="text-[9px] font-black uppercase tracking-widest">Alamat Lengkap</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                       <div className="col-span-2 space-y-1">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                       <div className="col-span-2 lg:col-span-3 space-y-1">
                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Jalan / Dusun</label>
                           <input value={formData.street} onChange={e => setFormData({...formData, street: e.target.value})} className="w-full px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold" />
                        </div>
@@ -301,7 +301,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1">
                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Wali</label>
                        <input value={formData.wali_name} onChange={e => setFormData({...formData, wali_name: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-sm font-bold" />
@@ -310,7 +310,7 @@ export default function EditSantriModal({ isOpen, onClose, onSuccess, santri }: 
                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">WA Wali</label>
                        <input value={formData.wali_wa} onChange={e => setFormData({...formData, wali_wa: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-sm font-bold" />
                     </div>
-                    <div className="col-span-2 space-y-1">
+                    <div className="col-span-2 lg:col-span-3 space-y-1">
                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Status / Kategori SPP</label>
                        <select 
                           value={formData.status} 

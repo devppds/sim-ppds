@@ -5,6 +5,7 @@ import {
   Settings, Home, Wallet, Key, Plus, Trash2, 
   Loader2, Save, Lock, User, Users, Bell, Upload, ShieldAlert
 } from "lucide-react";
+import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
 
@@ -506,43 +507,6 @@ export default function PengaturanPage() {
 
         {/* Navigation Tabs */}
         <div className="flex space-x-1 p-1 bg-slate-100 rounded-xl max-w-fit overflow-x-auto">
-          {isAdmin && (
-            <>
-              <button
-                onClick={() => setActiveTab("profile_pesantren")}
-                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                  activeTab === "profile_pesantren"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
-                }`}
-              >
-                Pesantren
-              </button>
-              <button
-                onClick={() => setActiveTab("app_settings")}
-                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                  activeTab === "app_settings"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
-                }`}
-              >
-                Aplikasi & Notifikasi
-              </button>
-            </>
-          )}
-
-          {(isAdmin || isSeksiAdmin) && (
-            <button
-              onClick={() => setActiveTab("user_management")}
-              className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                activeTab === "user_management"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              Akun Pengguna
-            </button>
-          )}
 
           <button
             onClick={() => setActiveTab("personal_profile")}
@@ -580,307 +544,6 @@ export default function PengaturanPage() {
           </button>
         </div>
 
-        {/* Tab Content: Profil Pesantren */}
-        {activeTab === "profile_pesantren" && isAdmin && (
-          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
-            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Home className="w-4 h-4 text-indigo-500" /> Identitas Lembaga Pesantren
-            </h3>
-            
-            {loadingProfile ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Memuat profil...</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSaveProfile} className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Pesantren</label>
-                    <input 
-                      type="text" 
-                      required
-                      value={pondokProfile.pondok_name}
-                      onChange={e => setPondokProfile({...pondokProfile, pondok_name: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Kiai Pengasuh</label>
-                    <input 
-                      type="text" 
-                      required
-                      value={pondokProfile.pondok_head}
-                      onChange={e => setPondokProfile({...pondokProfile, pondok_head: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Alamat Lembaga</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={pondokProfile.pondok_address}
-                    onChange={e => setPondokProfile({...pondokProfile, pondok_address: e.target.value})}
-                    className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nomor Telepon/WA</label>
-                    <input 
-                      type="text" 
-                      required
-                      value={pondokProfile.pondok_phone}
-                      onChange={e => setPondokProfile({...pondokProfile, pondok_phone: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Email Lembaga</label>
-                    <input 
-                      type="email" 
-                      required
-                      value={pondokProfile.pondok_email}
-                      onChange={e => setPondokProfile({...pondokProfile, pondok_email: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  type="submit"
-                  disabled={isSavingProfile}
-                  className="mt-4 px-6 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
-                >
-                  {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
-                  Simpan Identitas Pesantren
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-
-        {/* Tab Content: Aplikasi & Notifikasi */}
-        {activeTab === "app_settings" && isAdmin && (
-          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
-            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Settings className="w-4 h-4 text-indigo-500" /> Konfigurasi Aplikasi & Notifikasi Real-time
-            </h3>
-
-            {loadingProfile ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Memuat pengaturan...</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSaveProfile} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Tahun Ajaran</label>
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="Contoh: 2025/2026"
-                      value={pondokProfile.academic_year}
-                      onChange={e => setPondokProfile({...pondokProfile, academic_year: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Jatuh Tempo SPP (Tanggal)</label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      max="31"
-                      required
-                      value={pondokProfile.spp_due_day}
-                      onChange={e => setPondokProfile({...pondokProfile, spp_due_day: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none" 
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Status Cashless BUMP</label>
-                    <select 
-                      value={pondokProfile.cashless_enabled}
-                      onChange={e => setPondokProfile({...pondokProfile, cashless_enabled: e.target.value})}
-                      className="w-full bg-slate-50 border-none rounded-2xl py-3.5 px-4 text-xs font-bold text-slate-700 outline-none"
-                    >
-                      <option value="1">Aktif / Diaktifkan</option>
-                      <option value="0">Nonaktif / Dibatasi</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="border-t border-slate-100 pt-6">
-                  <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
-                    <Bell className="w-3.5 h-3.5 text-indigo-500" /> Saluran Notifikasi Tagihan
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div>
-                        <p className="text-xs font-black text-slate-800">Notifikasi WhatsApp Otomatis</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Kirim pesan WhatsApp gateway tagihan SPP bulanan ke wali santri</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={pondokProfile.notify_wa_active === "1"}
-                          onChange={e => setPondokProfile({...pondokProfile, notify_wa_active: e.target.checked ? "1" : "0"})}
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div>
-                        <p className="text-xs font-black text-slate-800">Notifikasi Email Tagihan</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Kirim email pengingat bulanan ke email pengguna / pengurus</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={pondokProfile.notify_email_active === "1"}
-                          onChange={e => setPondokProfile({...pondokProfile, notify_email_active: e.target.checked ? "1" : "0"})}
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  type="submit"
-                  disabled={isSavingProfile}
-                  className="mt-4 px-6 py-4 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
-                >
-                  {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
-                  Simpan Konfigurasi Aplikasi & Notifikasi
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-
-        {/* Tab Content: Akun Pengguna */}
-        {activeTab === "user_management" && (isAdmin || isSeksiAdmin) && (
-          <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                  <Users className="w-4 h-4 text-indigo-500" /> Manajemen Akun & Hak Akses
-                </h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
-                  {isAdmin 
-                    ? "Pantau status login pengurus dan lakukan reset kata sandi jika diperlukan"
-                    : "Pantau status login dan aktifitas anggota seksi Anda"
-                  }
-                </p>
-              </div>
-            </div>
-
-            {loadingUsers ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mengambil data pengguna...</p>
-              </div>
-            ) : userList.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-wider">
-                    <tr>
-                      <th className="px-6 py-4">Username & Nama</th>
-                      <th className="px-6 py-4">Jabatan/Peran</th>
-                      <th className="px-6 py-4">Login Terakhir</th>
-                      <th className="px-6 py-4 text-center">Status</th>
-                      {isAdmin && <th className="px-6 py-4 text-center">Tindakan</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 text-slate-700">
-                    {userList.map((user) => (
-                      <tr key={user.id} className="hover:bg-slate-50/50 transition-colors text-xs font-bold">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-black shrink-0">
-                              {getInitials(user.name)}
-                            </div>
-                            <div>
-                              <p className="text-slate-800">{user.name}</p>
-                              <p className="text-[10px] font-bold text-slate-400">@{user.username}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-black uppercase tracking-wider">
-                            {user.role}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-slate-400">
-                          {user.last_login ? new Date(user.last_login).toLocaleString("id-ID", {
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          }) : "-"}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-2xl uppercase border ${
-                            user.is_active === 1 
-                              ? (isUserOnline(user.last_login) ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100') 
-                              : 'bg-rose-50 text-rose-600 border-rose-100'
-                          }`}>
-                            {user.is_active === 1 && isUserOnline(user.last_login) && (
-                              <span className="relative flex h-2 w-2 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                              </span>
-                            )}
-                            {user.is_active === 1 
-                              ? (isUserOnline(user.last_login) ? "Sedang Aktif" : "Aktif") 
-                              : "Nonaktif"
-                            }
-                          </span>
-                        </td>
-                        {isAdmin && (
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleToggleUserStatus(user.id, user.is_active)}
-                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
-                                  user.is_active === 1 
-                                  ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' 
-                                  : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                                }`}
-                              >
-                                {user.is_active === 1 ? "Nonaktifkan" : "Aktifkan"}
-                              </button>
-                              <button
-                                onClick={() => handleResetPassword(user.id, user.name)}
-                                className="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-[9px] font-black uppercase transition-all"
-                              >
-                                Reset Sandi
-                              </button>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="py-20 text-center text-slate-300 italic text-sm font-bold">
-                Tidak ada pengguna terdaftar yang dapat ditampilkan.
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Tab Content: Profil Saya */}
         {activeTab === "personal_profile" && (
@@ -1096,47 +759,58 @@ export default function PengaturanPage() {
                     <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Menghubungkan ke database...</p>
                   </div>
                 ) : sppRates.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50/50 text-[9px] font-black text-slate-400 uppercase tracking-wider">
-                        <tr>
-                          <th className="px-6 py-4">Madrasah & Kelas</th>
-                          <th className="px-6 py-4">Status Santri</th>
-                          <th className="px-6 py-4">Periode</th>
-                          <th className="px-6 py-4 text-right">Nominal</th>
-                          <th className="px-6 py-4 text-center">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50 text-slate-700">
-                        {sppRates.map((rate) => (
-                          <tr key={rate.id} className="hover:bg-slate-50/50 transition-colors text-xs font-bold">
-                            <td className="px-6 py-4">
+                  <div className="p-4">
+                    <DataTable
+                      data={sppRates}
+                      columns={[
+                        {
+                          header: "Madrasah & Kelas",
+                          render: (rate: any) => (
+                            <div className="text-xs font-bold text-slate-700">
                               <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-black uppercase tracking-wider mr-2">
                                 {rate.madrasah}
                               </span>
                               {rate.kelas_name}
-                            </td>
-                            <td className="px-6 py-4 text-slate-500">{rate.status}</td>
-                            <td className="px-6 py-4">
+                            </div>
+                          )
+                        },
+                        {
+                          header: "Status Santri",
+                          render: (rate: any) => <span className="text-slate-500 text-xs font-bold">{rate.status}</span>
+                        },
+                        {
+                          header: "Periode",
+                          render: (rate: any) => (
                               <span className="text-[10px] font-black uppercase text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
                                 {rate.period_name}
                               </span>
-                            </td>
-                            <td className="px-6 py-4 text-right font-black text-slate-800">
-                              Rp {rate.amount.toLocaleString("id-ID")}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <button 
-                                onClick={() => handleDeleteSppRate(rate.id)}
-                                className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                          )
+                        },
+                        {
+                          header: <div className="text-right">Nominal</div>,
+                          render: (rate: any) => (
+                              <div className="text-right font-black text-slate-800 text-xs">
+                                Rp {rate.amount.toLocaleString("id-ID")}
+                              </div>
+                          )
+                        },
+                        {
+                          header: <div className="text-center">Aksi</div>,
+                          render: (rate: any) => (
+                              <div className="text-center">
+                                <button 
+                                  onClick={() => handleDeleteSppRate(rate.id)}
+                                  className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                          )
+                        }
+                      ]}
+                      loading={loadingSPP}
+                      emptyMessage="Belum ada tarif SPP terdaftar."
+                    />
                   </div>
                 ) : (
                   <div className="py-20 text-center text-slate-300 italic text-sm font-bold">

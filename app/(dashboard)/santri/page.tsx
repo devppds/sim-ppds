@@ -6,6 +6,7 @@ import { Users, Plus, Search, Download, Upload, RefreshCw, ArrowLeft } from "luc
 import AddSantriModal from "@/components/AddSantriModal";
 import SantriDetailModal from "@/components/SantriDetailModal";
 import ImportSantriModal from "@/components/ImportSantriModal";
+import { DataTable, Column, SortOption } from "@/components/DataTable";
 import * as XLSX from "xlsx";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
@@ -82,6 +83,7 @@ function SantriContent() {
   
   // Filter States
   const [filters, setFilters] = useState({
+    madrasah: "",
     kelas: "",
     asrama: "",
     asal: ""
@@ -181,6 +183,7 @@ function SantriContent() {
   // Derived unique values for filters
   const filterOptions = useMemo(() => {
     return {
+      madrasah: Array.from(new Set(santriList.map(s => s.madrasah).filter(Boolean))).sort(),
       kelas: Array.from(new Set(santriList.map(s => s.kelas).filter(Boolean))).sort(),
       asrama: Array.from(new Set(santriList.map(s => s.asrama).filter(Boolean))).sort(),
       asal: Array.from(new Set(santriList.map(s => s.asal).filter(Boolean))).sort(),
@@ -198,7 +201,8 @@ function SantriContent() {
       );
     }
 
-    // 2. Select Filters
+    // 2. Dropdown Filters
+    if (filters.madrasah) result = result.filter(s => s.madrasah === filters.madrasah);
     if (filters.kelas) result = result.filter(s => s.kelas === filters.kelas);
     if (filters.asrama) result = result.filter(s => s.asrama === filters.asrama);
     if (filters.asal) result = result.filter(s => s.asal === filters.asal);
@@ -617,227 +621,216 @@ function SantriContent() {
     );
   }
 
+
+  const columns: Column<Santri>[] = [
+    {
+      header: "Santri",
+      render: (s, i) => (
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl bg-linear-to-br ${colors[i % colors.length]} flex items-center justify-center text-white text-[11px] font-bold shadow-sm transition-transform group-hover:scale-105 overflow-hidden shrink-0`}>
+            {s.photo_url ? (
+                <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover" />
+            ) : s.name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)}
+          </div>
+          <span className="font-bold text-slate-700 tracking-tight">{s.name}</span>
+        </div>
+      )
+    },
+    {
+      header: "NISN",
+      hiddenClassName: "hidden sm:table-cell font-mono",
+      render: (s) => <span className="text-[11px] text-slate-500">{s.nisn || "-"}</span>
+    },
+    {
+      header: "Madrasah",
+      hiddenClassName: "hidden lg:table-cell",
+      render: (s) => <span className="text-xs font-bold text-slate-500">{s.madrasah || "-"}</span>
+    },
+    {
+      header: "Kelas",
+      render: (s) => <span className="font-bold text-slate-700">{s.kelas}</span>
+    },
+    {
+      header: "Asrama",
+      hiddenClassName: "hidden md:table-cell",
+      render: (s) => <span className="text-xs font-bold text-slate-500">{s.asrama || "-"}</span>
+    },
+    {
+      header: "Asal",
+      hiddenClassName: "hidden lg:table-cell",
+      render: (s) => <span className="text-xs font-bold text-slate-500">{s.asal || "-"}</span>
+    },
+    {
+      header: "Status",
+      render: (s) => (
+        <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${statusColors[s.status] || "bg-slate-100 text-slate-600"}`}>
+          {s.status}
+        </span>
+      )
+    }
+  ];
+
+  const sortOptions: SortOption<Santri>[] = [
+    {
+      label: "Abjad (A-Z)",
+      value: "name-asc",
+      sortFn: (a, b) => a.name.localeCompare(b.name)
+    },
+    {
+      label: "Abjad (Z-A)",
+      value: "name-desc",
+      sortFn: (a, b) => b.name.localeCompare(a.name)
+    }
+  ];
+
   return (
-    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <Users className="w-8 h-8" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Data Santri</h1>
-            <p className="text-sm text-slate-500 font-medium">Manajemen data santri aktif Pondok Pesantren Darussalam.</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <button 
-            onClick={fetchAllSantri}
-            className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-            title="Refresh Data"
-          >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          {canWrite && (
-            <button 
-              onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-indigo-600 hover:bg-indigo-50 transition-colors shadow-sm animate-all"
-            >
-              <Upload className="w-4 h-4" /> Import Excel
-            </button>
-          )}
-          <button 
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-emerald-600 hover:bg-indigo-50 transition-colors shadow-sm"
-          >
-            <Download className="w-4 h-4" /> Export Excel
-          </button>
-          {canWrite ? (
-            <button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 shadow-emerald-500/20"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Tambah Santri</span>
-            </button>
-          ) : (
-            <div className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 bg-slate-400 rounded-full animate-pulse" />
-              Mode View-Only
+    <>
+      <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto relative">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Users className="w-8 h-8" />
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Filter Section */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 items-center justify-between">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Cari nama atau NISN..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-semibold" 
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
-          <select 
-            className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[0.65rem_auto] bg-position-[right_0.75rem_center] bg-no-repeat"
-            value={filters.kelas}
-            onChange={(e) => setFilters({...filters, kelas: e.target.value})}
-          >
-            <option value="">Semua Kelas</option>
-            {filterOptions.kelas.map(k => <option key={k} value={k}>{k}</option>)}
-          </select>
-
-          <select 
-            className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[0.65rem_auto] bg-position-[right_0.75rem_center] bg-no-repeat"
-            value={filters.asrama}
-            onChange={(e) => setFilters({...filters, asrama: e.target.value})}
-          >
-            <option value="">Semua Asrama</option>
-            {filterOptions.asrama.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-
-          <select 
-            className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[0.65rem_auto] bg-position-[right_0.75rem_center] bg-no-repeat"
-            value={filters.asal}
-            onChange={(e) => setFilters({...filters, asal: e.target.value})}
-          >
-            <option value="">Semua Asal</option>
-            {filterOptions.asal.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-
-          {(filters.kelas || filters.asrama || filters.asal) && (
-            <button 
-              onClick={() => setFilters({ kelas: "", asrama: "", asal: "" })}
-              className="text-xs font-bold text-rose-600 hover:underline px-2"
-            >
-              Reset
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Table Section */}
-      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-text-sub uppercase tracking-wider border-b border-slate-100">
-                <th className="text-left px-5 py-3 font-bold">Santri</th>
-                <th className="text-left px-5 py-3 font-bold hidden sm:table-cell font-mono">NISN</th>
-                <th className="text-left px-5 py-3 font-bold">Kelas</th>
-                <th className="text-left px-5 py-3 font-bold hidden md:table-cell">Asrama</th>
-                <th className="text-left px-5 py-3 font-bold hidden lg:table-cell">Asal</th>
-                <th className="text-left px-5 py-3 font-bold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-5 py-24">
-                    <div className="flex flex-col items-center justify-center gap-4">
-                      <div className="relative">
-                        <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-emerald-500 animate-spin"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        </div>
-                      </div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Menyiapkan Data...</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : visibleSantri.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-slate-400 font-medium">
-                    Data tidak ditemukan
-                  </td>
-                </tr>
-              ) : (
-                visibleSantri.map((s, i) => (
-                  <tr 
-                    key={s.id} 
-                    onClick={() => setSelectedSantri(s)}
-                    className="group hover:bg-emerald-50/30 transition-all cursor-pointer select-none"
-                  >
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl bg-linear-to-br ${colors[i % colors.length]} flex items-center justify-center text-white text-[11px] font-bold shadow-sm transition-transform group-hover:scale-105 overflow-hidden`}>
-                          {s.photo_url ? (
-                              <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover" />
-                          ) : getInitials(s.name)}
-                        </div>
-                        <span className="font-bold text-slate-700 tracking-tight">{s.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-slate-500 hidden sm:table-cell font-mono text-[11px]">{s.nisn || "-"}</td>
-                    <td className="px-5 py-4 font-bold text-slate-700">{s.kelas}</td>
-                    <td className="px-5 py-4 text-slate-500 hidden md:table-cell">{s.asrama || "-"}</td>
-                    <td className="px-5 py-4 text-slate-500 hidden lg:table-cell">{s.asal || "-"}</td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${statusColors[s.status] || "bg-slate-100 text-slate-600"}`}>{s.status}</span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination UI */}
-        {totalPages > 1 && (
-          <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-            <p className="text-xs font-bold text-slate-500">
-              Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredSantri.length)} dari {filteredSantri.length} Santri
-            </p>
-            <div className="flex gap-1">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className="px-3 py-1.5 text-xs font-bold bg-white border border-slate-200 rounded-lg text-slate-600 disabled:opacity-50 hover:bg-slate-100"
-              >
-                Prev
-              </button>
-              <button 
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 text-xs font-bold bg-white border border-slate-200 rounded-lg text-slate-600 disabled:opacity-50 hover:bg-slate-100"
-              >
-                Next
-              </button>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Data Santri</h1>
+              <p className="text-sm text-slate-500 font-medium">Manajemen data santri aktif Pondok Pesantren Darussalam.</p>
             </div>
           </div>
-        )}
-      </div>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <button 
+              onClick={fetchAllSantri}
+              className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            {canWrite && (
+              <button 
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-indigo-600 hover:bg-indigo-50 transition-colors shadow-sm animate-all"
+              >
+                <Upload className="w-4 h-4" /> Import Excel
+              </button>
+            )}
+            <button 
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-emerald-600 hover:bg-indigo-50 transition-colors shadow-sm"
+            >
+              <Download className="w-4 h-4" /> Export Excel
+            </button>
+            {canWrite ? (
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 shadow-emerald-500/20"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Tambah Santri</span>
+              </button>
+            ) : (
+              <div className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-pulse" />
+                Mode View-Only
+              </div>
+            )}
+          </div>
+        </div>
 
-      {/* Modals */}
-      <AddSantriModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-        onSuccess={fetchAllSantri} 
-      />
+        {/* Filter Section */}
+        <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 items-center justify-between">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Cari nama atau NISN..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-semibold" 
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+            <select 
+              className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[0.65rem_auto] bg-position-[right_0.75rem_center] bg-no-repeat"
+              value={filters.madrasah}
+              onChange={(e) => setFilters({...filters, madrasah: e.target.value})}
+            >
+              <option value="">Semua Madrasah</option>
+              {filterOptions.madrasah.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+
+            <select 
+              className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[0.65rem_auto] bg-position-[right_0.75rem_center] bg-no-repeat"
+              value={filters.kelas}
+              onChange={(e) => setFilters({...filters, kelas: e.target.value})}
+            >
+              <option value="">Semua Kelas</option>
+              {filterOptions.kelas.map(k => <option key={k} value={k}>{k}</option>)}
+            </select>
+
+            <select 
+              className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[0.65rem_auto] bg-position-[right_0.75rem_center] bg-no-repeat"
+              value={filters.asrama}
+              onChange={(e) => setFilters({...filters, asrama: e.target.value})}
+            >
+              <option value="">Semua Asrama</option>
+              {filterOptions.asrama.map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+
+            <select 
+              className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-size-[0.65rem_auto] bg-position-[right_0.75rem_center] bg-no-repeat"
+              value={filters.asal}
+              onChange={(e) => setFilters({...filters, asal: e.target.value})}
+            >
+              <option value="">Semua Asal</option>
+              {filterOptions.asal.map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+
+            {(filters.madrasah || filters.kelas || filters.asrama || filters.asal) && (
+              <button 
+                onClick={() => setFilters({ madrasah: "", kelas: "", asrama: "", asal: "" })}
+                className="text-xs font-bold text-rose-600 hover:underline px-2"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+
+        <DataTable 
+          data={filteredSantri}
+          columns={columns}
+          sortOptions={sortOptions}
+          defaultSortValue="name-asc"
+          loading={loading}
+          emptyMessage="Data santri tidak ditemukan"
+          onRowClick={(s) => setSelectedSantri(s)}
+        />
+      </div>
 
       <SantriDetailModal
         isOpen={!!selectedSantri}
         santri={selectedSantri}
         onClose={() => {
-            setSelectedSantri(null);
-            router.push('/santri'); // Clear ID from URL
+          setSelectedSantri(null);
+          router.push('/santri');
         }}
         onUpdate={fetchAllSantri}
       />
-
+      <AddSantriModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchAllSantri}
+      />
       <ImportSantriModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={fetchAllSantri}
       />
-    </div>
+    </>
   );
 }
+
 
 export default function SantriPage() {
   return (

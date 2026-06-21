@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { IdCard, Archive, Printer, Search, Database, KeyRound, Upload, Loader2, FileText, CheckCircle2, ChevronRight, X } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 export default function SekretarisIIPage() {
   const [activeTab, setActiveTab] = useState<"stambuk" | "eid" | "archive">("eid");
@@ -161,41 +162,54 @@ export default function SekretarisIIPage() {
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <h2 className="text-lg font-bold text-slate-800">Antrean Cetak Kartu Identitas</h2>
                 </div>
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                      <th className="px-6 py-4">Nama Santri</th>
-                      <th className="px-6 py-4">Kelas</th>
-                      <th className="px-6 py-4">Status / NISN</th>
-                      <th className="px-6 py-4">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {santriQueue.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-slate-400 font-bold">Belum ada antrean santri.</td>
-                      </tr>
-                    ) : (
-                      santriQueue.map((item) => (
-                        <tr key={item.id} onClick={() => setSelectedSantri(item)} className={`cursor-pointer hover:bg-slate-50/50 transition-colors ${selectedSantri?.id === item.id ? 'bg-sky-50/50' : ''}`}>
-                          <td className="px-6 py-4 font-bold text-slate-800">{item.name}</td>
-                          <td className="px-6 py-4 text-sky-600 font-bold">{item.kelas} ({item.asrama || "-"})</td>
-                          <td className="px-6 py-4">
-                              <div className="text-xs text-slate-500 mb-1">NISN: {item.nisn}</div>
-                              <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-700`}>
-                                  Menunggu
-                              </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <button onClick={(e) => { e.stopPropagation(); handlePrint(); }} className="flex items-center gap-2 px-3 py-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 text-xs font-bold rounded-lg transition-colors">
-                              <Printer className="w-3 h-3" /> Cetak
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                
+                <div className="p-4">
+                  <DataTable
+                    data={santriQueue}
+                    columns={[
+                      {
+                        header: "Nama Santri",
+                        render: (item: any) => (
+                          <div className="font-bold text-slate-800">{item.name}</div>
+                        )
+                      },
+                      {
+                        header: "Kelas",
+                        render: (item: any) => (
+                          <div className="text-sky-600 font-bold">{item.kelas} ({item.asrama || "-"})</div>
+                        )
+                      },
+                      {
+                        header: "Status / NISN",
+                        render: (item: any) => (
+                          <div>
+                            <div className="text-xs text-slate-500 mb-1">NISN: {item.nisn}</div>
+                            <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-700">
+                                Menunggu
+                            </span>
+                          </div>
+                        )
+                      },
+                      {
+                        header: "Aksi",
+                        render: (item: any) => (
+                          <button onClick={(e) => { e.stopPropagation(); handlePrint(); }} className="flex items-center gap-2 px-3 py-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 text-xs font-bold rounded-lg transition-colors">
+                            <Printer className="w-3 h-3" /> Cetak
+                          </button>
+                        )
+                      }
+                    ]}
+                    sortOptions={[
+                      { label: "Nama (A-Z)", value: "name-asc", sortFn: (a: any, b: any) => a.name.localeCompare(b.name) },
+                      { label: "Nama (Z-A)", value: "name-desc", sortFn: (a: any, b: any) => b.name.localeCompare(a.name) }
+                    ]}
+                    defaultSortValue="name-asc"
+                    loading={loading}
+                    emptyMessage="Belum ada antrean santri."
+                    onRowClick={(item) => setSelectedSantri(item)}
+                  />
+                </div>
+
             </div>
 
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center">
@@ -337,55 +351,64 @@ export default function SekretarisIIPage() {
                       })}
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-slate-50 border-b border-slate-100">
-                        <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                          <th className="px-6 py-4">Nama Dokumen</th>
-                          <th className="px-6 py-4">Nomor Dokumen</th>
-                          <th className="px-6 py-4">Tanggal Dokumen</th>
-                          <th className="px-6 py-4">Aliran / Keterangan</th>
-                          <th className="px-6 py-4">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {filteredArchive.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold">
-                              Tidak ada berkas ditemukan di folder ini.
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredArchive.map((file) => (
-                            <tr key={file.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="px-6 py-4 font-bold text-slate-800 flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-violet-500" /> {file.name}
-                              </td>
-                              <td className="px-6 py-4 text-slate-600 font-mono">{file.doc_number || "-"}</td>
-                              <td className="px-6 py-4 text-slate-500">{file.doc_date || "-"}</td>
-                              <td className="px-6 py-4">
-                                <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                                  file.flow_type === "Masuk" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-                                }`}>
-                                  {file.flow_type || "Dokumen"}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <a 
-                                  href={file.url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="text-violet-600 hover:text-violet-800 text-xs font-bold hover:underline"
-                                >
-                                  Lihat / Unduh
-                                </a>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                  
+                  <div className="p-4">
+                    <DataTable
+                      data={filteredArchive}
+                      columns={[
+                        {
+                          header: "Nama Dokumen",
+                          render: (file: any) => (
+                            <div className="font-bold text-slate-800 flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-violet-500" /> {file.name}
+                            </div>
+                          )
+                        },
+                        {
+                          header: "Nomor Dokumen",
+                          render: (file: any) => (
+                            <div className="text-slate-600 font-mono">{file.doc_number || "-"}</div>
+                          )
+                        },
+                        {
+                          header: "Tanggal Dokumen",
+                          render: (file: any) => (
+                            <div className="text-slate-500">{file.doc_date || "-"}</div>
+                          )
+                        },
+                        {
+                          header: "Aliran / Keterangan",
+                          render: (file: any) => (
+                            <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                              file.flow_type === "Masuk" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                            }`}>
+                              {file.flow_type || "Dokumen"}
+                            </span>
+                          )
+                        },
+                        {
+                          header: "Aksi",
+                          render: (file: any) => (
+                            <a 
+                              href={file.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-violet-600 hover:text-violet-800 text-xs font-bold hover:underline"
+                            >
+                              Lihat / Unduh
+                            </a>
+                          )
+                        }
+                      ]}
+                      sortOptions={[
+                        { label: "Nama (A-Z)", value: "name-asc", sortFn: (a: any, b: any) => a.name.localeCompare(b.name) },
+                        { label: "Nama (Z-A)", value: "name-desc", sortFn: (a: any, b: any) => b.name.localeCompare(a.name) }
+                      ]}
+                      defaultSortValue="name-asc"
+                      emptyMessage="Tidak ada berkas ditemukan di folder ini."
+                    />
                   </div>
+
                 )}
              </div>
           </div>

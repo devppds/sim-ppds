@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { BarChart3, Home, Mic, BedDouble, CalendarDays, FileText, Download, Plus, X } from "lucide-react";
+import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
 
@@ -227,40 +228,47 @@ export default function SekretarisIIIPage() {
                     </div>
                 </div>
 
-                <table className="w-full text-sm mt-4">
-                 <thead className="bg-slate-50 border-b border-slate-100">
-                   <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                     <th className="px-4 py-3">Blok / Asrama</th>
-                     <th className="px-4 py-3 text-center">Dilaporkan Oleh</th>
-                     <th className="px-4 py-3 text-center">Jumlah Santri</th>
-                     <th className="px-4 py-3 text-center">Perubahan</th>
-                     <th className="px-4 py-3">Status Laporan</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-slate-100">
-                   {blokCounts.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-slate-400 font-bold">Memuat data asrama...</td>
-                      </tr>
-                    ) : (
-                      blokCounts.map((item, i) => (
-                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 font-bold text-slate-800 flex items-center gap-2">
-                              <Home className="w-4 h-4 text-slate-400" /> {item.blok}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 text-center">{item.reported}</td>
-                          <td className="px-4 py-3 font-mono font-bold text-slate-700 text-center">{item.count}</td>
-                          <td className={`px-4 py-3 font-mono font-bold text-center ${item.change.startsWith('+') ? 'text-emerald-600' : item.change.startsWith('-') ? 'text-rose-600' : 'text-slate-400'}`}>{item.change}</td>
-                          <td className="px-4 py-3">
-                              <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase ${item.status === 'Selesai' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                                  {item.status}
-                              </span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                 </tbody>
-               </table>
+                <div className="mt-4">
+                  <DataTable
+                    data={blokCounts}
+                    columns={[
+                      {
+                        header: "Blok / Asrama",
+                        render: (item: any) => (
+                          <span className="font-bold text-slate-800 flex items-center gap-2">
+                             <Home className="w-4 h-4 text-slate-400" /> {item.blok}
+                          </span>
+                        )
+                      },
+                      {
+                        header: <div className="text-center">Dilaporkan Oleh</div>,
+                        render: (item: any) => <div className="text-center text-slate-600">{item.reported}</div>
+                      },
+                      {
+                        header: <div className="text-center">Jumlah Santri</div>,
+                        render: (item: any) => <div className="font-mono font-bold text-slate-700 text-center">{item.count}</div>
+                      },
+                      {
+                        header: <div className="text-center">Perubahan</div>,
+                        render: (item: any) => (
+                          <div className={`font-mono font-bold text-center ${item.change.startsWith('+') ? 'text-emerald-600' : item.change.startsWith('-') ? 'text-rose-600' : 'text-slate-400'}`}>
+                            {item.change}
+                          </div>
+                        )
+                      },
+                      {
+                        header: "Status Laporan",
+                        render: (item: any) => (
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase ${item.status === 'Selesai' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {item.status}
+                          </span>
+                        )
+                      }
+                    ]}
+                    loading={loadingAsrama}
+                    emptyMessage="Memuat data asrama..."
+                  />
+                </div>
              </div>
           </div>
         )}

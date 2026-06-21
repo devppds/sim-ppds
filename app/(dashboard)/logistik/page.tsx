@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 interface EquipmentBooking {
   id: number;
@@ -282,38 +283,47 @@ export default function LogistikPage() {
                   Tidak ada booking perlengkapan
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Nama Kegiatan / Peminjam</th>
-                      <th className="px-6 py-4">Perlengkapan yang Dipinjam</th>
-                      <th className="px-6 py-4">Durasi Pinjam</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredBookings.map((b) => (
-                      <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
+                <DataTable
+                  data={filteredBookings}
+                  columns={[
+                    {
+                      header: "Nama Kegiatan / Peminjam",
+                      render: (b: EquipmentBooking) => (
+                        <div>
                           <div className="font-bold text-slate-800">{b.nama_kegiatan}</div>
                           <div className="text-xs text-slate-400 mt-1">Oleh: {b.peminjam}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-600 max-w-md">{b.perlengkapan}</td>
-                        <td className="px-6 py-4 text-slate-600">
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Perlengkapan yang Dipinjam",
+                      render: (b: EquipmentBooking) => <div className="text-slate-600 max-w-md">{b.perlengkapan}</div>
+                    },
+                    {
+                      header: "Durasi Pinjam",
+                      render: (b: EquipmentBooking) => (
+                        <div className="text-slate-600">
                           <div>Pinjam: {b.tgl_pinjam}</div>
                           <div className="text-xs text-rose-500 font-semibold mt-0.5">Kembali: {b.tgl_kembali}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                            b.status === "Diajukan" ? "bg-amber-50 text-amber-600" :
-                            b.status === "Disetujui" ? "bg-blue-50 text-blue-600" :
-                            "bg-emerald-50 text-emerald-600"
-                          }`}>
-                            {b.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Status",
+                      render: (b: EquipmentBooking) => (
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                          b.status === "Diajukan" ? "bg-amber-50 text-amber-600" :
+                          b.status === "Disetujui" ? "bg-blue-50 text-blue-600" :
+                          "bg-emerald-50 text-emerald-600"
+                        }`}>
+                          {b.status}
+                        </span>
+                      )
+                    },
+                    {
+                      header: "Aksi",
+                      render: (b: EquipmentBooking) => (
+                        <div>
                           {b.status === "Diajukan" && (
                             <button onClick={() => handleUpdateBookingStatus(b.id, "Disetujui")} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all flex items-center gap-1 shadow-xs">
                               Setujui
@@ -327,11 +337,17 @@ export default function LogistikPage() {
                           {b.status === "Selesai" && (
                             <span className="text-xs text-slate-400">Telah Kembali</span>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      )
+                    }
+                  ]}
+                  sortOptions={[
+                    { label: "Mulai (Terdekat)", value: "mulai-asc", sortFn: (a: EquipmentBooking, b: EquipmentBooking) => new Date(a.tgl_pinjam).getTime() - new Date(b.tgl_pinjam).getTime() }
+                  ]}
+                  defaultSortValue="mulai-asc"
+                  loading={loading}
+                  emptyMessage="Tidak ada booking perlengkapan"
+                />
               )}
             </div>
           </div>
@@ -364,36 +380,45 @@ export default function LogistikPage() {
                   Belum ada audit kebersihan tercatat
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Area Audit</th>
-                      <th className="px-6 py-4">Petugas Kebersihan</th>
-                      <th className="px-6 py-4">Tanggal Audit</th>
-                      <th className="px-6 py-4">Status Kebersihan</th>
-                      <th className="px-6 py-4">Catatan</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredChecklist.map((c) => (
-                      <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">{c.area}</td>
-                        <td className="px-6 py-4 text-slate-600">{c.petugas}</td>
-                        <td className="px-6 py-4 text-slate-500">{c.tanggal}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
-                            c.status_kebersihan === "Bersih" ? "bg-emerald-50 text-emerald-600" :
-                            c.status_kebersihan === "Kotor" ? "bg-amber-50 text-amber-600" :
-                            "bg-rose-50 text-rose-600 animate-pulse"
-                          }`}>
-                            {c.status_kebersihan}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-slate-500 italic">&quot;{c.catatan || '-'}&quot;</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <DataTable
+                  data={filteredChecklist}
+                  columns={[
+                    {
+                      header: "Area Audit",
+                      render: (c: HygieneChecklist) => <div className="font-bold text-slate-800">{c.area}</div>
+                    },
+                    {
+                      header: "Petugas Kebersihan",
+                      render: (c: HygieneChecklist) => <div className="text-slate-600">{c.petugas}</div>
+                    },
+                    {
+                      header: "Tanggal Audit",
+                      render: (c: HygieneChecklist) => <div className="text-slate-500">{c.tanggal}</div>
+                    },
+                    {
+                      header: "Status Kebersihan",
+                      render: (c: HygieneChecklist) => (
+                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
+                          c.status_kebersihan === "Bersih" ? "bg-emerald-50 text-emerald-600" :
+                          c.status_kebersihan === "Kotor" ? "bg-amber-50 text-amber-600" :
+                          "bg-rose-50 text-rose-600 animate-pulse"
+                        }`}>
+                          {c.status_kebersihan}
+                        </span>
+                      )
+                    },
+                    {
+                      header: "Catatan",
+                      render: (c: HygieneChecklist) => <div className="text-slate-500 italic">&quot;{c.catatan || '-'}&quot;</div>
+                    }
+                  ]}
+                  sortOptions={[
+                    { label: "Tanggal (Terbaru)", value: "tanggal-desc", sortFn: (a: HygieneChecklist, b: HygieneChecklist) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime() }
+                  ]}
+                  defaultSortValue="tanggal-desc"
+                  loading={loading}
+                  emptyMessage="Belum ada audit kebersihan tercatat"
+                />
               )}
             </div>
           </div>

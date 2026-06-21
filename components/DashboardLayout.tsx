@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import SplashScreen from "@/components/SplashScreen";
+import ForceChangePasswordModal from "@/components/ForceChangePasswordModal";
 
 export default function DashboardLayout({
   children,
@@ -23,8 +24,9 @@ export default function DashboardLayout({
 
   return (
     <>
+      <ForceChangePasswordModal />
       <SplashScreen />
-      <div className={`${useSplashDelay ? "main-content-fade-in" : ""} main-content flex h-full w-full bg-[#f1f5f9] text-[#1e293b]`}>
+      <div className={`${useSplashDelay ? "main-content-fade-in" : ""} main-content flex h-full w-full bg-slate-50 text-slate-800`}>
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}

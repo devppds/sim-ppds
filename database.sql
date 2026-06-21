@@ -86,9 +86,9 @@ INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALU
 INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-052', 'Rizqi Syahru Romadhoni', '', 'Seksi Keamanan', 'Anggota', 'Aktif', 'L');
 INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-053', 'Moh Zuhan Ahsanul Khuluq', '', 'Seksi Keamanan', 'Anggota', 'Aktif', 'L');
 INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-054', 'M. Nuruddin', '', 'Seksi Keamanan', 'Anggota', 'Aktif', 'L');
-INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-055', 'Nur Hadi', '', 'Seksi Jam'iyyah', 'Ketua Seksi', 'Aktif', 'L');
-INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-056', 'Alwan Arbangi', '', 'Seksi Jam'iyyah', 'Anggota', 'Aktif', 'L');
-INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-057', 'Muh. Ali Marwan Hanan', '', 'Seksi Jam'iyyah', 'Anggota', 'Aktif', 'L');
+INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-055', 'Nur Hadi', '', 'Seksi Jam''iyyah', 'Ketua Seksi', 'Aktif', 'L');
+INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-056', 'Alwan Arbangi', '', 'Seksi Jam''iyyah', 'Anggota', 'Aktif', 'L');
+INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-057', 'Muh. Ali Marwan Hanan', '', 'Seksi Jam''iyyah', 'Anggota', 'Aktif', 'L');
 INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-058', 'Muhammad Isnanto', '', 'Seksi Keuangan', 'Ketua Seksi', 'Aktif', 'L');
 INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-059', 'M. Iman Aminulloh', '', 'Seksi Keuangan', 'Anggota', 'Aktif', 'L');
 INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, status, gender) VALUES ('PGR-060', 'M. Arsy', '', 'Seksi PLP (Penerangan Listrik Pondok/Pengairan)', 'Ketua Seksi', 'Aktif', 'L');

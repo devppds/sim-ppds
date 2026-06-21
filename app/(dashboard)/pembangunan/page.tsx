@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import SectionDashboardCards, { DashboardCardConfig } from "@/components/SectionDashboardCards";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 import { Plus, Search, RefreshCw, X, Pencil, Trash2, CheckCircle2, AlertCircle, Hammer, Clock, CheckCircle } from "lucide-react";
 
 export default function PembangunanPage() {
@@ -177,63 +178,53 @@ export default function PembangunanPage() {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th className="px-6 py-4">ID</th>
-                {currentTab.columns.map((col: any) => (
-                  <th key={col.key} className="px-6 py-4">{col.label}</th>
-                ))}
-                <th className="px-6 py-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={currentTab.columns.length + 2} className="px-6 py-12 text-center text-slate-400 font-medium">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-3 text-emerald-500" />
-                    Memuat data...
-                  </td>
-                </tr>
-              ) : data.length === 0 ? (
-                <tr>
-                  <td colSpan={currentTab.columns.length + 2} className="px-6 py-12 text-center text-slate-400 font-medium">
-                    Belum ada data tercatat di {currentTab.label}.
-                  </td>
-                </tr>
-              ) : (
-                data.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-6 py-4 font-bold text-slate-400">#{item.id}</td>
-                    {currentTab.columns.map((col: any) => (
-                      <td key={col.key} className="px-6 py-4">
-                        {col.key === 'status' ? (
-                          <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
-                            ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
-                            ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
-                            'bg-slate-100 text-slate-700'
-                          }`}>
-                            {item[col.key] || 'N/A'}
-                          </span>
-                        ) : (
-                          <span className="font-semibold text-slate-700">{item[col.key] || '-'}</span>
-                        )}
-                      </td>
-                    ))}
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <button onClick={() => openEditModal(item)} className="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors inline-flex">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition-colors inline-flex">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="p-4">
+          <DataTable
+            data={data}
+            columns={[
+              {
+                header: "ID",
+                render: (item: any) => <span className="font-bold text-slate-400">#{item.id}</span>
+              },
+              ...currentTab.columns.map((col: any) => ({
+                header: col.label,
+                render: (item: any) => {
+                  if (col.key === 'status') {
+                    return (
+                      <span className={`inline-flex px-3 py-1 text-xs font-black rounded-full ${
+                        ['Completed', 'Approved', 'Clean', 'Paid', 'Bersih', 'Disetujui', 'Selesai', 'Lunas'].includes(item[col.key]) ? 'bg-emerald-100 text-emerald-700' : 
+                        ['Warning', 'Draft', 'Pending', 'Unpaid', 'Peringatan', 'Konsep', 'Tertunda', 'Belum Lunas', 'Proposed', 'Diajukan', 'Open', 'Buka', 'In Progress', 'Dalam Proses'].includes(item[col.key]) ? 'bg-amber-100 text-amber-700' : 
+                        'bg-slate-100 text-slate-700'
+                      }`}>
+                        {item[col.key] || 'N/A'}
+                      </span>
+                    );
+                  }
+                  return <span className="font-semibold text-slate-700">{item[col.key] || '-'}</span>;
+                }
+              })),
+              {
+                header: "Aksi",
+                render: (item: any) => (
+                  <div className="flex gap-2">
+                    <button onClick={() => openEditModal(item)} className="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors inline-flex">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(item.id)} className="text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition-colors inline-flex">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )
+              }
+            ]}
+            sortOptions={[
+              { label: "Terbaru", value: "id-desc", sortFn: (a: any, b: any) => b.id - a.id },
+              { label: "Terlama", value: "id-asc", sortFn: (a: any, b: any) => a.id - b.id }
+            ]}
+            defaultSortValue="id-desc"
+            loading={loading}
+            emptyMessage={`Belum ada data tercatat di ${currentTab.label}.`}
+          />
         </div>
       </div>
 

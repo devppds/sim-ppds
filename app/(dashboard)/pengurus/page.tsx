@@ -5,12 +5,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { UserCheck, Plus, Search, RefreshCw } from "lucide-react";
 import PengurusDetailModal from "@/components/PengurusDetailModal";
 import AddPengurusModal from "@/components/AddPengurusModal";
+import { DataTable, Column, SortOption } from "@/components/DataTable";
 import { API_BASE_URL } from "@/lib/config";
 
 interface Pengurus {
   id: number;
   nik: string;
   name: string;
+  jabatan_utama?: string;
+  sub_jabatan?: string;
   jabatan: string;
   jabatan_tambahan?: string;
   kamar?: string;
@@ -25,6 +28,11 @@ const statusColors: Record<string, string> = {
   Aktif: "bg-emerald-50 text-emerald-700",
   "Tidak Aktif": "bg-slate-50 text-slate-500",
 };
+
+function getInitials(name: string) {
+  if (!name) return "??";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+}
 
 function PengurusContent() {
   const [list, setList] = useState<Pengurus[]>([]);
@@ -44,9 +52,11 @@ function PengurusContent() {
       const json = (await res.json()) as any;
       if (json.success) {
         setList(json.data);
-        if (deepId && !selectedPengurus) {
+        if (deepId) {
           const found = json.data.find((p: Pengurus) => p.id.toString() === deepId);
-          if (found) setSelectedPengurus(found);
+          if (found) {
+             setSelectedPengurus((prev) => prev ? prev : found);
+          }
         }
         
         setSelectedPengurus((prev) => {
@@ -60,7 +70,7 @@ function PengurusContent() {
     } finally {
       setLoading(false);
     }
-  }, [deepId, selectedPengurus]);
+  }, [deepId]);
 
   useEffect(() => {
     fetchPengurus();
@@ -78,24 +88,102 @@ function PengurusContent() {
     );
   }, [list, searchQuery]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 50;
-  
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  const columns: Column<Pengurus>[] = [
+    {
+      header: "Pengurus",
+      render: (p, i) => (
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl bg-linear-to-br ${colors[i % colors.length]} flex items-center justify-center text-white text-[11px] font-bold shadow-sm transition-transform group-hover:scale-105 overflow-hidden shrink-0`}>
+            {p.photo_url ? (
+                <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
+            ) : getInitials(p.name)}
+          </div>
+          <span className="font-bold text-slate-700 tracking-tight">{p.name}</span>
+        </div>
+      )
+    },
+    {
+      header: "NIK",
+      hiddenClassName: "hidden sm:table-cell font-mono",
+      render: (p) => <span className="text-[11px] text-slate-500">{p.nik || "-"}</span>
+    },
+    {
+      header: "Jabatan",
+      render: (p) => (
+        <div className="font-bold text-indigo-600 text-xs">
+          <span className="px-2 py-0.5 bg-indigo-50 rounded text-[10px] font-black uppercase tracking-wider">{p.jabatan}</span>
+          {p.jabatan_tambahan && (
+            <div className="mt-1 text-[9px] text-slate-400 font-bold uppercase">{p.jabatan_tambahan}</div>
+          )}
+        </div>
+      )
+    },
+    {
+      header: "Kamar",
+      hiddenClassName: "hidden md:table-cell",
+      render: (p) => <span className="text-xs font-bold text-slate-500">{p.kamar || "-"}</span>
+    },
+    {
+      header: "No. Telepon",
+      hiddenClassName: "hidden lg:table-cell",
+      render: (p) => <span className="text-slate-500">{p.phone || "-"}</span>
+    },
+    {
+      header: "Status",
+      render: (p) => (
+        <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${statusColors[p.status] || "bg-slate-100 text-slate-600"}`}>
+          {p.status}
+        </span>
+      )
+    }
+  ];
 
-  const visiblePengurus = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredList.slice(start, start + itemsPerPage);
-  }, [filteredList, currentPage]);
+  const sortOptions: SortOption<Pengurus>[] = [
+    {
+      label: "Hierarki Jabatan",
+      value: "hierarchy",
+      sortFn: (a, b) => {
+        const getScore = (p: Pengurus) => {
+          const j = (p.jabatan_utama || p.jabatan || "").toLowerCase();
+          const s = (p.sub_jabatan || "").toLowerCase();
+          let score = 99;
+          if (j.includes("ketua")) score = 1;
+          else if (j.includes("sekretaris")) score = 2;
+          else if (j.includes("bendahara")) score = 3;
+          else if (j.includes("seksi")) score = 4;
+          else score = 5;
+          
+          let subScore = 99;
+          if (s.includes("umum") || s.includes("pondok") || s.includes("kasie") || s.includes("kepala")) subScore = 1;
+          else if (s.includes("wakil")) subScore = 2;
+          else if (s.includes("i") && !s.includes("ii")) subScore = 3;
+          else if (s.includes("ii") && !s.includes("iii")) subScore = 4;
+          else if (s.includes("anggota")) subScore = 5;
 
-  const totalPages = Math.ceil(filteredList.length / itemsPerPage);
-
-  function getInitials(name: string) {
-    if (!name) return "??";
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
-  }
+          const seksiName = j.includes("seksi") ? j : "";
+          return { score, subScore, seksiName };
+        };
+        
+        const scoreA = getScore(a);
+        const scoreB = getScore(b);
+        
+        if (scoreA.score !== scoreB.score) return scoreA.score - scoreB.score;
+        if (scoreA.seksiName !== scoreB.seksiName) return scoreA.seksiName.localeCompare(scoreB.seksiName);
+        if (scoreA.subScore !== scoreB.subScore) return scoreA.subScore - scoreB.subScore;
+        return a.name.localeCompare(b.name);
+      }
+    },
+    {
+      label: "Abjad (A-Z)",
+      value: "name-asc",
+      sortFn: (a, b) => a.name.localeCompare(b.name)
+    },
+    {
+      label: "Abjad (Z-A)",
+      value: "name-desc",
+      sortFn: (a, b) => b.name.localeCompare(a.name)
+    }
+  ];
 
   return (
     <>
@@ -142,102 +230,15 @@ function PengurusContent() {
           </div>
         </div>
 
-        {/* Table Section */}
-        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-text-sub uppercase tracking-wider border-b border-slate-100 bg-slate-50/50">
-                  <th className="text-left px-5 py-3 font-bold">Pengurus</th>
-                  <th className="text-left px-5 py-3 font-bold hidden sm:table-cell font-mono">NIK</th>
-                  <th className="text-left px-5 py-3 font-bold">Jabatan</th>
-                  <th className="text-left px-5 py-3 font-bold hidden md:table-cell">Kamar</th>
-                  <th className="text-left px-5 py-3 font-bold hidden lg:table-cell">No. Telepon</th>
-                  <th className="text-left px-5 py-3 font-bold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-24">
-                      <div className="flex flex-col items-center justify-center gap-4">
-                        <div className="relative">
-                          <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-indigo-500 animate-spin"></div>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                          </div>
-                        </div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Menyiapkan Data...</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : visiblePengurus.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-12 text-center text-slate-400 font-medium">
-                      Data pengurus tidak ditemukan
-                    </td>
-                  </tr>
-                ) : (
-                  visiblePengurus.map((p, i) => (
-                    <tr 
-                      key={p.id} 
-                      onClick={() => setSelectedPengurus(p)}
-                      className="group hover:bg-indigo-50/30 transition-all cursor-pointer select-none"
-                    >
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl bg-linear-to-br ${colors[i % colors.length]} flex items-center justify-center text-white text-[11px] font-bold shadow-sm transition-transform group-hover:scale-105 overflow-hidden`}>
-                            {p.photo_url ? (
-                                <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
-                            ) : getInitials(p.name)}
-                          </div>
-                          <span className="font-bold text-slate-700 tracking-tight">{p.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-slate-500 hidden sm:table-cell font-mono text-[11px]">{p.nik || "-"}</td>
-                      <td className="px-5 py-4 font-bold text-indigo-600 text-xs">
-                         <span className="px-2 py-0.5 bg-indigo-50 rounded text-[10px] font-black uppercase tracking-wider">{p.jabatan}</span>
-                         {p.jabatan_tambahan && (
-                            <div className="mt-1 text-[9px] text-slate-400 font-bold uppercase">{p.jabatan_tambahan}</div>
-                         )}
-                      </td>
-                      <td className="px-5 py-4 text-slate-500 hidden md:table-cell text-xs font-bold">{p.kamar || "-"}</td>
-                      <td className="px-5 py-4 text-slate-500 hidden lg:table-cell">{p.phone || "-"}</td>
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${statusColors[p.status] || "bg-slate-100 text-slate-600"}`}>{p.status}</span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination UI */}
-          {totalPages > 1 && (
-            <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-              <p className="text-xs font-bold text-slate-500">
-                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredList.length)} dari {filteredList.length} Pengurus
-              </p>
-              <div className="flex gap-1">
-                <button 
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 text-xs font-bold bg-white border border-slate-200 rounded-lg text-slate-600 disabled:opacity-50 hover:bg-slate-100"
-                >
-                  Prev
-                </button>
-                <button 
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1.5 text-xs font-bold bg-white border border-slate-200 rounded-lg text-slate-600 disabled:opacity-50 hover:bg-slate-100"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <DataTable 
+          data={filteredList}
+          columns={columns}
+          sortOptions={sortOptions}
+          defaultSortValue="hierarchy"
+          loading={loading}
+          emptyMessage="Data pengurus tidak ditemukan"
+          onRowClick={(p) => setSelectedPengurus(p)}
+        />
       </div>
 
       <PengurusDetailModal

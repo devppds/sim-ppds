@@ -16,6 +16,7 @@ import {
   Loader2,
   Clock
 } from "lucide-react";
+import { DataTable } from "@/components/DataTable";
 
 interface ClearanceRequest {
   id: number;
@@ -289,47 +290,56 @@ export default function ClearancePage() {
                 Belum ada antrean pengajuan clearance
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 px-4">Santri / NISN</th>
-                      <th className="py-4 px-4">Kelas & Asrama</th>
-                      <th className="py-4 px-4 text-center">Keuangan</th>
-                      <th className="py-4 px-4 text-center">Keamanan</th>
-                      <th className="py-4 px-4 text-center">Mustahiq</th>
-                      <th className="py-4 px-4 text-center">Status Akhir</th>
-                      <th className="py-4 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {requests.map((req) => {
-                      return (
-                        <tr key={req.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                          <td className="py-4 px-4">
+              <div className="mt-4">
+                <DataTable
+                  data={requests}
+                  columns={[
+                    {
+                      header: "Santri / NISN",
+                      render: (req: any) => (
+                          <div>
                             <div className="font-black text-sm text-slate-800">{req.santri_name}</div>
                             <div className="text-[10px] text-slate-400 font-semibold mt-0.5">NISN: {req.santri_nisn}</div>
-                          </td>
-                          <td className="py-4 px-4">
+                          </div>
+                      )
+                    },
+                    {
+                      header: "Kelas & Asrama",
+                      render: (req: any) => (
+                          <div>
                             <div className="text-xs font-black text-slate-600">{req.santri_kelas}</div>
                             <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{req.santri_asrama}</div>
-                          </td>
-                          <td className="py-4 px-4 text-center">
-                            <div className="flex justify-center" title={req.catatan_keuangan || ""}>
-                              {getStatusIcon(req.status_keuangan)}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-center">
-                            <div className="flex justify-center" title={req.catatan_keamanan || ""}>
-                              {getStatusIcon(req.status_keamanan)}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-center">
-                            <div className="flex justify-center">
-                              {getStatusIcon(req.acc_mustahiq)}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-center">
+                          </div>
+                      )
+                    },
+                    {
+                      header: <div className="text-center">Keuangan</div>,
+                      render: (req: any) => (
+                          <div className="flex justify-center" title={req.catatan_keuangan || ""}>
+                            {getStatusIcon(req.status_keuangan)}
+                          </div>
+                      )
+                    },
+                    {
+                      header: <div className="text-center">Keamanan</div>,
+                      render: (req: any) => (
+                          <div className="flex justify-center" title={req.catatan_keamanan || ""}>
+                            {getStatusIcon(req.status_keamanan)}
+                          </div>
+                      )
+                    },
+                    {
+                      header: <div className="text-center">Mustahiq</div>,
+                      render: (req: any) => (
+                          <div className="flex justify-center">
+                            {getStatusIcon(req.acc_mustahiq)}
+                          </div>
+                      )
+                    },
+                    {
+                      header: <div className="text-center">Status Akhir</div>,
+                      render: (req: any) => (
+                          <div className="text-center">
                             {req.status_akhir === 'Disetujui' ? (
                               <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-wider">Lolos</span>
                             ) : req.status_akhir === 'Ditolak' ? (
@@ -337,8 +347,12 @@ export default function ClearancePage() {
                             ) : (
                               <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse">Proses</span>
                             )}
-                          </td>
-                          <td className="py-4 px-4 text-right">
+                          </div>
+                      )
+                    },
+                    {
+                      header: <div className="text-right">Aksi</div>,
+                      render: (req: any) => (
                             <div className="flex justify-end items-center gap-2">
                               <button 
                                 onClick={() => handleRunAutoAudit(req)}
@@ -380,12 +394,12 @@ export default function ClearancePage() {
                                 </button>
                               )}
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      )
+                    }
+                  ]}
+                  loading={loading}
+                  emptyMessage="Belum ada antrean pengajuan clearance"
+                />
               </div>
             )}
           </div>

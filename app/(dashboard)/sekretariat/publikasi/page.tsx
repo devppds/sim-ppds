@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Megaphone, Award, Send, FileCode2, CheckCircle, Download, FileText, Image as ImageIcon } from "lucide-react";
+import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
 
@@ -290,37 +291,42 @@ export default function SekretariatPublikasiPage() {
 
             <div className="col-span-1 md:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm mt-4">
                <h3 className="font-bold text-slate-800 mb-4">Riwayat E-Sertifikat Terbuat</h3>
-               <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                     <thead className="bg-slate-50 border-b border-slate-100">
-                        <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                           <th className="px-4 py-3">Nama Sertifikat</th>
-                           <th className="px-4 py-3">Penerima</th>
-                           <th className="px-4 py-3">Nomor</th>
-                           <th className="px-4 py-3">Tanggal Buat</th>
-                           <th className="px-4 py-3">Aksi</th>
-                        </tr>
-                     </thead>
-                     <tbody className="divide-y divide-slate-100">
-                        {certificates.length === 0 ? (
-                           <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-slate-400 font-bold">Belum ada sertifikat terbuat.</td>
-                           </tr>
-                        ) : (
-                           certificates.map((cert) => (
-                              <tr key={cert.id} onClick={() => setSelectedCert(cert)} className={`cursor-pointer hover:bg-slate-50/50 transition-colors ${selectedCert?.id === cert.id ? 'bg-indigo-50/50' : ''}`}>
-                                 <td className="px-4 py-3 font-bold text-slate-800">{cert.name}</td>
-                                 <td className="px-4 py-3 text-slate-600">{cert.sender_receiver}</td>
-                                 <td className="px-4 py-3 text-slate-500 font-mono">{cert.doc_number}</td>
-                                 <td className="px-4 py-3 text-slate-500">{cert.doc_date}</td>
-                                 <td className="px-4 py-3">
-                                    <a href={cert.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 text-xs font-bold hover:underline" onClick={(e) => e.stopPropagation()}>Unduh PDF</a>
-                                 </td>
-                              </tr>
-                           ))
-                        )}
-                     </tbody>
-                  </table>
+               <div className="p-4">
+                  <DataTable
+                     data={certificates}
+                     columns={[
+                        {
+                           header: "Nama Sertifikat",
+                           render: (cert: any) => <span className="font-bold text-slate-800">{cert.name}</span>
+                        },
+                        {
+                           header: "Penerima",
+                           render: (cert: any) => <span className="text-slate-600">{cert.sender_receiver}</span>
+                        },
+                        {
+                           header: "Nomor",
+                           render: (cert: any) => <span className="text-slate-500 font-mono">{cert.doc_number}</span>
+                        },
+                        {
+                           header: "Tanggal Buat",
+                           render: (cert: any) => <span className="text-slate-500">{cert.doc_date}</span>
+                        },
+                        {
+                           header: "Aksi",
+                           render: (cert: any) => (
+                              <a href={cert.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 text-xs font-bold hover:underline" onClick={(e) => e.stopPropagation()}>Unduh PDF</a>
+                           )
+                        }
+                     ]}
+                     sortOptions={[
+                        { label: "Terbaru", value: "date-desc", sortFn: (a: any, b: any) => new Date(b.doc_date || "").getTime() - new Date(a.doc_date || "").getTime() },
+                        { label: "Terlama", value: "date-asc", sortFn: (a: any, b: any) => new Date(a.doc_date || "").getTime() - new Date(b.doc_date || "").getTime() }
+                     ]}
+                     defaultSortValue="date-desc"
+                     emptyMessage="Belum ada sertifikat terbuat."
+                     onRowClick={(cert: any) => setSelectedCert(cert)}
+                     rowClassName={(cert: any) => cert.id === selectedCert?.id ? 'bg-indigo-50/50' : ''}
+                  />
                </div>
             </div>
           </div>
@@ -335,50 +341,55 @@ export default function SekretariatPublikasiPage() {
                     <p className="text-sm text-slate-500">Persetujuan terintegrasi dari Ketua Umum dan pencairan via Bendahara</p>
                  </div>
                </div>
-               <table className="w-full text-sm">
-                 <thead className="bg-slate-50 border-b border-slate-100">
-                   <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                     <th className="px-6 py-4">Judul Proposal</th>
-                     <th className="px-6 py-4">Pengaju (Seksi)</th>
-                     <th className="px-6 py-4">Anggaran</th>
-                     <th className="px-6 py-4">Status</th>
-                     <th className="px-6 py-4">Aksi</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-slate-100">
-                   {proposals.length === 0 ? (
-                     <tr>
-                       <td colSpan={5} className="px-6 py-8 text-center text-slate-400 font-bold">
-                         Belum ada pengajuan proposal.
-                       </td>
-                     </tr>
-                   ) : (
-                     proposals.map((item) => (
-                       <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                         <td className="px-6 py-4 font-bold text-slate-800 flex items-center gap-2">
-                           <FileText className="w-4 h-4 text-slate-400" /> {item.name}
-                         </td>
-                         <td className="px-6 py-4 text-slate-600">{item.sender_receiver}</td>
-                         <td className="px-6 py-4 font-mono font-bold text-slate-700">{item.doc_number}</td>
-                         <td className="px-6 py-4">
-                            <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                              item.flow_type === 'Diajukan' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
-                            }`}>
-                              {item.flow_type}
-                            </span>
-                         </td>
-                         <td className="px-6 py-4">
-                           {item.url && (
-                             <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-emerald-600 text-xs font-bold hover:underline">
-                               Unduh Berkas
-                             </a>
-                           )}
-                         </td>
-                       </tr>
-                     ))
-                   )}
-                 </tbody>
-               </table>
+               <div className="p-4">
+                  <DataTable
+                     data={proposals}
+                     columns={[
+                        {
+                           header: "Judul Proposal",
+                           render: (item: any) => (
+                              <span className="font-bold text-slate-800 flex items-center gap-2">
+                                 <FileText className="w-4 h-4 text-slate-400" /> {item.name}
+                              </span>
+                           )
+                        },
+                        {
+                           header: "Pengaju (Seksi)",
+                           render: (item: any) => <span className="text-slate-600">{item.sender_receiver}</span>
+                        },
+                        {
+                           header: "Anggaran",
+                           render: (item: any) => <span className="font-mono font-bold text-slate-700">{item.doc_number}</span>
+                        },
+                        {
+                           header: "Status",
+                           render: (item: any) => (
+                              <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                                 item.flow_type === 'Diajukan' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+                              }`}>
+                                 {item.flow_type}
+                              </span>
+                           )
+                        },
+                        {
+                           header: "Aksi",
+                           render: (item: any) => (
+                              item.url ? (
+                                 <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-emerald-600 text-xs font-bold hover:underline">
+                                    Unduh Berkas
+                                 </a>
+                              ) : null
+                           )
+                        }
+                     ]}
+                     sortOptions={[
+                        { label: "Terbaru", value: "date-desc", sortFn: (a: any, b: any) => new Date(b.doc_date || "").getTime() - new Date(a.doc_date || "").getTime() },
+                        { label: "Terlama", value: "date-asc", sortFn: (a: any, b: any) => new Date(a.doc_date || "").getTime() - new Date(b.doc_date || "").getTime() }
+                     ]}
+                     defaultSortValue="date-desc"
+                     emptyMessage="Belum ada pengajuan proposal."
+                  />
+               </div>
             </div>
 
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm self-start">

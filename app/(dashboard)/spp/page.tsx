@@ -9,6 +9,7 @@ import {
 import { useToast } from "@/components/Toast";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 interface SantriSPP {
   id: number;
@@ -354,113 +355,95 @@ export default function SPPPage() {
               </div>
            </div>
 
-           <div className="overflow-x-auto">
-             <table className="w-full">
-                <thead>
-                   <tr className="bg-slate-50/30 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                      <th className="px-8 py-5 text-left">Foto & Profil</th>
-                      <th className="px-8 py-5 text-left">Status & Madrasah</th>
-                      <th className="px-8 py-5 text-center">Periode {selectedPeriod}</th>
-                      <th className="px-8 py-5 text-right">Aksi Pembayaran</th>
-                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                    {loading ? (
-                       Array(5).fill(0).map((_, i) => (
-                         <tr key={i} className="animate-pulse">
-                           <td colSpan={4} className="px-8 py-10"><div className="h-12 bg-slate-50 rounded-2xl w-full" /></td>
-                         </tr>
-                       ))
-                    ) : error ? (
-                       <tr>
-                         <td colSpan={4} className="px-8 py-20 text-center">
-                            <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4 animate-bounce" />
-                            <p className="text-slate-500 font-black text-sm uppercase">{error}</p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Periksa koneksi database atau coba lagi</p>
-                            <button 
-                              onClick={fetchSPPDataForce}
-                              className="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-black uppercase shadow-lg shadow-indigo-100 transition-all active:scale-95"
-                            >
-                              Coba Lagi
-                            </button>
-                         </td>
-                       </tr>
-                    ) : filteredData.length === 0 ? (
-                       <tr>
-                         <td colSpan={4} className="px-8 py-32 text-center">
-                            <Receipt className="w-16 h-16 text-slate-100 mx-auto mb-4" />
-                            <p className="text-slate-400 font-bold">Data tidak ditemukan</p>
-                         </td>
-                       </tr>
-                    ) : (
-                      filteredData.map(s => (
-                        <tr key={s.id} className="hover:bg-slate-50/50 transition-colors group">
-                           <td className="px-8 py-6">
-                              <div className="flex items-center gap-4">
-                                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs shadow-inner">
-                                    <User className="w-6 h-6" />
-                                 </div>
-                                 <div>
-                                    <p className="text-sm font-black text-slate-800 group-hover:text-indigo-600 transition-colors uppercase">{s.name}</p>
-                                    <p className="text-[10px] font-mono text-slate-400 mt-1">{s.nisn}</p>
-                                 </div>
-                              </div>
-                           </td>
-                           <td className="px-8 py-6">
-                              <div className="flex flex-col gap-1">
-                                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg w-fit ${
-                                   s.santri_status === 'Biasa' ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-600'
-                                 }`}>
-                                   {s.santri_status}
-                                 </span>
-                                 <span className="text-xs font-bold text-slate-600">{s.kelas}</span>
-                              </div>
-                           </td>
-                           <td className="px-8 py-6">
-                              <div className="flex justify-center">
-                                 {s.payment_status === 'Lunas' ? (
-                                    <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full border border-emerald-100 animate-in zoom-in-95">
-                                       <Check className="w-3.5 h-3.5" />
-                                       <div className="flex flex-col">
-                                          <span className="text-[10px] font-black uppercase">LUNAS</span>
-                                          <span className="text-[8px] font-bold opacity-70">
-                                            {formatIDR(s.amount!)} • {new Date(s.paid_at!).toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
-                                          </span>
-                                       </div>
-                                    </div>
-                                 ) : (
-                                    <div className="flex items-center gap-2 bg-rose-50 text-rose-500 px-4 py-1.5 rounded-full border border-rose-100">
-                                       <AlertCircle className="w-3.5 h-3.5" />
-                                       <span className="text-[10px] font-black uppercase tracking-wider">BELUM BAYAR</span>
-                                    </div>
-                                 )}
-                              </div>
-                           </td>
-                           <td className="px-8 py-6 text-right">
-                              {s.payment_status === 'Lunas' ? (
-                                 <button disabled className="p-3 bg-slate-50 text-slate-300 rounded-2xl cursor-not-allowed border border-slate-100">
-                                    <Receipt className="w-5 h-5" />
-                                 </button>
-                              ) : (
-                                 <button
-                                   onClick={() => handlePay(s)}
-                                   disabled={isProcessing === s.id}
-                                   className="relative px-6 py-2.5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-2xl text-xs font-black transition-all group overflow-hidden active:scale-95 shadow-lg shadow-indigo-100"
-                                 >
-                                   {isProcessing === s.id ? (
-                                     <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                                   ) : (
-                                     <span className="flex items-center gap-2">Bayar Sekarang <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" /></span>
-                                   )}
-                                 </button>
-                              )}
-                           </td>
-                        </tr>
-                      ))
-                   )}
-                </tbody>
-             </table>
+           <div className="p-4">
+              <DataTable 
+                data={filteredData}
+                columns={[
+                  {
+                    header: "Foto & Profil",
+                    render: (s: SantriSPP) => (
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xs shadow-inner shrink-0">
+                            <User className="w-6 h-6" />
+                         </div>
+                         <div>
+                            <p className="text-sm font-black text-slate-800 group-hover:text-indigo-600 transition-colors uppercase">{s.name}</p>
+                            <p className="text-[10px] font-mono text-slate-400 mt-1">{s.nisn}</p>
+                         </div>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Status & Madrasah",
+                    render: (s: SantriSPP) => (
+                      <div className="flex flex-col gap-1">
+                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg w-fit ${
+                           s.santri_status === 'Biasa' ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-600'
+                         }`}>
+                           {s.santri_status}
+                         </span>
+                         <span className="text-xs font-bold text-slate-600">{s.kelas}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    header: `Periode ${selectedPeriod}`,
+                    render: (s: SantriSPP) => (
+                      <div className="flex justify-center">
+                         {s.payment_status === 'Lunas' ? (
+                            <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full border border-emerald-100 animate-in zoom-in-95">
+                               <Check className="w-3.5 h-3.5" />
+                               <div className="flex flex-col">
+                                  <span className="text-[10px] font-black uppercase">LUNAS</span>
+                                  <span className="text-[8px] font-bold opacity-70">
+                                    {formatIDR(s.amount!)} • {new Date(s.paid_at!).toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
+                                  </span>
+                               </div>
+                            </div>
+                         ) : (
+                            <div className="flex items-center gap-2 bg-rose-50 text-rose-500 px-4 py-1.5 rounded-full border border-rose-100">
+                               <AlertCircle className="w-3.5 h-3.5" />
+                               <span className="text-[10px] font-black uppercase tracking-wider">BELUM BAYAR</span>
+                            </div>
+                         )}
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Aksi Pembayaran",
+                    render: (s: SantriSPP) => (
+                      <div className="flex justify-end">
+                        {s.payment_status === 'Lunas' ? (
+                           <button disabled className="p-3 bg-slate-50 text-slate-300 rounded-2xl cursor-not-allowed border border-slate-100">
+                              <Receipt className="w-5 h-5" />
+                           </button>
+                        ) : (
+                           <button
+                             onClick={(e) => { e.stopPropagation(); handlePay(s); }}
+                             disabled={isProcessing === s.id}
+                             className="relative px-6 py-2.5 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-2xl text-xs font-black transition-all group overflow-hidden active:scale-95 shadow-lg shadow-indigo-100"
+                           >
+                             {isProcessing === s.id ? (
+                               <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                             ) : (
+                               <span className="flex items-center gap-2">Bayar Sekarang <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" /></span>
+                             )}
+                           </button>
+                        )}
+                      </div>
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Abjad (A-Z)", value: "name-asc", sortFn: (a: SantriSPP, b: SantriSPP) => a.name.localeCompare(b.name) },
+                  { label: "Abjad (Z-A)", value: "name-desc", sortFn: (a: SantriSPP, b: SantriSPP) => b.name.localeCompare(a.name) }
+                ]}
+                defaultSortValue="name-asc"
+                loading={loading}
+                emptyMessage="Data santri tidak ditemukan"
+              />
            </div>
+
            
            <div className="p-6 bg-slate-50/50 border-t border-slate-100 text-[11px] font-bold text-slate-400 italic text-center">
               Total {filteredData.length} santri aktif terdaftar untuk tahun ajaran {academicYear}

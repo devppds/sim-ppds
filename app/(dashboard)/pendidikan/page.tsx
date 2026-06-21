@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 import SearchableSantriSelect from "@/components/SearchableSantriSelect";
 
 interface Santri {
@@ -518,38 +519,49 @@ export default function PendidikanPage() {
                   Tidak ada data izin sekolah
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Santri</th>
-                      <th className="px-6 py-4">Madrasah & Keperluan</th>
-                      <th className="px-6 py-4">Durasi Tanggal</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Aksi Persetujuan</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredIzinList.map((izin) => (
-                      <tr key={izin.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
+                <DataTable
+                  data={filteredIzinList}
+                  columns={[
+                    {
+                      header: "Santri",
+                      render: (izin: IzinSekolah) => (
+                        <div>
                           <div className="font-bold text-slate-800">{izin.santri_name}</div>
                           <div className="text-xs text-slate-400 mt-1">NISN: {izin.santri_nisn} | {izin.santri_kelas}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-700 font-semibold">{izin.keperluan}</td>
-                        <td className="px-6 py-4 text-slate-600">
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Madrasah & Keperluan",
+                      render: (izin: IzinSekolah) => (
+                        <div className="text-slate-700 font-semibold">{izin.keperluan}</div>
+                      )
+                    },
+                    {
+                      header: "Durasi Tanggal",
+                      render: (izin: IzinSekolah) => (
+                        <div className="text-slate-600">
                           <div>Mulai: {izin.tgl_mulai}</div>
                           <div className="text-xs text-rose-500 font-semibold mt-0.5">Hingga: {izin.tgl_kembali}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                            izin.status === "Diajukan" ? "bg-amber-50 text-amber-600" :
-                            izin.status === "Disetujui" ? "bg-emerald-50 text-emerald-600" :
-                            "bg-rose-50 text-rose-600"
-                          }`}>
-                            {izin.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Status",
+                      render: (izin: IzinSekolah) => (
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                          izin.status === "Diajukan" ? "bg-amber-50 text-amber-600" :
+                          izin.status === "Disetujui" ? "bg-emerald-50 text-emerald-600" :
+                          "bg-rose-50 text-rose-600"
+                        }`}>
+                          {izin.status}
+                        </span>
+                      )
+                    },
+                    {
+                      header: "Aksi Persetujuan",
+                      render: (izin: IzinSekolah) => (
+                        <>
                           {izin.status === "Diajukan" && (
                             <div className="flex gap-2">
                               <button onClick={() => handleUpdateIzinStatus(izin.id, "Disetujui")} className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-emerald-700 transition-all flex items-center gap-1">
@@ -563,11 +575,18 @@ export default function PendidikanPage() {
                           {izin.status !== "Diajukan" && (
                             <span className="text-xs text-slate-400">Sudah Diproses</span>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </>
+                      )
+                    }
+                  ]}
+                  sortOptions={[
+                    { label: "Mulai (Terdekat)", value: "mulai-asc", sortFn: (a: IzinSekolah, b: IzinSekolah) => new Date(a.tgl_mulai).getTime() - new Date(b.tgl_mulai).getTime() },
+                    { label: "Mulai (Terjauh)", value: "mulai-desc", sortFn: (a: IzinSekolah, b: IzinSekolah) => new Date(b.tgl_mulai).getTime() - new Date(a.tgl_mulai).getTime() }
+                  ]}
+                  defaultSortValue="mulai-asc"
+                  loading={loading}
+                  emptyMessage="Tidak ada data izin sekolah"
+                />
               )}
             </div>
           </div>
@@ -660,41 +679,63 @@ export default function PendidikanPage() {
                   Tidak ada data santri pulang
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Nama / Kelas</th>
-                      <th className="px-6 py-4">Asrama</th>
-                      <th className="px-6 py-4">Keperluan</th>
-                      <th className="px-6 py-4">Tanggal Mulai</th>
-                      <th className="px-6 py-4">Batas Kembali</th>
-                      <th className="px-6 py-4">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredIzinPulangList.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
+                <DataTable
+                  data={filteredIzinPulangList}
+                  columns={[
+                    {
+                      header: "Nama / Kelas",
+                      render: (p: any) => (
+                        <div>
                           <div className="font-bold text-slate-800">{p.santri_name}</div>
                           <div className="text-xs text-slate-400 mt-1">{p.santri_kelas}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-700 font-semibold">{p.santri_asrama || "-"}</td>
-                        <td className="px-6 py-4 text-slate-600">{p.keperluan}</td>
-                        <td className="px-6 py-4 text-slate-500">{p.tgl_mulai}</td>
-                        <td className="px-6 py-4 font-semibold text-rose-500">{p.tgl_kembali}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                            p.status === "Keluar" ? "bg-rose-50 text-rose-600" :
-                            p.status === "Kembali" ? "bg-emerald-50 text-emerald-600" :
-                            "bg-slate-100 text-slate-500"
-                          }`}>
-                            {p.status === "Keluar" ? "Sedang Pulang" : p.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Asrama",
+                      render: (p: any) => (
+                        <div className="text-slate-700 font-semibold">{p.santri_asrama || "-"}</div>
+                      )
+                    },
+                    {
+                      header: "Keperluan",
+                      render: (p: any) => (
+                        <div className="text-slate-600">{p.keperluan}</div>
+                      )
+                    },
+                    {
+                      header: "Tanggal Mulai",
+                      render: (p: any) => (
+                        <div className="text-slate-500">{p.tgl_mulai}</div>
+                      )
+                    },
+                    {
+                      header: "Batas Kembali",
+                      render: (p: any) => (
+                        <div className="font-semibold text-rose-500">{p.tgl_kembali}</div>
+                      )
+                    },
+                    {
+                      header: "Status",
+                      render: (p: any) => (
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                          p.status === "Keluar" ? "bg-rose-50 text-rose-600" :
+                          p.status === "Kembali" ? "bg-emerald-50 text-emerald-600" :
+                          "bg-slate-100 text-slate-500"
+                        }`}>
+                          {p.status === "Keluar" ? "Sedang Pulang" : p.status}
+                        </span>
+                      )
+                    }
+                  ]}
+                  sortOptions={[
+                    { label: "Mulai (Terdekat)", value: "mulai-asc", sortFn: (a: any, b: any) => new Date(a.tgl_mulai).getTime() - new Date(b.tgl_mulai).getTime() },
+                    { label: "Mulai (Terjauh)", value: "mulai-desc", sortFn: (a: any, b: any) => new Date(b.tgl_mulai).getTime() - new Date(a.tgl_mulai).getTime() }
+                  ]}
+                  defaultSortValue="mulai-asc"
+                  loading={loadingPulang}
+                  emptyMessage="Tidak ada data santri pulang"
+                />
               )}
             </div>
           </div>

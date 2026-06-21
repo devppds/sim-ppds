@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { FolderKanban, Users, Mail, CheckCircle, Clock, FileText, Download, Plus, Send } from "lucide-react";
+import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
 import AddArsipModal from "@/components/AddArsipModal";
@@ -201,56 +202,62 @@ export default function SekretariatPage() {
                  <Plus className="w-4 h-4" /> Buat Draft Surat
                </button>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-               <table className="w-full text-sm">
-                 <thead className="bg-slate-50 border-b border-slate-100">
-                   <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                     <th className="px-6 py-4">Nomor / Judul</th>
-                     <th className="px-6 py-4">Tujuan / Asal</th>
-                     <th className="px-6 py-4">Tanggal</th>
-                     <th className="px-6 py-4">Aliran</th>
-                     <th className="px-6 py-4">Aksi</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-slate-100">
-                   {documents.length === 0 ? (
-                     <tr>
-                       <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold">
-                         Belum ada draft surat tercatat.
-                       </td>
-                     </tr>
-                   ) : (
-                     documents.map((doc) => (
-                       <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors">
-                         <td className="px-6 py-4">
-                           <div className="font-bold text-slate-800">{doc.name}</div>
-                           <div className="text-xs text-slate-400 mt-1">{doc.doc_number || "Tanpa Nomor"}</div>
-                         </td>
-                         <td className="px-6 py-4 text-slate-600">{doc.sender_receiver || "-"}</td>
-                         <td className="px-6 py-4 text-slate-600">
-                           {doc.doc_date ? new Date(doc.doc_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}
-                         </td>
-                         <td className="px-6 py-4">
-                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                             doc.flow_type === 'Keluar' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
-                           }`}>
-                             <Clock className="w-3.5 h-3.5" /> {doc.flow_type === 'Keluar' ? 'Surat Keluar' : 'Surat Masuk'}
-                           </span>
-                         </td>
-                         <td className="px-6 py-4">
-                           {doc.url ? (
-                             <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 text-xs font-bold hover:underline">
-                               Lihat Dokumen
-                             </a>
-                           ) : (
-                             <span className="text-slate-400 text-xs">-</span>
-                           )}
-                         </td>
-                       </tr>
-                     ))
-                   )}
-                 </tbody>
-               </table>
+            <div className="p-4">
+              <DataTable
+                data={documents}
+                columns={[
+                  {
+                    header: "Nomor / Judul",
+                    render: (doc: any) => (
+                      <>
+                        <div className="font-bold text-slate-800">{doc.name}</div>
+                        <div className="text-xs text-slate-400 mt-1">{doc.doc_number || "Tanpa Nomor"}</div>
+                      </>
+                    )
+                  },
+                  {
+                    header: "Tujuan / Asal",
+                    render: (doc: any) => <span className="text-slate-600">{doc.sender_receiver || "-"}</span>
+                  },
+                  {
+                    header: "Tanggal",
+                    render: (doc: any) => (
+                      <span className="text-slate-600">
+                        {doc.doc_date ? new Date(doc.doc_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}
+                      </span>
+                    )
+                  },
+                  {
+                    header: "Aliran",
+                    render: (doc: any) => (
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                        doc.flow_type === 'Keluar' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+                      }`}>
+                        <Clock className="w-3.5 h-3.5" /> {doc.flow_type === 'Keluar' ? 'Surat Keluar' : 'Surat Masuk'}
+                      </span>
+                    )
+                  },
+                  {
+                    header: "Aksi",
+                    render: (doc: any) => (
+                      doc.url ? (
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 text-xs font-bold hover:underline">
+                          Lihat Dokumen
+                        </a>
+                      ) : (
+                        <span className="text-slate-400 text-xs">-</span>
+                      )
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Terbaru", value: "date-desc", sortFn: (a: any, b: any) => new Date(b.doc_date || "").getTime() - new Date(a.doc_date || "").getTime() },
+                  { label: "Terlama", value: "date-asc", sortFn: (a: any, b: any) => new Date(a.doc_date || "").getTime() - new Date(b.doc_date || "").getTime() }
+                ]}
+                defaultSortValue="date-desc"
+                loading={false}
+                emptyMessage="Belum ada draft surat tercatat."
+              />
             </div>
           </div>
         )}
@@ -278,48 +285,46 @@ export default function SekretariatPage() {
                 </div>
              </div>
              
-             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                   <h3 className="font-bold text-slate-800 text-sm">Riwayat Absensi Pengurus (Hari Ini)</h3>
-                </div>
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                      <th className="px-6 py-4">Nama Pengurus</th>
-                      <th className="px-6 py-4">Peran / Kelas</th>
-                      <th className="px-6 py-4">Tanggal</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Keterangan</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {absensiLogs.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold">
-                          Belum ada data absensi tercatat hari ini.
-                        </td>
-                      </tr>
-                    ) : (
-                      absensiLogs.map((log) => (
-                        <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 font-bold text-slate-800">{log.nama}</td>
-                          <td className="px-6 py-4 text-slate-600">{log.peran} ({log.kelas})</td>
-                          <td className="px-6 py-4 text-slate-500 font-bold">{log.tanggal}</td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
-                              log.status.toLowerCase() === 'hadir' ? 'bg-emerald-100 text-emerald-700' :
-                              log.status.toLowerCase() === 'izin' || log.status.toLowerCase() === 'sakit' ? 'bg-amber-100 text-amber-700' :
-                              'bg-rose-100 text-rose-700'
-                            }`}>
-                              {log.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-slate-500 text-xs">{log.keterangan || "-"}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+             <div className="p-4">
+                <DataTable
+                  data={absensiLogs}
+                  columns={[
+                    {
+                      header: "Nama Pengurus",
+                      render: (log: any) => <span className="font-bold text-slate-800">{log.nama}</span>
+                    },
+                    {
+                      header: "Peran / Kelas",
+                      render: (log: any) => <span className="text-slate-600">{log.peran} ({log.kelas})</span>
+                    },
+                    {
+                      header: "Tanggal",
+                      render: (log: any) => <span className="text-slate-500 font-bold">{log.tanggal}</span>
+                    },
+                    {
+                      header: "Status",
+                      render: (log: any) => (
+                        <span className={`inline-flex px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                          log.status.toLowerCase() === 'hadir' ? 'bg-emerald-100 text-emerald-700' :
+                          log.status.toLowerCase() === 'izin' || log.status.toLowerCase() === 'sakit' ? 'bg-amber-100 text-amber-700' :
+                          'bg-rose-100 text-rose-700'
+                        }`}>
+                          {log.status}
+                        </span>
+                      )
+                    },
+                    {
+                      header: "Keterangan",
+                      render: (log: any) => <span className="text-slate-500 text-xs">{log.keterangan || "-"}</span>
+                    }
+                  ]}
+                  sortOptions={[
+                    { label: "Terbaru", value: "date-desc", sortFn: (a: any, b: any) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime() },
+                    { label: "Terlama", value: "date-asc", sortFn: (a: any, b: any) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime() }
+                  ]}
+                  defaultSortValue="date-desc"
+                  emptyMessage="Belum ada data absensi tercatat hari ini."
+                />
              </div>
           </div>
         )}

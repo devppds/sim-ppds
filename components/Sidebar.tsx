@@ -152,7 +152,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       return true; 
     }
     if (module === 'PUSAT_KONTROL') {
-      return level === 'ROOT' || role === 'MUDIR' || role.includes('SUPER'); 
+      return level === 'ROOT' || level === 'SEKRETARIAT' || role.includes('SEKRETARIS') || role.includes('SEKRETARIAT') || role === 'DEVELOPER'; 
     }
     if (module === 'OPERASIONAL') {
       return level === 'STAFF' || level === 'SEKRETARIAT' || level === 'VIEW_ALL' || level === 'ROOT' || level === 'OPERASIONAL' ||

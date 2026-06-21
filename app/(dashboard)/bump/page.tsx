@@ -6,6 +6,7 @@ import {
   ShoppingCart, Store, PackageOpen, FileSpreadsheet, Plus, 
   Search, Trash2, DollarSign, Loader2, RefreshCw, Box, ArrowUpRight, TrendingUp
 } from "lucide-react";
+import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
 
@@ -470,40 +471,56 @@ export default function BumpPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-100">
-                  <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                    <th className="px-6 py-4">SKU / Nama Barang</th>
-                    <th className="px-6 py-4">Kategori</th>
-                    <th className="px-6 py-4">Harga Beli (Modal)</th>
-                    <th className="px-6 py-4">Harga Jual (Retail)</th>
-                    <th className="px-6 py-4">Margin Untung</th>
-                    <th className="px-6 py-4">Sisa Stok</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4">
+            <div className="p-4">
+              <DataTable
+                data={filteredProducts}
+                columns={[
+                  {
+                    header: "SKU / Nama Barang",
+                    render: (p: Product) => (
+                      <>
                         <div className="font-bold text-slate-800">{p.nama_barang}</div>
                         <div className="text-xs text-slate-400 mt-1 font-mono">{p.sku}</div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">{p.kategori}</td>
-                      <td className="px-6 py-4 text-slate-600">{formatIDR(p.harga_beli)}</td>
-                      <td className="px-6 py-4 text-emerald-600 font-bold">{formatIDR(p.harga_jual)}</td>
-                      <td className="px-6 py-4 text-blue-600 font-semibold">{formatIDR(p.harga_jual - p.harga_beli)}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
-                          p.stok < 10 ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
-                        }`}>
-                          {p.stok} pcs
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </>
+                    )
+                  },
+                  {
+                    header: "Kategori",
+                    render: (p: Product) => <span className="text-slate-600">{p.kategori}</span>
+                  },
+                  {
+                    header: "Harga Beli (Modal)",
+                    render: (p: Product) => <span className="text-slate-600">{formatIDR(p.harga_beli)}</span>
+                  },
+                  {
+                    header: "Harga Jual (Retail)",
+                    render: (p: Product) => <span className="text-emerald-600 font-bold">{formatIDR(p.harga_jual)}</span>
+                  },
+                  {
+                    header: "Margin Untung",
+                    render: (p: Product) => <span className="text-blue-600 font-semibold">{formatIDR(p.harga_jual - p.harga_beli)}</span>
+                  },
+                  {
+                    header: "Sisa Stok",
+                    render: (p: Product) => (
+                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
+                        p.stok < 10 ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
+                      }`}>
+                        {p.stok} pcs
+                      </span>
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Stok Terbanyak", value: "stok-desc", sortFn: (a: Product, b: Product) => b.stok - a.stok },
+                  { label: "Stok Sedikit", value: "stok-asc", sortFn: (a: Product, b: Product) => a.stok - b.stok },
+                  { label: "Harga Termurah", value: "harga-asc", sortFn: (a: Product, b: Product) => a.harga_jual - b.harga_jual },
+                  { label: "Harga Termahal", value: "harga-desc", sortFn: (a: Product, b: Product) => b.harga_jual - a.harga_jual }
+                ]}
+                defaultSortValue="stok-desc"
+                loading={loading}
+                emptyMessage="Tidak ada data inventori."
+              />
             </div>
           </div>
         )}
@@ -524,35 +541,45 @@ export default function BumpPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-100">
-                  <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                    <th className="px-6 py-4">Invoice / ID Penjualan</th>
-                    <th className="px-6 py-4">Metode Pembayaran</th>
-                    <th className="px-6 py-4">Jumlah Item</th>
-                    <th className="px-6 py-4">Total Uang Penjualan</th>
-                    <th className="px-6 py-4">Tanggal Transaksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredSales.map((s) => (
-                    <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-mono font-bold text-slate-800">{s.sales_number}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
-                          s.metode_bayar === "Cashless" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-700"
-                        }`}>
-                          {s.metode_bayar}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">{s.total_items || 1} pcs</td>
-                      <td className="px-6 py-4 text-emerald-600 font-black">{formatIDR(s.total_amount)}</td>
-                      <td className="px-6 py-4 text-slate-400 text-xs">{s.created_at}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="p-4">
+              <DataTable
+                data={filteredSales}
+                columns={[
+                  {
+                    header: "Invoice / ID Penjualan",
+                    render: (s: SaleRecord) => <span className="font-mono font-bold text-slate-800">{s.sales_number}</span>
+                  },
+                  {
+                    header: "Metode Pembayaran",
+                    render: (s: SaleRecord) => (
+                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
+                        s.metode_bayar === "Cashless" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {s.metode_bayar}
+                      </span>
+                    )
+                  },
+                  {
+                    header: "Jumlah Item",
+                    render: (s: SaleRecord) => <span className="text-slate-600">{s.total_items || 1} pcs</span>
+                  },
+                  {
+                    header: "Total Uang Penjualan",
+                    render: (s: SaleRecord) => <span className="text-emerald-600 font-black">{formatIDR(s.total_amount)}</span>
+                  },
+                  {
+                    header: "Tanggal Transaksi",
+                    render: (s: SaleRecord) => <span className="text-slate-400 text-xs">{s.created_at}</span>
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Terbaru", value: "date-desc", sortFn: (a: SaleRecord, b: SaleRecord) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime() },
+                  { label: "Terlama", value: "date-asc", sortFn: (a: SaleRecord, b: SaleRecord) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime() }
+                ]}
+                defaultSortValue="date-desc"
+                loading={loading}
+                emptyMessage="Tidak ada transaksi."
+              />
             </div>
           </div>
         )}

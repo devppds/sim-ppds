@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { CreditCard, Store, ShoppingBag, ArrowUpRight, Download, Search, CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 export default function CashlessPage() {
   const [activeTab, setActiveTab] = useState<"cashless" | "unit">("cashless");
@@ -169,53 +170,63 @@ export default function CashlessPage() {
                           <input type="text" placeholder="Cari NISN atau Nama..." className="bg-transparent text-sm outline-none w-full" />
                       </div>
                   </div>
-                  <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                          <thead className="bg-slate-50 border-b border-slate-100">
-                              <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                                  <th className="px-6 py-4">Waktu</th>
-                                  <th className="px-6 py-4">Keterangan</th>
-                                  <th className="px-6 py-4">Kategori / Merchant</th>
-                                  <th className="px-6 py-4">Jenis</th>
-                                  <th className="px-6 py-4 text-right">Nominal</th>
-                              </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100">
-                              {loading ? (
-                                <tr>
-                                  <td colSpan={5} className="px-6 py-8 text-center text-slate-400 font-bold">Memuat transaksi...</td>
-                                </tr>
-                              ) : cashlessHistory.length === 0 ? (
-                                <tr>
-                                  <td colSpan={5} className="px-6 py-8 text-center text-slate-400 font-bold">Belum ada riwayat transaksi kartu cashless.</td>
-                                </tr>
-                              ) : (
-                                cashlessHistory.map((t, i) => (
-                                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                                      <td className="px-6 py-4 text-slate-500 font-bold">
-                                        {new Date(t.date).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
-                                      </td>
-                                      <td className="px-6 py-4">
-                                          <div className="font-bold text-slate-800">{t.description || "Transaksi Santri"}</div>
-                                          <div className="text-xs text-slate-400 font-mono">ID Santri: {t.santri_id || "-"}</div>
-                                      </td>
-                                      <td className="px-6 py-4 text-slate-600 font-bold flex items-center gap-2">
-                                          <Store className="w-4 h-4 text-slate-400" /> {t.category}
-                                      </td>
-                                      <td className="px-6 py-4">
-                                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${t.type === 'Pemasukan' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                              {t.type === 'Pemasukan' ? 'Top-Up' : 'Pembayaran'}
-                                          </span>
-                                      </td>
-                                      <td className={`px-6 py-4 text-right font-black font-mono ${t.type === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                          {t.type === 'Pemasukan' ? '+' : '-'} Rp {Number(t.amount).toLocaleString("id-ID")}
-                                      </td>
-                                  </tr>
-                                ))
-                              )}
-                          </tbody>
-                      </table>
+                  
+                  <div className="p-4">
+                      <DataTable 
+                        data={cashlessHistory}
+                        columns={[
+                          {
+                            header: "Waktu",
+                            render: (t: any) => (
+                              <div className="text-slate-500 font-bold">
+                                {new Date(t.date).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                              </div>
+                            )
+                          },
+                          {
+                            header: "Keterangan",
+                            render: (t: any) => (
+                              <div>
+                                <div className="font-bold text-slate-800">{t.description || "Transaksi Santri"}</div>
+                                <div className="text-xs text-slate-400 font-mono">ID Santri: {t.santri_id || "-"}</div>
+                              </div>
+                            )
+                          },
+                          {
+                            header: "Kategori / Merchant",
+                            render: (t: any) => (
+                              <div className="text-slate-600 font-bold flex items-center gap-2">
+                                <Store className="w-4 h-4 text-slate-400" /> {t.category}
+                              </div>
+                            )
+                          },
+                          {
+                            header: "Jenis",
+                            render: (t: any) => (
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${t.type === 'Pemasukan' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                  {t.type === 'Pemasukan' ? 'Top-Up' : 'Pembayaran'}
+                              </span>
+                            )
+                          },
+                          {
+                            header: "Nominal",
+                            render: (t: any) => (
+                              <div className={`flex justify-end font-black font-mono ${t.type === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {t.type === 'Pemasukan' ? '+' : '-'} Rp {Number(t.amount).toLocaleString("id-ID")}
+                              </div>
+                            )
+                          }
+                        ]}
+                        sortOptions={[
+                          { label: "Terbaru", value: "date-desc", sortFn: (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime() },
+                          { label: "Terlama", value: "date-asc", sortFn: (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime() }
+                        ]}
+                        defaultSortValue="date-desc"
+                        loading={loading}
+                        emptyMessage="Belum ada riwayat transaksi kartu cashless."
+                      />
                   </div>
+
               </div>
           </div>
         )}
@@ -246,40 +257,55 @@ export default function CashlessPage() {
                           </div>
                       ))}
                   </div>
-                  <table className="w-full text-sm">
-                      <thead className="bg-white border-b border-slate-100">
-                          <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                              <th className="px-6 py-4">Tanggal</th>
-                              <th className="px-6 py-4">Nomor Invoice</th>
-                              <th className="px-6 py-4">Metode Bayar / Detail</th>
-                              <th className="px-6 py-4">Nominal</th>
-                              <th className="px-6 py-4">Status</th>
-                          </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50">
-                          {salesReport.length === 0 ? (
-                            <tr>
-                              <td colSpan={5} className="px-6 py-8 text-center text-slate-400 font-bold">Belum ada setoran unit usaha (BUMP).</td>
-                            </tr>
-                          ) : (
-                            salesReport.map((s, i) => (
-                              <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                  <td className="px-6 py-4 font-bold text-slate-500">
-                                    {s.created_at ? new Date(s.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
-                                  </td>
-                                  <td className="px-6 py-4 font-bold text-slate-800">{s.sales_number}</td>
-                                  <td className="px-6 py-4 text-slate-600">{s.metode_bayar} ({s.total_items || 0} barang)</td>
-                                  <td className="px-6 py-4 font-mono font-black text-emerald-600">Rp {Number(s.total_amount).toLocaleString("id-ID")}</td>
-                                  <td className="px-6 py-4">
-                                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-black uppercase bg-emerald-50 text-emerald-600`}>
-                                          <CheckCircle className="w-3 h-3" /> Diterima
-                                      </span>
-                                  </td>
-                              </tr>
-                            ))
-                          )}
-                      </tbody>
-                  </table>
+                  
+                  <div className="p-4">
+                      <DataTable 
+                        data={salesReport}
+                        columns={[
+                          {
+                            header: "Tanggal",
+                            render: (s: any) => (
+                              <div className="font-bold text-slate-500">
+                                {s.created_at ? new Date(s.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
+                              </div>
+                            )
+                          },
+                          {
+                            header: "Nomor Invoice",
+                            render: (s: any) => (
+                              <div className="font-bold text-slate-800">{s.sales_number}</div>
+                            )
+                          },
+                          {
+                            header: "Metode Bayar / Detail",
+                            render: (s: any) => (
+                              <div className="text-slate-600">{s.metode_bayar} ({s.total_items || 0} barang)</div>
+                            )
+                          },
+                          {
+                            header: "Nominal",
+                            render: (s: any) => (
+                              <div className="font-mono font-black text-emerald-600 flex justify-end">Rp {Number(s.total_amount).toLocaleString("id-ID")}</div>
+                            )
+                          },
+                          {
+                            header: "Status",
+                            render: (s: any) => (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
+                                  <CheckCircle className="w-3 h-3" /> Diterima
+                              </span>
+                            )
+                          }
+                        ]}
+                        sortOptions={[
+                          { label: "Terbaru", value: "date-desc", sortFn: (a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime() },
+                          { label: "Terlama", value: "date-asc", sortFn: (a: any, b: any) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime() }
+                        ]}
+                        defaultSortValue="date-desc"
+                        emptyMessage="Belum ada setoran unit usaha (BUMP)."
+                      />
+                  </div>
+
               </div>
           </div>
         )}

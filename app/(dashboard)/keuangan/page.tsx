@@ -21,6 +21,7 @@ import {
 import AddTransactionModal from "@/components/AddTransactionModal";
 import TransactionDetailModal from "@/components/TransactionDetailModal";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
 
 interface Transaction {
@@ -309,77 +310,78 @@ export default function KeuanganPage() {
                     </button>
                 </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-50/50 text-xs text-slate-400 font-bold uppercase tracking-wider">
-                      <th className="px-6 py-4 text-left">Tanggal</th>
-                      <th className="px-6 py-4 text-left">Kategori</th>
-                      <th className="px-6 py-4 text-left w-1/3">Keterangan</th>
-                      <th className="px-6 py-4 text-center">Bukti</th>
-                      <th className="px-6 py-4 text-right">Jumlah</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {loading ? (
-                      Array(5).fill(0).map((_, i) => (
-                        <tr key={i} className="animate-pulse">
-                          <td colSpan={5} className="px-6 py-4"><div className="h-4 bg-slate-50 rounded w-full"></div></td>
-                        </tr>
-                      ))
-                    ) : filteredData.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-medium">
-                          {data.length === 0 
-                            ? (showTrashed ? 'Recycle Bin Kosong' : 'Belum ada transaksi')
-                            : 'Transaksi tidak ditemukan'}
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredData.map((t) => (
-                        <tr 
-                          key={t.id} 
-                          onClick={() => setSelectedTx(t)}
-                          className="group hover:bg-indigo-50/50 transition-colors cursor-pointer"
-                        >
-                          <td className="px-6 py-4 text-slate-500 font-bold whitespace-nowrap">
-                            {new Date(t.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${
-                              t.type === 'Pemasukan' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                            }`}>
-                              {t.category}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-slate-700 block">{t.description}</span>
-                              {t.santri_name && (
-                                <span className="inline-block mt-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 uppercase">
-                                  Santri: {t.santri_name} ({t.santri_nisn})
-                                </span>
-                              )}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            {t.proof_url ? (
-                               <div className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
-                                 Ada Bukti
-                               </div>
-                            ) : (
-                              <span className="text-[10px] font-bold text-slate-300">N/A</span>
-                            )}
-                          </td>
-                          <td className={`px-6 py-4 text-right font-black tabular-nums ${
-                            t.type === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'
-                          }`}>
-                            {t.type === 'Pemasukan' ? '+' : '-'} {formatIDR(t.amount).replace("Rp", "").trim()}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              
+              <div className="p-4">
+                 <DataTable 
+                   data={filteredData}
+                   columns={[
+                     {
+                       header: "Tanggal",
+                       render: (t: Transaction) => (
+                         <div className="text-slate-500 font-bold whitespace-nowrap">
+                           {new Date(t.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                         </div>
+                       )
+                     },
+                     {
+                       header: "Kategori",
+                       render: (t: Transaction) => (
+                         <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${
+                           t.type === 'Pemasukan' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                         }`}>
+                           {t.category}
+                         </span>
+                       )
+                     },
+                     {
+                       header: "Keterangan",
+                       render: (t: Transaction) => (
+                         <div className="flex flex-col items-start gap-1">
+                           <span className="text-sm font-bold text-slate-700 block">{t.description}</span>
+                           {t.santri_name && (
+                             <span className="inline-block mt-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 uppercase">
+                               Santri: {t.santri_name} ({t.santri_nisn})
+                             </span>
+                           )}
+                         </div>
+                       )
+                     },
+                     {
+                       header: "Bukti",
+                       render: (t: Transaction) => (
+                         <div className="flex justify-center">
+                           {t.proof_url ? (
+                              <div className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                                Ada Bukti
+                              </div>
+                           ) : (
+                             <span className="text-[10px] font-bold text-slate-300">N/A</span>
+                           )}
+                         </div>
+                       )
+                     },
+                     {
+                       header: "Jumlah",
+                       render: (t: Transaction) => (
+                         <div className={`flex justify-end font-black tabular-nums ${
+                           t.type === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'
+                         }`}>
+                           {t.type === 'Pemasukan' ? '+' : '-'} {formatIDR(t.amount).replace("Rp", "").trim()}
+                         </div>
+                       )
+                     }
+                   ]}
+                   sortOptions={[
+                     { label: "Terbaru", value: "date-desc", sortFn: (a: Transaction, b: Transaction) => new Date(b.date).getTime() - new Date(a.date).getTime() },
+                     { label: "Terlama", value: "date-asc", sortFn: (a: Transaction, b: Transaction) => new Date(a.date).getTime() - new Date(b.date).getTime() }
+                   ]}
+                   defaultSortValue="date-desc"
+                   loading={loading}
+                   emptyMessage={data.length === 0 ? (showTrashed ? 'Recycle Bin Kosong' : 'Belum ada transaksi') : 'Transaksi tidak ditemukan'}
+                   onRowClick={(t) => setSelectedTx(t)}
+                 />
               </div>
+
             </div>
           </div>
         )}
@@ -393,55 +395,61 @@ export default function KeuanganPage() {
                         <p className="text-sm text-slate-500">Daftar proposal yang telah disetujui Ketua Umum dan siap dicairkan</p>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                   <thead className="bg-slate-50 border-b border-slate-100">
-                     <tr className="text-xs text-slate-500 font-bold uppercase tracking-wider text-left">
-                       <th className="px-6 py-4">Seksi Pengaju</th>
-                       <th className="px-6 py-4">Keperluan / Judul</th>
-                       <th className="px-6 py-4">Anggaran</th>
-                       <th className="px-6 py-4">Status Approval</th>
-                       <th className="px-6 py-4">Aksi</th>
-                     </tr>
-                   </thead>
-                   <tbody className="divide-y divide-slate-100">
-                     {loadingProposals ? (
-                        Array(3).fill(0).map((_, i) => (
-                          <tr key={i} className="animate-pulse">
-                            <td colSpan={5} className="px-6 py-4"><div className="h-4 bg-slate-50 rounded w-full"></div></td>
-                          </tr>
-                        ))
-                     ) : proposals.length === 0 ? (
-                       <tr>
-                         <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-medium">
-                           Tidak ada proposal yang diajukan atau siap dicairkan
-                         </td>
-                       </tr>
-                     ) : (
-                       proposals.map((item) => (
-                         <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                           <td className="px-6 py-4 font-bold text-slate-800">{item.sender_receiver}</td>
-                           <td className="px-6 py-4 text-slate-600">{item.name}</td>
-                           <td className="px-6 py-4 font-mono font-bold text-slate-700">{item.doc_number}</td>
-                           <td className="px-6 py-4">
-                               <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
-                                 <CheckCircle className="w-3 h-3" /> Disetujui Ketua
-                               </span>
-                           </td>
-                           <td className="px-6 py-4">
+                
+                <div className="p-4">
+                   <DataTable 
+                     data={proposals}
+                     columns={[
+                       {
+                         header: "Seksi Pengaju",
+                         render: (item: any) => (
+                           <div className="font-bold text-slate-800">{item.sender_receiver}</div>
+                         )
+                       },
+                       {
+                         header: "Keperluan / Judul",
+                         render: (item: any) => (
+                           <div className="text-slate-600">{item.name}</div>
+                         )
+                       },
+                       {
+                         header: "Anggaran",
+                         render: (item: any) => (
+                           <div className="font-mono font-bold text-slate-700">{item.doc_number}</div>
+                         )
+                       },
+                       {
+                         header: "Status Approval",
+                         render: (item: any) => (
+                           <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
+                             <CheckCircle className="w-3 h-3" /> Disetujui Ketua
+                           </span>
+                         )
+                       },
+                       {
+                         header: "Aksi",
+                         render: (item: any) => (
+                           <div className="flex justify-end">
                              <button 
                                onClick={() => handleCairkan(item)}
                                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all"
                              >
                                  Cairkan Dana
                              </button>
-                           </td>
-                         </tr>
-                       ))
-                     )}
-                   </tbody>
-                 </table>
+                           </div>
+                         )
+                       }
+                     ]}
+                     sortOptions={[
+                       { label: "Seksi (A-Z)", value: "seksi-asc", sortFn: (a: any, b: any) => a.sender_receiver.localeCompare(b.sender_receiver) },
+                       { label: "Judul (A-Z)", value: "judul-asc", sortFn: (a: any, b: any) => a.name.localeCompare(b.name) }
+                     ]}
+                     defaultSortValue="seksi-asc"
+                     loading={loadingProposals}
+                     emptyMessage="Tidak ada proposal yang diajukan atau siap dicairkan"
+                   />
                 </div>
+
              </div>
           </div>
         )}
@@ -569,62 +577,84 @@ export default function KeuanganPage() {
                       </div>
                   </div>
                   
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                     <thead className="bg-slate-50/50 border-b border-slate-100 text-xs text-slate-400 font-black uppercase tracking-wider text-left">
-                       <tr>
-                         <th className="px-6 py-4">Nama Seksi / Divisi</th>
-                         <th className="px-6 py-4 text-right">Pemasukan Seksi</th>
-                         <th className="px-6 py-4 text-right">Pengeluaran Seksi</th>
-                         <th className="px-6 py-4 text-right">Saldo Terakumulasi</th>
-                         <th className="px-6 py-4 text-center">Status Laporan</th>
-                         <th className="px-6 py-4 text-center">Aksi</th>
-                       </tr>
-                     </thead>
-                     <tbody className="divide-y divide-slate-50 text-slate-700 font-bold">
-                       {aggregatedSeksi.map((item) => {
-                         const balance = item.income - item.expense;
-                         return (
-                          <tr key={item.name} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-6 py-4 font-black text-slate-800">{item.name}</td>
-                            <td className="px-6 py-4 text-right text-emerald-600 tabular-nums">
-                              {item.income > 0 ? formatIDR(item.income) : "Rp 0"}
-                            </td>
-                            <td className="px-6 py-4 text-right text-rose-600 tabular-nums">
-                              {item.expense > 0 ? formatIDR(item.expense) : "Rp 0"}
-                            </td>
-                            <td className={`px-6 py-4 text-right tabular-nums ${balance >= 0 ? "text-slate-800" : "text-rose-600"}`}>
-                              {formatIDR(balance)}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${item.statusColor}`}>
-                                  {item.status}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <button 
-                                  onClick={() => setSelectedSeksi(item.name)}
-                                  className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm flex items-center gap-1 transition-colors"
-                                >
-                                  <Eye className="w-3 h-3" /> Detail
-                                </button>
-                                {item.status === "Belum Kirim" && (
-                                  <button 
-                                    onClick={() => alert(`Pengingat laporan bulanan dikirimkan ke Penanggung Jawab ${item.name}`)}
-                                    className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm transition-colors"
-                                  >
-                                    Kirim Pengingat
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                       })}
-                     </tbody>
-                    </table>
-                   </div>
+                  
+                  <div className="p-4">
+                     <DataTable 
+                       data={aggregatedSeksi}
+                       columns={[
+                         {
+                           header: "Nama Seksi / Divisi",
+                           render: (item: any) => (
+                             <div className="font-black text-slate-800">{item.name}</div>
+                           )
+                         },
+                         {
+                           header: "Pemasukan Seksi",
+                           render: (item: any) => (
+                             <div className="text-right text-emerald-600 tabular-nums">
+                               {item.income > 0 ? formatIDR(item.income) : "Rp 0"}
+                             </div>
+                           )
+                         },
+                         {
+                           header: "Pengeluaran Seksi",
+                           render: (item: any) => (
+                             <div className="text-right text-rose-600 tabular-nums">
+                               {item.expense > 0 ? formatIDR(item.expense) : "Rp 0"}
+                             </div>
+                           )
+                         },
+                         {
+                           header: "Saldo Terakumulasi",
+                           render: (item: any) => {
+                             const balance = item.income - item.expense;
+                             return (
+                               <div className={`text-right tabular-nums ${balance >= 0 ? "text-slate-800" : "text-rose-600"}`}>
+                                 {formatIDR(balance)}
+                               </div>
+                             );
+                           }
+                         },
+                         {
+                           header: "Status Laporan",
+                           render: (item: any) => (
+                             <div className="flex justify-center">
+                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${item.statusColor}`}>
+                                 {item.status}
+                               </span>
+                             </div>
+                           )
+                         },
+                         {
+                           header: "Aksi",
+                           render: (item: any) => (
+                             <div className="flex items-center justify-center gap-2">
+                               <button 
+                                 onClick={() => setSelectedSeksi(item.name)}
+                                 className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm flex items-center gap-1 transition-colors"
+                               >
+                                 <Eye className="w-3 h-3" /> Detail
+                               </button>
+                               {item.status === "Belum Kirim" && (
+                                 <button 
+                                   onClick={() => alert(`Pengingat laporan bulanan dikirimkan ke Penanggung Jawab ${item.name}`)}
+                                   className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm transition-colors"
+                                 >
+                                   Kirim Pengingat
+                                 </button>
+                               )}
+                             </div>
+                           )
+                         }
+                       ]}
+                       sortOptions={[
+                         { label: "Nama Seksi (A-Z)", value: "name-asc", sortFn: (a: any, b: any) => a.name.localeCompare(b.name) },
+                         { label: "Nama Seksi (Z-A)", value: "name-desc", sortFn: (a: any, b: any) => b.name.localeCompare(a.name) }
+                       ]}
+                       defaultSortValue="name-asc"
+                     />
+                  </div>
+
                </div>
              </div>
           );
@@ -689,63 +719,74 @@ export default function KeuanganPage() {
                 </div>
 
                 {/* Transactions list */}
-                <div className="bg-white rounded-2xl border border-slate-150 overflow-hidden max-h-[350px] overflow-y-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-50 border-b border-slate-100 sticky top-0">
-                      <tr className="text-xs text-slate-400 font-bold uppercase tracking-wider text-left">
-                        <th className="px-6 py-3">Tanggal</th>
-                        <th className="px-6 py-3">Tipe</th>
-                        <th className="px-6 py-3 w-1/2">Keterangan</th>
-                        <th className="px-6 py-3 text-center">Bukti</th>
-                        <th className="px-6 py-3 text-right">Jumlah</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                      {seksiTxList.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold">
-                            Belum ada aktifitas transaksi untuk seksi ini.
-                          </td>
-                        </tr>
-                      ) : (
-                        seksiTxList.map((t) => (
-                          <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-6 py-3 text-slate-500 whitespace-nowrap">
-                              {new Date(t.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                            </td>
-                            <td className="px-6 py-3">
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
-                                t.type === 'Pemasukan' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                              }`}>
-                                {t.type}
-                              </span>
-                            </td>
-                            <td className="px-6 py-3 text-slate-800 font-bold">{t.description}</td>
-                            <td className="px-6 py-3 text-center">
-                              {t.proof_url ? (
-                                <a 
-                                  href={t.proof_url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:underline"
-                                >
-                                  Lihat Bukti
-                                </a>
-                              ) : (
-                                <span className="text-[10px] text-slate-300">N/A</span>
-                              )}
-                            </td>
-                            <td className={`px-6 py-3 text-right font-black tabular-nums ${
-                              t.type === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'
-                            }`}>
-                              {t.type === 'Pemasukan' ? '+' : '-'} {formatIDR(t.amount).replace("Rp", "").trim()}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                
+                  <div className="bg-white rounded-2xl border border-slate-150 overflow-hidden">
+                     <DataTable 
+                       data={seksiTxList}
+                       columns={[
+                         {
+                           header: "Tanggal",
+                           render: (t: Transaction) => (
+                             <div className="text-slate-500 whitespace-nowrap">
+                               {new Date(t.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                             </div>
+                           )
+                         },
+                         {
+                           header: "Tipe",
+                           render: (t: Transaction) => (
+                             <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                               t.type === 'Pemasukan' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                             }`}>
+                               {t.type}
+                             </span>
+                           )
+                         },
+                         {
+                           header: "Keterangan",
+                           render: (t: Transaction) => (
+                             <div className="text-slate-800 font-bold">{t.description}</div>
+                           )
+                         },
+                         {
+                           header: "Bukti",
+                           render: (t: Transaction) => (
+                             <div className="flex justify-center">
+                               {t.proof_url ? (
+                                 <a 
+                                   href={t.proof_url} 
+                                   target="_blank" 
+                                   rel="noopener noreferrer" 
+                                   className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:underline"
+                                 >
+                                   Lihat Bukti
+                                 </a>
+                               ) : (
+                                 <span className="text-[10px] text-slate-300">N/A</span>
+                               )}
+                             </div>
+                           )
+                         },
+                         {
+                           header: "Jumlah",
+                           render: (t: Transaction) => (
+                             <div className={`flex justify-end font-black tabular-nums ${
+                               t.type === 'Pemasukan' ? 'text-emerald-600' : 'text-rose-600'
+                             }`}>
+                               {t.type === 'Pemasukan' ? '+' : '-'} {formatIDR(t.amount).replace("Rp", "").trim()}
+                             </div>
+                           )
+                         }
+                       ]}
+                       sortOptions={[
+                         { label: "Terbaru", value: "date-desc", sortFn: (a: Transaction, b: Transaction) => new Date(b.date).getTime() - new Date(a.date).getTime() },
+                         { label: "Terlama", value: "date-asc", sortFn: (a: Transaction, b: Transaction) => new Date(a.date).getTime() - new Date(b.date).getTime() }
+                       ]}
+                       defaultSortValue="date-desc"
+                       emptyMessage="Belum ada aktifitas transaksi untuk seksi ini."
+                     />
+                  </div>
+  
               </div>
             </div>
           </div>

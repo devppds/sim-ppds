@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 interface Santri {
   id: number;
@@ -321,54 +322,68 @@ export default function KlinikPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                  <Loader2 className="w-10 h-10 animate-spin text-rose-600 mb-4" />
-                  <p className="text-xs font-medium">Memuat rekam medis...</p>
-                </div>
-              ) : filteredRecords.length === 0 ? (
-                <div className="text-center py-20 text-slate-400 text-xs">
-                  Tidak ada rekam medis tercatat
-                </div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Santri</th>
-                      <th className="px-6 py-4">Diagnosa Penyakit</th>
-                      <th className="px-6 py-4">Terapi & Obat-obatan</th>
-                      <th className="px-6 py-4">Dokter / Perawat</th>
-                      <th className="px-6 py-4">Status Pasien</th>
-                      <th className="px-6 py-4">Tanggal Periksa</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredRecords.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-slate-800">{r.santri_name}</div>
-                          <div className="text-xs text-slate-400 mt-1">{r.santri_kelas} | {r.santri_asrama}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-700 font-semibold">{r.diagnosa}</td>
-                        <td className="px-6 py-4 text-slate-600 max-w-xs">{r.terapi || "Istirahat"}</td>
-                        <td className="px-6 py-4 text-slate-600">{r.dokter_perawat}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
-                            r.status === "Kamar" ? "bg-emerald-50 text-emerald-600" :
-                            r.status === "Rawat Inap" ? "bg-rose-50 text-rose-600 animate-pulse" :
-                            "bg-blue-50 text-blue-600"
-                          }`}>
-                            {r.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-slate-400 text-xs">{r.created_at?.split(" ")[0]}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+            
+            <div className="p-4">
+              <DataTable
+                data={filteredRecords}
+                columns={[
+                  {
+                    header: "Santri",
+                    render: (r: MedicalRecord) => (
+                      <div>
+                        <div className="font-bold text-slate-800">{r.santri_name}</div>
+                        <div className="text-xs text-slate-400 mt-1">{r.santri_kelas} | {r.santri_asrama}</div>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Diagnosa Penyakit",
+                    render: (r: MedicalRecord) => (
+                      <div className="text-slate-700 font-semibold">{r.diagnosa}</div>
+                    )
+                  },
+                  {
+                    header: "Terapi & Obat-obatan",
+                    render: (r: MedicalRecord) => (
+                      <div className="text-slate-600 max-w-xs">{r.terapi || "Istirahat"}</div>
+                    )
+                  },
+                  {
+                    header: "Dokter / Perawat",
+                    render: (r: MedicalRecord) => (
+                      <div className="text-slate-600">{r.dokter_perawat}</div>
+                    )
+                  },
+                  {
+                    header: "Status Pasien",
+                    render: (r: MedicalRecord) => (
+                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
+                        r.status === "Kamar" ? "bg-emerald-50 text-emerald-600" :
+                        r.status === "Rawat Inap" ? "bg-rose-50 text-rose-600 animate-pulse" :
+                        "bg-blue-50 text-blue-600"
+                      }`}>
+                        {r.status}
+                      </span>
+                    )
+                  },
+                  {
+                    header: "Tanggal Periksa",
+                    render: (r: MedicalRecord) => (
+                      <div className="text-slate-400 text-xs">{r.created_at?.split(" ")[0] || "-"}</div>
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Terbaru", value: "date-desc", sortFn: (a: MedicalRecord, b: MedicalRecord) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime() },
+                  { label: "Terlama", value: "date-asc", sortFn: (a: MedicalRecord, b: MedicalRecord) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime() },
+                  { label: "Nama (A-Z)", value: "name-asc", sortFn: (a: MedicalRecord, b: MedicalRecord) => (a.santri_name || "").localeCompare(b.santri_name || "") }
+                ]}
+                defaultSortValue="date-desc"
+                loading={loading}
+                emptyMessage="Tidak ada rekam medis tercatat"
+              />
             </div>
+
           </div>
         )}
 
@@ -388,53 +403,67 @@ export default function KlinikPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                  <Loader2 className="w-10 h-10 animate-spin text-red-600 mb-4" />
-                  <p className="text-xs font-medium">Memuat surat sakit...</p>
-                </div>
-              ) : filteredLetters.length === 0 ? (
-                <div className="text-center py-20 text-slate-400 text-xs">
-                  Belum ada surat keterangan sakit diterbitkan
-                </div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Santri</th>
-                      <th className="px-6 py-4">Diagnosa</th>
-                      <th className="px-6 py-4">Durasi Tanggal Istirahat</th>
-                      <th className="px-6 py-4">Petugas Klinik</th>
-                      <th className="px-6 py-4">Keterangan</th>
-                      <th className="px-6 py-4">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredLetters.map((l) => (
-                      <tr key={l.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-slate-800">{l.santri_name}</div>
-                          <div className="text-xs text-slate-400 mt-1">NISN: {l.santri_nisn} | {l.santri_kelas}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-700 font-semibold">{l.diagnosa}</td>
-                        <td className="px-6 py-4 text-slate-600">
-                          <div>Dari: {l.tgl_mulai}</div>
-                          <div className="text-xs text-rose-500 font-bold mt-0.5">Selesai: {l.tgl_selesai}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-600">{l.petugas}</td>
-                        <td className="px-6 py-4 text-slate-500 italic">&quot;{l.keterangan || '-'}&quot;</td>
-                        <td className="px-6 py-4">
-                          <button onClick={() => setSelectedLetterPrint(l)} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all rounded-lg text-xs font-bold">
-                            <Printer className="w-3.5 h-3.5" /> Preview & Cetak
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+            
+            <div className="p-4">
+              <DataTable
+                data={filteredLetters}
+                columns={[
+                  {
+                    header: "Santri",
+                    render: (l: SuratSakit) => (
+                      <div>
+                        <div className="font-bold text-slate-800">{l.santri_name}</div>
+                        <div className="text-xs text-slate-400 mt-1">NISN: {l.santri_nisn} | {l.santri_kelas}</div>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Diagnosa",
+                    render: (l: SuratSakit) => (
+                      <div className="text-slate-700 font-semibold">{l.diagnosa}</div>
+                    )
+                  },
+                  {
+                    header: "Durasi Tanggal Istirahat",
+                    render: (l: SuratSakit) => (
+                      <div className="text-slate-600">
+                        <div>Dari: {l.tgl_mulai}</div>
+                        <div className="text-xs text-rose-500 font-bold mt-0.5">Selesai: {l.tgl_selesai}</div>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Petugas Klinik",
+                    render: (l: SuratSakit) => (
+                      <div className="text-slate-600">{l.petugas}</div>
+                    )
+                  },
+                  {
+                    header: "Keterangan",
+                    render: (l: SuratSakit) => (
+                      <div className="text-slate-500 italic">&quot;{l.keterangan || '-'}&quot;</div>
+                    )
+                  },
+                  {
+                    header: "Aksi",
+                    render: (l: SuratSakit) => (
+                      <button onClick={() => setSelectedLetterPrint(l)} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all rounded-lg text-xs font-bold">
+                        <Printer className="w-3.5 h-3.5" /> Preview & Cetak
+                      </button>
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Terbaru", value: "date-desc", sortFn: (a: SuratSakit, b: SuratSakit) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime() },
+                  { label: "Terlama", value: "date-asc", sortFn: (a: SuratSakit, b: SuratSakit) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime() },
+                  { label: "Nama (A-Z)", value: "name-asc", sortFn: (a: SuratSakit, b: SuratSakit) => (a.santri_name || "").localeCompare(b.santri_name || "") }
+                ]}
+                defaultSortValue="date-desc"
+                loading={loading}
+                emptyMessage="Belum ada surat keterangan sakit diterbitkan"
+              />
             </div>
+
           </div>
         )}
       </div>

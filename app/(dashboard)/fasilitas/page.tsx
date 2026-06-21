@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 interface Ticket {
   id: number;
@@ -301,68 +302,83 @@ export default function FasilitasPage() {
                   Tidak ada tiket pelaporan
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Pelapor / Lokasi</th>
-                      <th className="px-6 py-4">Deskripsi Kerusakan</th>
-                      <th className="px-6 py-4">Prioritas / Kategori</th>
-                      <th className="px-6 py-4">Petugas</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {tickets.map((t) => (
-                      <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-slate-800">{t.pelapor}</div>
-                          <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-indigo-500" /> {t.lokasi}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-600 max-w-sm">{t.deskripsi}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col gap-1 items-start">
-                            <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                              t.prioritas === "Tinggi" ? "bg-rose-50 text-rose-600" :
-                              t.prioritas === "Sedang" ? "bg-amber-50 text-amber-600" :
-                              "bg-slate-50 text-slate-600"
-                            }`}>
-                              {t.prioritas}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-bold">{t.kategori}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-700">{t.petugas || "Belum Ditugaskan"}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                            t.status === "Menunggu" ? "bg-amber-50 text-amber-600" :
-                            t.status === "Diproses" ? "bg-indigo-50 text-indigo-600 animate-pulse" :
-                            "bg-emerald-50 text-emerald-600"
-                          }`}>
-                            {t.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          {t.status === "Menunggu" && (
-                            <button onClick={() => handleUpdateTicket(t.id, "Diproses", "Petugas PLP")} className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-indigo-700 transition-all">
-                              Proses
-                            </button>
-                          )}
-                          {t.status === "Diproses" && (
-                            <button onClick={() => handleUpdateTicket(t.id, "Selesai", t.petugas || "Petugas PLP")} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-emerald-700 transition-all">
-                              Selesai
-                            </button>
-                          )}
-                          {t.status === "Selesai" && (
-                            <span className="text-xs text-slate-400">Terselesaikan</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <DataTable
+                data={tickets}
+                columns={[
+                  {
+                    header: "Pelapor / Lokasi",
+                    render: (t: Ticket) => (
+                      <div>
+                        <div className="font-bold text-slate-800">{t.pelapor}</div>
+                        <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-indigo-500" /> {t.lokasi}
+                        </div>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Deskripsi Kerusakan",
+                    render: (t: Ticket) => <div className="text-slate-600 max-w-sm">{t.deskripsi}</div>
+                  },
+                  {
+                    header: "Prioritas / Kategori",
+                    render: (t: Ticket) => (
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                          t.prioritas === "Tinggi" ? "bg-rose-50 text-rose-600" :
+                          t.prioritas === "Sedang" ? "bg-amber-50 text-amber-600" :
+                          "bg-slate-50 text-slate-600"
+                        }`}>
+                          {t.prioritas}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-bold">{t.kategori}</span>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Petugas",
+                    render: (t: Ticket) => <div className="text-slate-700">{t.petugas || "Belum Ditugaskan"}</div>
+                  },
+                  {
+                    header: "Status",
+                    render: (t: Ticket) => (
+                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                        t.status === "Menunggu" ? "bg-amber-50 text-amber-600" :
+                        t.status === "Diproses" ? "bg-indigo-50 text-indigo-600 animate-pulse" :
+                        "bg-emerald-50 text-emerald-600"
+                      }`}>
+                        {t.status}
+                      </span>
+                    )
+                  },
+                  {
+                    header: "Aksi",
+                    render: (t: Ticket) => (
+                      <div>
+                        {t.status === "Menunggu" && (
+                          <button onClick={() => handleUpdateTicket(t.id, "Diproses", "Petugas PLP")} className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-indigo-700 transition-all">
+                            Proses
+                          </button>
+                        )}
+                        {t.status === "Diproses" && (
+                          <button onClick={() => handleUpdateTicket(t.id, "Selesai", t.petugas || "Petugas PLP")} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-emerald-700 transition-all">
+                            Selesai
+                          </button>
+                        )}
+                        {t.status === "Selesai" && (
+                          <span className="text-xs text-slate-400">Terselesaikan</span>
+                        )}
+                      </div>
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Terbaru", value: "terbaru", sortFn: (a: Ticket, b: Ticket) => b.id - a.id }
+                ]}
+                defaultSortValue="terbaru"
+                loading={loading}
+                emptyMessage="Tidak ada tiket pelaporan"
+              />
               )}
             </div>
           </div>
@@ -388,55 +404,70 @@ export default function FasilitasPage() {
                   Tidak ada pengajuan booking masjid
                 </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr className="text-xs text-slate-500 font-bold uppercase text-left">
-                      <th className="px-6 py-4">Nama Kegiatan</th>
-                      <th className="px-6 py-4">Pemohon</th>
-                      <th className="px-6 py-4">Waktu Mulai - Selesai</th>
-                      <th className="px-6 py-4">Keterangan</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {bookings.map((b) => (
-                      <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">{b.nama_kegiatan}</td>
-                        <td className="px-6 py-4 text-slate-600">{b.pemohon}</td>
-                        <td className="px-6 py-4 text-slate-600">
-                          <div>{b.waktu_mulai}</div>
-                          <div className="text-xs text-indigo-500 font-semibold mt-0.5">s/d {b.waktu_selesai}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-500 italic">&quot;{b.keterangan || '-'}&quot;</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
-                            b.status === "Diajukan" ? "bg-amber-50 text-amber-600" :
-                            b.status === "Disetujui" ? "bg-emerald-50 text-emerald-600" :
-                            "bg-rose-50 text-rose-600"
-                          }`}>
-                            {b.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          {b.status === "Diajukan" && (
-                            <div className="flex gap-2">
-                              <button onClick={() => handleUpdateBooking(b.id, "Disetujui")} className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-all flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> ACC
-                              </button>
-                              <button onClick={() => handleUpdateBooking(b.id, "Ditolak")} className="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-bold hover:bg-rose-700 transition-all flex items-center gap-1">
-                                <XCircle className="w-3.5 h-3.5" /> Tolak
-                              </button>
-                            </div>
-                          )}
-                          {b.status !== "Diajukan" && (
-                            <span className="text-xs text-slate-400">Selesai Diproses</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <DataTable
+                data={bookings}
+                columns={[
+                  {
+                    header: "Nama Kegiatan",
+                    render: (b: MasjidBooking) => <div className="font-bold text-slate-800">{b.nama_kegiatan}</div>
+                  },
+                  {
+                    header: "Pemohon",
+                    render: (b: MasjidBooking) => <div className="text-slate-600">{b.pemohon}</div>
+                  },
+                  {
+                    header: "Waktu Mulai - Selesai",
+                    render: (b: MasjidBooking) => (
+                      <div className="text-slate-600">
+                        <div>{b.waktu_mulai}</div>
+                        <div className="text-xs text-indigo-500 font-semibold mt-0.5">s/d {b.waktu_selesai}</div>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Keterangan",
+                    render: (b: MasjidBooking) => <div className="text-slate-500 italic">&quot;{b.keterangan || '-'}&quot;</div>
+                  },
+                  {
+                    header: "Status",
+                    render: (b: MasjidBooking) => (
+                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                        b.status === "Diajukan" ? "bg-amber-50 text-amber-600" :
+                        b.status === "Disetujui" ? "bg-emerald-50 text-emerald-600" :
+                        "bg-rose-50 text-rose-600"
+                      }`}>
+                        {b.status}
+                      </span>
+                    )
+                  },
+                  {
+                    header: "Aksi",
+                    render: (b: MasjidBooking) => (
+                      <div>
+                        {b.status === "Diajukan" && (
+                          <div className="flex gap-2">
+                            <button onClick={() => handleUpdateBooking(b.id, "Disetujui")} className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-all flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> ACC
+                            </button>
+                            <button onClick={() => handleUpdateBooking(b.id, "Ditolak")} className="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-bold hover:bg-rose-700 transition-all flex items-center gap-1">
+                              <XCircle className="w-3.5 h-3.5" /> Tolak
+                            </button>
+                          </div>
+                        )}
+                        {b.status !== "Diajukan" && (
+                          <span className="text-xs text-slate-400">Selesai Diproses</span>
+                        )}
+                      </div>
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Waktu Mulai Terdekat", value: "mulai-asc", sortFn: (a: MasjidBooking, b: MasjidBooking) => new Date(a.waktu_mulai).getTime() - new Date(b.waktu_mulai).getTime() }
+                ]}
+                defaultSortValue="mulai-asc"
+                loading={loading}
+                emptyMessage="Tidak ada pengajuan booking masjid"
+              />
               )}
             </div>
           </div>

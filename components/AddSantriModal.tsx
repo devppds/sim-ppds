@@ -220,7 +220,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden scale-in-center overflow-y-auto max-h-[95vh]">
+      <div className="bg-white w-full max-w-[90vw] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl rounded-3xl shadow-2xl overflow-hidden scale-in-center overflow-y-auto max-h-[95vh]">
         {/* Header */}
         <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -282,14 +282,14 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
                   <GraduationCap className="w-4 h-4" />
                   <span className="text-xs font-black uppercase tracking-widest">Pendidikan & Asrama</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
                     <input required type="text" className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-700" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Madrasah</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                       {["MHM", "MIU"].map((m) => (
                         <button key={m} type="button" onClick={() => setFormData({ ...formData, madrasah: m as any, kelas: "" })} className={`py-2.5 rounded-xl border-2 font-black text-xs transition-all ${formData.madrasah === m ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-500/20" : "bg-white border-slate-200 text-slate-400"}`}>{m}</button>
                       ))}
@@ -339,8 +339,8 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
                   <span className="text-xs font-black uppercase tracking-widest">Alamat Lengkap Sesuai KTP</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2 space-y-1.5">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="col-span-2 lg:col-span-3 space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jalan / No. Rumah / Dusun</label>
                     <input type="text" placeholder="Jl. Raya No. 12 / Dusun Krajan" className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-700" value={formData.street} onChange={(e) => setFormData({ ...formData, street: e.target.value })} />
                   </div>
@@ -384,7 +384,7 @@ export default function AddSantriModal({ isOpen, onClose, onSuccess, initialStat
               </div>
 
               {/* Wali Section */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Wali</label>
                   <input type="text" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-700" value={formData.wali_name} onChange={(e) => setFormData({ ...formData, wali_name: e.target.value })} />

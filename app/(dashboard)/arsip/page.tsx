@@ -23,6 +23,7 @@ import { useToast } from "@/components/Toast";
 import AddArsipModal from "@/components/AddArsipModal";
 import FilePreviewModal from "@/components/FilePreviewModal";
 import { API_BASE_URL } from "@/lib/config";
+import { DataTable } from "@/components/DataTable";
 
 interface ArchiveFile {
   id: number;
@@ -176,126 +177,122 @@ export default function ArsipPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50">
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Informasi Dokumen</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Aliran</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Asal / Tujuan</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tgl Dokumen</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">File Info</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-24 text-center">
-                      <div className="flex flex-col items-center">
-                        <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sinkronisasi Arsip...</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : filteredFiles.length > 0 ? (
-                  filteredFiles.map((file) => (
-                    <tr key={file.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-5">
-                        <div className="flex items-start gap-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
-                            file.category === 'Proposal' ? 'bg-amber-50 text-amber-600' : 
-                            file.category === 'Surat' ? 'bg-indigo-50 text-indigo-600' : 
-                            'bg-slate-100 text-slate-500'
-                          }`}>
-                            <FileText className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">{file.name}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                                  file.category === 'Proposal' ? 'bg-amber-100 text-amber-700' : 
-                                  file.category === 'Surat' ? 'bg-indigo-100 text-indigo-700' : 
-                                  'bg-slate-200 text-slate-600'
-                                }`}>
-                                  {file.category}
-                                </span>
-                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                                    <Hash className="w-3 h-3" /> {file.doc_number || '-'}
-                                </span>
-                            </div>
+          
+          <div className="p-4">
+             <DataTable
+                data={filteredFiles}
+                columns={[
+                  {
+                    header: "Informasi Dokumen",
+                    render: (file: ArchiveFile) => (
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
+                          file.category === 'Proposal' ? 'bg-amber-50 text-amber-600' : 
+                          file.category === 'Surat' ? 'bg-indigo-50 text-indigo-600' : 
+                          'bg-slate-100 text-slate-500'
+                        }`}>
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">{file.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                file.category === 'Proposal' ? 'bg-amber-100 text-amber-700' : 
+                                file.category === 'Surat' ? 'bg-indigo-100 text-indigo-700' : 
+                                'bg-slate-200 text-slate-600'
+                              }`}>
+                                {file.category}
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                  <Hash className="w-3 h-3" /> {file.doc_number || '-'}
+                              </span>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-5">
-                         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider ${
-                           file.flow_type === 'Masuk' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                         }`}>
-                           {file.flow_type === 'Masuk' ? <ArrowDownLeft className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
-                           {file.flow_type}
-                         </div>
-                      </td>
-                      <td className="px-6 py-5">
-                         <p className="text-xs font-black text-slate-700">{file.sender_receiver || '-'}</p>
-                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{file.flow_type === 'Masuk' ? 'Pengirim' : 'Penerima'}</p>
-                      </td>
-                      <td className="px-6 py-5">
-                         <div className="flex items-center gap-2 text-slate-600">
-                            <Calendar className="w-3.5 h-3.5 text-slate-300" />
-                            <p className="text-xs font-bold">
-                              {file.doc_date ? new Date(file.doc_date).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
-                            </p>
-                         </div>
-                      </td>
-                      <td className="px-6 py-5">
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Aliran",
+                    render: (file: ArchiveFile) => (
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider ${
+                         file.flow_type === 'Masuk' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                       }`}>
+                         {file.flow_type === 'Masuk' ? <ArrowDownLeft className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
+                         {file.flow_type}
+                       </div>
+                    )
+                  },
+                  {
+                    header: "Asal / Tujuan",
+                    render: (file: ArchiveFile) => (
+                      <div>
+                        <p className="text-xs font-black text-slate-700">{file.sender_receiver || '-'}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{file.flow_type === 'Masuk' ? 'Pengirim' : 'Penerima'}</p>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "Tgl Dokumen",
+                    render: (file: ArchiveFile) => (
+                      <div className="flex items-center gap-2 text-slate-600">
+                         <Calendar className="w-3.5 h-3.5 text-slate-300" />
+                         <p className="text-xs font-bold">
+                           {file.doc_date ? new Date(file.doc_date).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                         </p>
+                      </div>
+                    )
+                  },
+                  {
+                    header: "File Info",
+                    render: (file: ArchiveFile) => (
+                      <div>
                         <p className="text-[10px] font-black text-slate-500 uppercase">{file.type} • {file.size}</p>
                         <p className="text-[9px] font-bold text-slate-400 mt-1 italic">
                           ID: {file.url.split('/').pop()?.slice(0, 8)}...
                         </p>
-                      </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center justify-center gap-2">
-                          <button 
-                            onClick={() => setPreviewFile(file)}
-                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-sky-100 hover:text-sky-600 transition-all active:scale-95"
-                            title="Pratinjau"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handlePrint(file)}
-                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-600 transition-all active:scale-95"
-                            title="Print / Unduh"
-                          >
-                            <Printer className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(file.id)}
-                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-all active:scale-95"
-                            title="Hapus"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-24 text-center">
-                      <div className="max-w-xs mx-auto">
-                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <FileIcon className="w-10 h-10 text-slate-200" />
-                        </div>
-                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Arsip Tidak Ditemukan</h4>
-                        <p className="text-xs text-slate-400 font-bold">Tidak ada file arsip yang sesuai dengan kriteria pencarian Anda.</p>
                       </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                    )
+                  },
+                  {
+                    header: "Aksi",
+                    render: (file: ArchiveFile) => (
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => setPreviewFile(file)}
+                          className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-sky-100 hover:text-sky-600 transition-all active:scale-95"
+                          title="Pratinjau"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handlePrint(file)}
+                          className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-600 transition-all active:scale-95"
+                          title="Print / Unduh"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(file.id)}
+                          className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-all active:scale-95"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )
+                  }
+                ]}
+                sortOptions={[
+                  { label: "Terbaru", value: "date-desc", sortFn: (a: ArchiveFile, b: ArchiveFile) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime() },
+                  { label: "Terlama", value: "date-asc", sortFn: (a: ArchiveFile, b: ArchiveFile) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime() },
+                  { label: "Nama (A-Z)", value: "name-asc", sortFn: (a: ArchiveFile, b: ArchiveFile) => a.name.localeCompare(b.name) }
+                ]}
+                defaultSortValue="date-desc"
+                loading={loading}
+                emptyMessage="Tidak ada file arsip yang sesuai dengan kriteria pencarian Anda."
+             />
           </div>
+
         </div>
       </div>
 

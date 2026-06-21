@@ -61,7 +61,7 @@ export async function GET() {
 
     const { env } = getRequestContext() as unknown as { env: CloudflareEnv };
     
-    let query = "SELECT id, username, full_name as name, role, is_active, last_login, created_at FROM users";
+    let query = "SELECT id, username, full_name as name, role, sub_role, is_active, last_login, created_at FROM users";
     if (!isDev) {
       query += " WHERE LOWER(username) != 'developer' AND LOWER(role) != 'developer'";
     }
@@ -94,19 +94,40 @@ export async function POST(request: Request) {
     if (!await isAuthorized()) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
     const { env } = getRequestContext() as unknown as { env: CloudflareEnv };
-    const { username, password, name, role } = await request.json() as any;
+    const { name, role, sub_role } = await request.json() as any;
 
-    if (!username || !password || !name || !role) {
+    if (!name || !role) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
-    const hashedPassword = await hashPassword(password);
+    // Generate username: [jabatan].[nama_panggilan]
+    const roleSlug = role.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const firstName = name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+    const username = `${roleSlug}.${firstName}`;
+
+    // Ensure username is unique by appending a number if necessary
+    let isUnique = false;
+    let counter = 1;
+    let finalUsername = username;
+    
+    while (!isUnique) {
+      const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(finalUsername).first();
+      if (!existing) {
+        isUnique = true;
+      } else {
+        finalUsername = `${username}${counter}`;
+        counter++;
+      }
+    }
+
+    // Default password "123456"
+    const defaultPasswordHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
 
     await env.DB.prepare(
-      "INSERT INTO users (username, password, full_name, role, is_active) VALUES (?, ?, ?, ?, 1)"
-    ).bind(username, hashedPassword, name, role).run();
+      "INSERT INTO users (username, password, full_name, role, sub_role, is_active) VALUES (?, ?, ?, ?, ?, 1)"
+    ).bind(finalUsername, defaultPasswordHash, name, role, sub_role || null).run();
 
-    return NextResponse.json({ success: true, message: "User created successfully" });
+    return NextResponse.json({ success: true, message: "User created successfully", username: finalUsername });
   } catch (error: any) {
     if (error.message.includes("UNIQUE")) {
       return NextResponse.json({ success: false, error: "Username already exists" }, { status: 400 });

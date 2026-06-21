@@ -104,6 +104,7 @@ export async function POST(request: Request) {
        role: user.role,
        role_level: accessLevel, 
        name: user.name,
+       is_default_password: password === "123456",
        timestamp: Date.now() 
     };
     

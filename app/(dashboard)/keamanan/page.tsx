@@ -7,8 +7,10 @@ import {
   Plus, XCircle, Printer, QrCode, FileText, Loader2, Search, RefreshCw, Clock, CheckCircle
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { DataTable } from "@/components/DataTable";
 import { API_BASE_URL } from "@/lib/config";
 import SearchableSantriSelect from "@/components/SearchableSantriSelect";
+import KeamananAset from "@/components/KeamananAset";
 
 interface Santri {
   id: number;
@@ -693,62 +695,7 @@ export default function KeamananPage() {
         )}
 
         {activeTab === "assets" && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
-                <h2 className="font-bold text-slate-800 text-lg">Aset Santri yang Terdaftar</h2>
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="text"
-                    placeholder="Cari data..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="p-6">
-                {loading ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                    <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
-                    <p className="text-xs font-medium">Memuat data aset...</p>
-                  </div>
-                ) : filteredAssetList.length === 0 ? (
-                  <div className="text-center py-20 text-slate-400 text-xs">
-                    Belum ada aset santri didaftarkan
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {filteredAssetList.map((asset) => (
-                      <div key={asset.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs relative hover:shadow-sm transition-all">
-                        <div className="flex items-start justify-between">
-                          <div className="p-3 bg-emerald-50 rounded-xl">
-                            <QrCode className="w-6 h-6 text-emerald-600" />
-                          </div>
-                          <span className="px-2.5 py-0.5 text-[10px] font-black uppercase rounded-md bg-emerald-50 text-emerald-600">
-                            {asset.jenis_asset}
-                          </span>
-                        </div>
-                        <div className="mt-4">
-                          <h3 className="font-bold text-slate-800 text-base">{asset.merk_tipe}</h3>
-                          <p className="text-xs text-slate-400 mt-1">Pemilik: <span className="text-slate-600 font-semibold">{asset.santri_name}</span> ({asset.santri_kelas})</p>
-                          <p className="text-xs text-slate-400 mt-0.5">Reg/Plat: <span className="text-slate-700 font-bold">{asset.no_registrasi || '-'}</span></p>
-                        </div>
-                        <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
-                          <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded-sm font-bold">{asset.barcode_qr}</span>
-                          <button className="text-emerald-600 hover:text-emerald-700 font-bold text-xs flex items-center gap-1">
-                            <Printer className="w-3.5 h-3.5" /> Cetak Label QR
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <KeamananAset />
         )}
 
         {activeTab === "violations" && (

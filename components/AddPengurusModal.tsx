@@ -163,7 +163,7 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
 
   return (
     <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200 text-text-main">
-      <div className="bg-white w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden scale-in-center max-h-[90vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-[90vw] md:max-w-3xl lg:max-w-4xl rounded-[32px] shadow-2xl overflow-hidden scale-in-center max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 sticky top-0 z-10 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
@@ -202,8 +202,8 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="col-span-2 lg:col-span-3">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Nama Lengkap</label>
               <div className="relative group">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
@@ -297,7 +297,7 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
             </div>
 
             {formData.jabatan_tambahan === "Penasehat Kamar" && (
-              <div className="col-span-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="col-span-2 lg:col-span-3 animate-in fade-in slide-in-from-top-2 duration-200">
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Kamar yang Dinaungi</label>
                 <div className="relative group">
                   <Home className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
