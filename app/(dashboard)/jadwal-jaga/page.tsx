@@ -30,8 +30,8 @@ export default function JadwalJagaPage() {
   const role = session.role;
   const username = session.username;
   // Is this user an Admin Seksi or Sekretariat?
-  const isAdminOrSekretariat = role.includes("Admin") || role.includes("Sekretaris") || username === "admin";
-  const isAnggota = role.includes("Anggota") || username.includes("anggota");
+  const isAdminOrSekretariat = role.includes("Admin") || role.includes("Sekretaris") || role.includes("Sekretariat") || username.includes("admin") || username.includes("sekretariat") || session.role_level === "SEKRETARIAT" || session.role_level === "ROOT";
+  const isAnggota = role.includes("Anggota") || username.includes("anggota") || session.role_level === "STAFF";
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
