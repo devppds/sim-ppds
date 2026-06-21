@@ -169,3 +169,94 @@ CREATE TABLE IF NOT EXISTS jamiyyah_alat (
     tanggal_registrasi TEXT DEFAULT CURRENT_TIMESTAMP,
     tanggal_kadaluarsa TEXT NOT NULL -- Bulan Syawal
 );
+-- ==========================================
+-- MISSING TABLES FOR KEAMANAN & CLEARANCE
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS clearance_boyong (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  santri_id INTEGER NOT NULL,
+  status_keuangan TEXT DEFAULT 'Clean',
+  status_keamanan TEXT DEFAULT 'Clean',
+  catatan_keuangan TEXT,
+  catatan_keamanan TEXT,
+  acc_mustahiq TEXT DEFAULT 'Pending',
+  status_akhir TEXT DEFAULT 'Diajukan',
+  catatan_akhir TEXT,
+  approved_at TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (santri_id) REFERENCES santri(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS perizinan (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  santri_id INTEGER NOT NULL,
+  keperluan TEXT NOT NULL,
+  tgl_mulai TEXT NOT NULL,
+  tgl_kembali TEXT NOT NULL,
+  status TEXT DEFAULT 'Diajukan',
+  disetujui_oleh TEXT,
+  scan_keluar_at TEXT,
+  scan_kembali_at TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT,
+  FOREIGN KEY (santri_id) REFERENCES santri(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS skkb (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  santri_id INTEGER NOT NULL,
+  keperluan TEXT NOT NULL,
+  catatan TEXT,
+  petugas TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (santri_id) REFERENCES santri(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS santri_assets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  santri_id INTEGER NOT NULL,
+  jenis_asset TEXT NOT NULL,
+  merk_tipe TEXT NOT NULL,
+  no_registrasi TEXT,
+  barcode_qr TEXT,
+  status TEXT DEFAULT 'Aktif',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (santri_id) REFERENCES santri(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS pelanggaran (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  santri_id INTEGER NOT NULL,
+  jenis TEXT NOT NULL,
+  deskripsi TEXT NOT NULL,
+  point INTEGER DEFAULT 0,
+  tindakan_diambil TEXT,
+  status TEXT DEFAULT 'Penyelidikan',
+  dilaporkan_oleh TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (santri_id) REFERENCES santri(id) ON DELETE CASCADE
+);
+
+-- ==========================================
+-- MISSING TABLES FOR JAMIYYAH
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS jamiyyah_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nama_kegiatan TEXT NOT NULL,
+  tanggal TEXT NOT NULL,
+  lokasi TEXT,
+  deskripsi TEXT,
+  penanggung_jawab TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS jamiyyah_assets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nama_aset TEXT NOT NULL,
+  jumlah INTEGER DEFAULT 0,
+  kondisi TEXT,
+  lokasi_penyimpanan TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
