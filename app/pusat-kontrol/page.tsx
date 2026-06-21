@@ -279,24 +279,22 @@ export default function PusatKontrolPage() {
                                       </div>
                                    </td>
                                    <td className="px-8 py-6 text-center">
-                                       <div className="flex items-center justify-center gap-1.5">
-                                          {u.is_active === 1 && isUserOnline(u.last_login) && (
-                                             <span className="relative flex h-2 w-2">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                             </span>
-                                          )}
-                                          <span className={`px-3 py-1 text-[10px] font-black rounded-2xl uppercase border ${
-                                            u.is_active === 1 
-                                              ? (isUserOnline(u.last_login) ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100') 
-                                              : 'bg-rose-50 text-rose-500 border-rose-100'
-                                          }`}>
-                                             {u.is_active === 1 
-                                               ? (isUserOnline(u.last_login) ? "Sedang Aktif" : "Aktif") 
-                                               : "Nonaktif"
-                                             }
-                                          </span>
-                                       </div>
+                                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-2xl uppercase border ${
+                                         u.is_active === 1 
+                                           ? (isUserOnline(u.last_login) ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100') 
+                                           : 'bg-rose-50 text-rose-500 border-rose-100'
+                                       }`}>
+                                         {u.is_active === 1 && isUserOnline(u.last_login) && (
+                                           <span className="relative flex h-2 w-2 shrink-0">
+                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                           </span>
+                                         )}
+                                         {u.is_active === 1 
+                                           ? (isUserOnline(u.last_login) ? "Sedang Aktif" : "Aktif") 
+                                           : "Nonaktif"
+                                         }
+                                       </span>
                                     </td>
                                    <td className="px-8 py-6 text-center">
                                       <div className="flex flex-col items-center gap-1">

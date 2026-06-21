@@ -831,24 +831,22 @@ export default function PengaturanPage() {
                           }) : "-"}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black rounded-2xl uppercase border ${
+                            user.is_active === 1 
+                              ? (isUserOnline(user.last_login) ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100') 
+                              : 'bg-rose-50 text-rose-600 border-rose-100'
+                          }`}>
                             {user.is_active === 1 && isUserOnline(user.last_login) && (
-                              <span className="relative flex h-2 w-2">
+                              <span className="relative flex h-2 w-2 shrink-0">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                               </span>
                             )}
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                              user.is_active === 1 
-                                ? (isUserOnline(user.last_login) ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-500') 
-                                : 'bg-rose-50 text-rose-600'
-                            }`}>
-                              {user.is_active === 1 
-                                ? (isUserOnline(user.last_login) ? "Sedang Aktif" : "Aktif") 
-                                : "Nonaktif"
-                              }
-                            </span>
-                          </div>
+                            {user.is_active === 1 
+                              ? (isUserOnline(user.last_login) ? "Sedang Aktif" : "Aktif") 
+                              : "Nonaktif"
+                            }
+                          </span>
                         </td>
                         {isAdmin && (
                           <td className="px-6 py-4 text-center">
