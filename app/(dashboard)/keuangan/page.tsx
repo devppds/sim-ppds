@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import AddTransactionModal from "@/components/AddTransactionModal";
 import TransactionDetailModal from "@/components/TransactionDetailModal";
+import ConfirmModal from "@/components/ConfirmModal";
 import { API_BASE_URL } from "@/lib/config";
 import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/components/Toast";
@@ -52,6 +53,28 @@ export default function KeuanganPage() {
   const [loadingProposals, setLoadingProposals] = useState(true);
   const [selectedSeksi, setSelectedSeksi] = useState<string | null>(null);
   const { showToast } = useToast();
+
+  // Modern confirm modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "danger" | "warning" | "info";
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "danger",
+    confirmLabel: "Ya, Lanjutkan",
+    onConfirm: () => {},
+  });
+
+  const openConfirm = (opts: { title: string; message: string; type?: "danger" | "warning" | "info"; confirmLabel?: string; onConfirm: () => void }) => {
+    setConfirmModal({ isOpen: true, type: "danger", confirmLabel: "Ya, Lanjutkan", ...opts });
+  };
+  const closeConfirm = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
 
   const fetchFinance = useCallback(async () => {
     try {
@@ -90,13 +113,9 @@ export default function KeuanganPage() {
     fetchProposals();
   }, [fetchFinance, fetchProposals]);
 
-  const handleCairkan = async (proposal: any) => {
-    if (!confirm(`Cairkan anggaran sebesar ${proposal.doc_number} untuk "${proposal.name}"?`)) return;
-    
+  const doCairkan = async (proposal: any) => {
     try {
       const cleanAmount = parseInt(proposal.doc_number.replace(/[^0-9]/g, "")) || 0;
-      
-      // Post transaction to keuangan
       const txRes = await fetch(`${API_BASE_URL}/api/keuangan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,14 +132,10 @@ export default function KeuanganPage() {
         showToast(txJson.error || "Gagal mencatat pengeluaran", "error");
         return;
       }
-      
-      // Update proposal status in arsip table to 'Dicairkan'
       const arsipRes = await fetch(`${API_BASE_URL}/api/arsip/${proposal.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          flow_type: "Dicairkan"
-        })
+        body: JSON.stringify({ flow_type: "Dicairkan" })
       });
       const arsipJson = await arsipRes.json() as any;
       if (arsipJson.success) {
@@ -136,20 +151,44 @@ export default function KeuanganPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    const isPermanent = showTrashed;
-    if (!confirm(isPermanent ? "Hapus permanen transaksi ini?" : "Pindah transaksi ini ke Recycle Bin?")) return;
-    
+  const handleCairkan = (proposal: any) => {
+    openConfirm({
+      title: "Cairkan Dana Anggaran?",
+      message: `Pencairan sebesar ${proposal.doc_number} untuk "${proposal.name}" akan dicatat sebagai pengeluaran. Tindakan ini tidak dapat dibatalkan.`,
+      type: "warning",
+      confirmLabel: "Ya, Cairkan Dana",
+      onConfirm: () => { closeConfirm(); doCairkan(proposal); }
+    });
+  };
+
+  const doDelete = async (id: number, isPermanent: boolean) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/keuangan/${id}?permanent=${isPermanent}`, { method: "DELETE" });
       const json = await res.json() as { success: boolean, error?: string };
       if (json.success) {
+        showToast(isPermanent ? "Transaksi dihapus permanen." : "Transaksi dipindah ke Recycle Bin.", "success");
         fetchFinance();
         setSelectedTx(null);
+      } else {
+        showToast(json.error || "Gagal menghapus transaksi.", "error");
       }
     } catch (err) {
       console.error(err);
+      showToast("Kesalahan jaringan.", "error");
     }
+  };
+
+  const handleDelete = (id: number) => {
+    const isPermanent = showTrashed;
+    openConfirm({
+      title: isPermanent ? "Hapus Permanen?" : "Pindah ke Recycle Bin?",
+      message: isPermanent
+        ? "Transaksi ini akan dihapus selamanya dan tidak bisa dipulihkan."
+        : "Transaksi ini akan dipindahkan ke Recycle Bin dan bisa dipulihkan nanti.",
+      type: isPermanent ? "danger" : "warning",
+      confirmLabel: isPermanent ? "Ya, Hapus Permanen" : "Ya, Pindah ke Trash",
+      onConfirm: () => { closeConfirm(); doDelete(id, isPermanent); }
+    });
   };
 
   const handleRestore = async (id: number) => {
@@ -637,7 +676,7 @@ export default function KeuanganPage() {
                                </button>
                                {item.status === "Belum Kirim" && (
                                  <button 
-                                   onClick={() => alert(`Pengingat laporan bulanan dikirimkan ke Penanggung Jawab ${item.name}`)}
+                                   onClick={() => showToast(`Pengingat laporan bulanan dikirimkan ke PJ ${item.name}`, "info")}
                                    className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm transition-colors"
                                  >
                                    Kirim Pengingat
@@ -676,6 +715,16 @@ export default function KeuanganPage() {
         onDelete={handleDelete}
         onRestore={handleRestore}
         isTrashed={showTrashed}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmLabel={confirmModal.confirmLabel}
       />
 
       {/* Read-only Seksi Activity Modal */}
