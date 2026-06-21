@@ -33,7 +33,19 @@ export const getAlumniList = async (c: Context<{ Bindings: Env }>) => {
       c.header('Cache-Control', 'public, max-age=15, s-maxage=15');
       return c.json({ success: true, data: results });
     } else if (type === "pengurus") {
-      let query = "SELECT * FROM ustadz WHERE status = 'Tidak Aktif'";
+      let query = `
+        SELECT 
+          id, nik, name, phone, 
+          jabatan as jabatan_utama, sub_jabatan, 
+          (CASE 
+            WHEN sub_jabatan IS NULL OR sub_jabatan = '' THEN jabatan 
+            WHEN jabatan IN ('Ketua', 'Sekretaris', 'Bendahara') THEN sub_jabatan 
+            ELSE jabatan || ' (' || sub_jabatan || ')' 
+          END) as jabatan,
+          jabatan_tambahan, kamar, photo_url, gender, status, created_at, updated_at, tahun_purna
+        FROM ustadz 
+        WHERE status = 'Tidak Aktif'
+      `;
       const params: any[] = [];
       
       if (year) {

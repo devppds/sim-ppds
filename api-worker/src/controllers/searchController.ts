@@ -17,7 +17,7 @@ export const getSearchResults = async (c: Context<{ Bindings: Env }>) => {
     `).bind(`%${query}%`, `%${query}%`, `%${query}%`).all();
 
     const ustadzSearch = await c.env.DB.prepare(`
-      SELECT 'ustadz' as type, id, name, photo_url, jabatan as info
+      SELECT 'ustadz' as type, id, name, photo_url, (CASE WHEN sub_jabatan IS NULL OR sub_jabatan = '' THEN jabatan WHEN jabatan IN ('Ketua', 'Sekretaris', 'Bendahara') THEN sub_jabatan ELSE jabatan || ' (' || sub_jabatan || ')' END) as info
       FROM ustadz
       WHERE name LIKE ? OR nik LIKE ?
       LIMIT 3

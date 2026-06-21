@@ -4,9 +4,20 @@ import { triggerCloudinaryDelete } from '../utils/cloudinary'
 
 export const getPengurus = async (c: Context<{ Bindings: Env }>) => {
   try {
-    const { results } = await c.env.DB.prepare(
-      "SELECT * FROM ustadz WHERE status = 'Aktif' ORDER BY created_at DESC"
-    ).all()
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        id, nik, name, phone, 
+        jabatan as jabatan_utama, sub_jabatan, 
+        (CASE 
+          WHEN sub_jabatan IS NULL OR sub_jabatan = '' THEN jabatan 
+          WHEN jabatan IN ('Ketua', 'Sekretaris', 'Bendahara') THEN sub_jabatan 
+          ELSE jabatan || ' (' || sub_jabatan || ')' 
+        END) as jabatan,
+        jabatan_tambahan, kamar, photo_url, gender, status, created_at, updated_at
+      FROM ustadz 
+      WHERE status = 'Aktif' 
+      ORDER BY created_at DESC
+    `).all()
     
     c.header('Cache-Control', 'public, max-age=30, s-maxage=30')
     return c.json({ success: true, data: results })
@@ -19,16 +30,16 @@ export const getPengurus = async (c: Context<{ Bindings: Env }>) => {
 export const addPengurus = async (c: Context<{ Bindings: Env }>) => {
   try {
     const body = await c.req.json()
-    const { nik, name, phone, jabatan, jabatan_tambahan, kamar, photo_url, gender } = body
+    const { nik, name, phone, jabatan, sub_jabatan, jabatan_tambahan, kamar, photo_url, gender } = body
 
     if (!name || !nik) {
       return c.json({ success: false, error: "Nama dan NIK wajib diisi" }, 400)
     }
 
     await c.env.DB.prepare(
-      `INSERT INTO ustadz (nik, name, phone, jabatan, jabatan_tambahan, kamar, photo_url, gender, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Aktif')`
-    ).bind(nik, name, phone, jabatan, jabatan_tambahan, kamar, photo_url, gender || 'L').run()
+      `INSERT INTO ustadz (nik, name, phone, jabatan, sub_jabatan, jabatan_tambahan, kamar, photo_url, gender, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aktif')`
+    ).bind(nik, name, phone, jabatan, sub_jabatan || null, jabatan_tambahan, kamar, photo_url, gender || 'L').run()
 
     return c.json({ success: true, message: "Pengurus berhasil ditambahkan" })
   } catch (error: any) {
@@ -46,7 +57,7 @@ export const updatePengurus = async (c: Context<{ Bindings: Env }>) => {
     if (!id) return c.json({ success: false, error: "ID wajib ada" }, 400)
 
     const body = await c.req.json()
-    const { nik, name, phone, jabatan, jabatan_tambahan, kamar, photo_url, gender, status } = body
+    const { nik, name, phone, jabatan, sub_jabatan, jabatan_tambahan, kamar, photo_url, gender, status } = body
 
     if (!name || !nik) {
       return c.json({ success: false, error: "Nama dan NIK wajib diisi" }, 400)
@@ -60,10 +71,10 @@ export const updatePengurus = async (c: Context<{ Bindings: Env }>) => {
 
     await c.env.DB.prepare(`
       UPDATE ustadz SET
-        nik = ?, name = ?, phone = ?, jabatan = ?, jabatan_tambahan = ?, kamar = ?, photo_url = ?, gender = ?, status = ?,
+        nik = ?, name = ?, phone = ?, jabatan = ?, sub_jabatan = ?, jabatan_tambahan = ?, kamar = ?, photo_url = ?, gender = ?, status = ?,
         updated_at = datetime('now')
       WHERE id = ?
-    `).bind(nik, name, phone, jabatan, jabatan_tambahan || null, kamar || null, photo_url || null, gender || 'L', status || 'Aktif', id).run()
+    `).bind(nik, name, phone, jabatan, sub_jabatan || null, jabatan_tambahan || null, kamar || null, photo_url || null, gender || 'L', status || 'Aktif', id).run()
 
     return c.json({ success: true, message: "Pengurus berhasil diperbarui" })
   } catch (error: any) {

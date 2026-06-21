@@ -11,11 +11,42 @@ interface AddPengurusModalProps {
   onSuccess: () => void;
 }
 
+const PRIMARY_JABATAN = [
+  "Ketua", "Sekretaris", "Bendahara", "Seksi Pendidikan & Penerangan", 
+  "Seksi Wajib Belajar & Murottil", "Seksi Keamanan", "Seksi Jam'iyyah", 
+  "Seksi Keuangan", "Seksi PLP (Penerangan Listrik Pondok/Pengairan)", 
+  "Seksi Humasy & Logistik", "Seksi Kebersihan (KBR)", "Ketua Blok", 
+  "Seksi Pembangunan", "Seksi Dokumentasi & Media Pondok", "Takmir Masjid DS B", 
+  "Takmir Masjid DS C", "Seksi Kesehatan", "Seksi BUMP (Badan Usaha Milik Pesantren)"
+];
+
+const SUB_JABATAN_MAP: Record<string, string[]> = {
+  "Ketua": ["Ketua Umum", "Ketua I", "Ketua II", "Ketua III"],
+  "Sekretaris": ["Sekretaris Umum", "Sekretaris I", "Sekretaris II", "Sekretaris III"],
+  "Bendahara": ["Bendahara Umum", "Bendahara I", "Bendahara II"],
+  "Seksi Pendidikan & Penerangan": ["Ketua Seksi", "Anggota"],
+  "Seksi Wajib Belajar & Murottil": ["Ketua Seksi", "Anggota"],
+  "Seksi Keamanan": ["Ketua Seksi", "Anggota"],
+  "Seksi Jam'iyyah": ["Ketua Seksi", "Anggota"],
+  "Seksi Keuangan": ["Ketua Seksi", "Anggota"],
+  "Seksi PLP (Penerangan Listrik Pondok/Pengairan)": ["Ketua Seksi", "Anggota"],
+  "Seksi Humasy & Logistik": ["Ketua Seksi", "Anggota"],
+  "Seksi Kebersihan (KBR)": ["Ketua Seksi", "Anggota"],
+  "Ketua Blok": ["Ketua Seksi", "Anggota"],
+  "Seksi Pembangunan": ["Ketua Seksi", "Anggota"],
+  "Seksi Dokumentasi & Media Pondok": ["Ketua Seksi", "Anggota"],
+  "Takmir Masjid DS B": ["Ketua Seksi", "Anggota"],
+  "Takmir Masjid DS C": ["Ketua Seksi", "Anggota"],
+  "Seksi Kesehatan": ["Ketua Seksi", "Anggota"],
+  "Seksi BUMP (Badan Usaha Milik Pesantren)": ["Ketua Seksi", "Anggota"],
+};
+
 export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPengurusModalProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [jabatanList, setJabatanList] = useState<string[]>([]);
-  const [rooms, setRooms] = useState<string[]>([]); // Optional: We can make this dynamic too later
+  const [rooms, setRooms] = useState<string[]>([]);
+  const [primaryJabatan, setPrimaryJabatan] = useState("Ketua");
+  const [subJabatan, setSubJabatan] = useState("Ketua Umum");
   
   const [formData, setFormData] = useState({
     name: "",
@@ -31,35 +62,31 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
 
-  async function fetchInitData() {
-    try {
-      const res = await fetch("/api/admin/roles");
-      const json = await res.json() as any;
-      if (json.success) {
-        const names = json.data.map((j: any) => j.nama);
-        setJabatanList(names);
-        // Rooms can remain hardcoded for now or fetch
-        const generatedRooms = [
-          ...Array.from({ length: 15 }, (_, i) => `DS A ${(i + 1).toString().padStart(2, "0")}`),
-          ...Array.from({ length: 12 }, (_, i) => `DS B ${(i + 1).toString().padStart(2, "0")}`),
-          ...Array.from({ length: 15 }, (_, i) => `DS C ${(i + 1).toString().padStart(2, "0")}`),
-        ];
-        setRooms(generatedRooms);
-
-        if (names.length > 0) {
-          setFormData(prev => ({ 
-            ...prev, 
-            jabatan: names[0],
-            kamar: generatedRooms[0]
-          }));
-        }
-      }
-    } catch (e) { console.error(e); }
-  }
-
   useEffect(() => {
-    if (isOpen) fetchInitData();
+    if (isOpen) {
+      const generatedRooms = [
+        ...Array.from({ length: 15 }, (_, i) => `DS A ${(i + 1).toString().padStart(2, "0")}`),
+        ...Array.from({ length: 12 }, (_, i) => `DS B ${(i + 1).toString().padStart(2, "0")}`),
+        ...Array.from({ length: 15 }, (_, i) => `DS C ${(i + 1).toString().padStart(2, "0")}`),
+      ];
+      setRooms(generatedRooms);
+      setFormData(prev => ({ 
+        ...prev, 
+        kamar: generatedRooms[0]
+      }));
+    }
   }, [isOpen]);
+
+  const handlePrimaryChange = (val: string) => {
+    setPrimaryJabatan(val);
+    const subs = SUB_JABATAN_MAP[val] || [];
+    const defaultSub = subs[0] || "";
+    setSubJabatan(defaultSub);
+  };
+
+  const handleSubChange = (val: string) => {
+    setSubJabatan(val);
+  };
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -94,6 +121,8 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
 
     const payload = {
       ...formData,
+      jabatan: primaryJabatan,
+      sub_jabatan: SUB_JABATAN_MAP[primaryJabatan] ? subJabatan : null,
       kamar: formData.jabatan_tambahan === "Penasehat Kamar" ? formData.kamar : ""
     };
 
@@ -113,13 +142,15 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
         setFormData({
             name: "",
             nik: "",
-            jabatan: jabatanList[0] || "",
+            jabatan: "",
             jabatan_tambahan: "",
             phone: "",
             kamar: rooms[0] || "",
             photo_url: "",
             gender: "L"
         });
+        setPrimaryJabatan("Ketua");
+        setSubJabatan("Ketua Umum");
       } else {
         showToast(json.error || "Gagal menambahkan data", "error");
       }
@@ -219,14 +250,32 @@ export default function AddPengurusModal({ isOpen, onClose, onSuccess }: AddPeng
               <div className="relative group">
                 <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                 <select
-                  value={formData.jabatan}
-                  onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
+                  value={primaryJabatan}
+                  onChange={(e) => handlePrimaryChange(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold appearance-none focus:bg-white focus:border-indigo-500 outline-none transition-all"
                 >
-                  {jabatanList.map((j: string) => <option key={j} value={j}>{j}</option>)}
+                  {PRIMARY_JABATAN.map(j => <option key={j} value={j}>{j}</option>)}
                 </select>
               </div>
             </div>
+
+            {SUB_JABATAN_MAP[primaryJabatan] && (
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Detail Jabatan / Peran</label>
+                <div className="relative group">
+                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <select
+                    value={subJabatan}
+                    onChange={(e) => handleSubChange(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                  >
+                    {SUB_JABATAN_MAP[primaryJabatan].map(s => (
+                      <option key={s} value={s}>{s === "Ketua Seksi" ? "Ketua Seksi (Kasie)" : s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Jabatan Tambahan</label>

@@ -10,6 +10,8 @@ interface Pengurus {
   nik: string;
   name: string;
   jabatan: string;
+  jabatan_utama?: string;
+  sub_jabatan?: string;
   jabatan_tambahan?: string;
   kamar?: string;
   phone: string;
@@ -25,11 +27,35 @@ interface EditPengurusModalProps {
   pengurus: Pengurus;
 }
 
-const JABATAN_LIST = [
-  "Ketua Pondok", "Sekretaris Pondok", "Bendahara Pondok", "Pendidikan Pondok", 
-  "Murottil Pondok", "Keamanan Pondok", "Kesehatan Pondok", "PLP Pondok", 
-  "BUMP Pondok", "Ketua Blok Pondok", "Media & Laboratorium Pondok"
+const PRIMARY_JABATAN = [
+  "Ketua", "Sekretaris", "Bendahara", "Seksi Pendidikan & Penerangan", 
+  "Seksi Wajib Belajar & Murottil", "Seksi Keamanan", "Seksi Jam'iyyah", 
+  "Seksi Keuangan", "Seksi PLP (Penerangan Listrik Pondok/Pengairan)", 
+  "Seksi Humasy & Logistik", "Seksi Kebersihan (KBR)", "Ketua Blok", 
+  "Seksi Pembangunan", "Seksi Dokumentasi & Media Pondok", "Takmir Masjid DS B", 
+  "Takmir Masjid DS C", "Seksi Kesehatan", "Seksi BUMP (Badan Usaha Milik Pesantren)"
 ];
+
+const SUB_JABATAN_MAP: Record<string, string[]> = {
+  "Ketua": ["Ketua Umum", "Ketua I", "Ketua II", "Ketua III"],
+  "Sekretaris": ["Sekretaris Umum", "Sekretaris I", "Sekretaris II", "Sekretaris III"],
+  "Bendahara": ["Bendahara Umum", "Bendahara I", "Bendahara II"],
+  "Seksi Pendidikan & Penerangan": ["Ketua Seksi", "Anggota"],
+  "Seksi Wajib Belajar & Murottil": ["Ketua Seksi", "Anggota"],
+  "Seksi Keamanan": ["Ketua Seksi", "Anggota"],
+  "Seksi Jam'iyyah": ["Ketua Seksi", "Anggota"],
+  "Seksi Keuangan": ["Ketua Seksi", "Anggota"],
+  "Seksi PLP (Penerangan Listrik Pondok/Pengairan)": ["Ketua Seksi", "Anggota"],
+  "Seksi Humasy & Logistik": ["Ketua Seksi", "Anggota"],
+  "Seksi Kebersihan (KBR)": ["Ketua Seksi", "Anggota"],
+  "Ketua Blok": ["Ketua Seksi", "Anggota"],
+  "Seksi Pembangunan": ["Ketua Seksi", "Anggota"],
+  "Seksi Dokumentasi & Media Pondok": ["Ketua Seksi", "Anggota"],
+  "Takmir Masjid DS B": ["Ketua Seksi", "Anggota"],
+  "Takmir Masjid DS C": ["Ketua Seksi", "Anggota"],
+  "Seksi Kesehatan": ["Ketua Seksi", "Anggota"],
+  "Seksi BUMP (Badan Usaha Milik Pesantren)": ["Ketua Seksi", "Anggota"],
+};
 
 const ROOMS = [
   ...Array.from({ length: 15 }, (_, i) => `DS A ${(i + 1).toString().padStart(2, "0")}`),
@@ -37,20 +63,49 @@ const ROOMS = [
   ...Array.from({ length: 15 }, (_, i) => `DS C ${(i + 1).toString().padStart(2, "0")}`),
 ];
 
+function parseJabatan(jabatanMain: string, sub: string | undefined): { primary: string; sub: string } {
+  if (jabatanMain && sub !== undefined) {
+    return { primary: jabatanMain, sub: sub || "" };
+  }
+  
+  if (!jabatanMain) return { primary: "Ketua", sub: "Ketua Umum" };
+
+  for (const primary of PRIMARY_JABATAN) {
+    if (jabatanMain.startsWith(primary)) {
+      const rest = jabatanMain.slice(primary.length).trim();
+      if (rest.startsWith("(") && rest.endsWith(")")) {
+        const inner = rest.slice(1, -1).trim();
+        return { primary, sub: inner };
+      }
+      if (rest) {
+        return { primary, sub: rest };
+      }
+    }
+  }
+
+  return { primary: jabatanMain, sub: "" };
+}
+
 export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus }: EditPengurusModalProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState<Partial<Pengurus>>({});
+  const [primaryJabatan, setPrimaryJabatan] = useState("Ketua");
+  const [subJabatan, setSubJabatan] = useState("Ketua Umum");
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (pengurus) {
       const isPenasehat = pengurus.jabatan_tambahan?.startsWith("Penasehat Kamar");
+      const parsed = parseJabatan(pengurus.jabatan_utama || pengurus.jabatan, pengurus.sub_jabatan);
+      setPrimaryJabatan(parsed.primary);
+      setSubJabatan(parsed.sub);
+
       setFormData({
         name: pengurus.name,
         nik: pengurus.nik,
-        jabatan: pengurus.jabatan,
+        jabatan: parsed.primary,
         jabatan_tambahan: isPenasehat ? "Penasehat Kamar" : "",
         kamar: pengurus.kamar || ROOMS[0],
         phone: pengurus.phone,
@@ -60,6 +115,17 @@ export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus
       });
     }
   }, [pengurus, isOpen]);
+
+  const handlePrimaryChange = (val: string) => {
+    setPrimaryJabatan(val);
+    const subs = SUB_JABATAN_MAP[val] || [];
+    const defaultSub = subs[0] || "";
+    setSubJabatan(defaultSub);
+  };
+
+  const handleSubChange = (val: string) => {
+    setSubJabatan(val);
+  };
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -94,6 +160,8 @@ export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus
 
     const payload = {
       ...formData,
+      jabatan: primaryJabatan,
+      sub_jabatan: SUB_JABATAN_MAP[primaryJabatan] ? subJabatan : null,
       kamar: formData.jabatan_tambahan === "Penasehat Kamar" ? formData.kamar : ""
     };
 
@@ -209,14 +277,32 @@ export default function EditPengurusModal({ isOpen, onClose, onSuccess, pengurus
               <div className="relative group">
                 <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                 <select
-                  value={formData.jabatan || ""}
-                  onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold appearance-none focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                  value={primaryJabatan}
+                  onChange={(e) => handlePrimaryChange(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-500 outline-none transition-all"
                 >
-                  {JABATAN_LIST.map(j => <option key={j} value={j}>{j}</option>)}
+                  {PRIMARY_JABATAN.map(j => <option key={j} value={j}>{j}</option>)}
                 </select>
               </div>
             </div>
+
+            {SUB_JABATAN_MAP[primaryJabatan] && (
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Detail Jabatan / Peran</label>
+                <div className="relative group">
+                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <select
+                    value={subJabatan}
+                    onChange={(e) => handleSubChange(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                  >
+                    {SUB_JABATAN_MAP[primaryJabatan].map(s => (
+                      <option key={s} value={s}>{s === "Ketua Seksi" ? "Ketua Seksi (Kasie)" : s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Jabatan Tambahan</label>

@@ -252,7 +252,7 @@ export const getSeksiStats = async (c: Context<{ Bindings: Env }>) => {
     let members: any[] = [];
     if (membersPattern) {
       const { results } = await c.env.DB.prepare(
-        "SELECT id, name, phone, jabatan, kamar, photo_url, status FROM ustadz WHERE (jabatan LIKE ? OR jabatan_tambahan LIKE ?) AND status = 'Aktif' ORDER BY name ASC"
+        "SELECT id, name, phone, (CASE WHEN sub_jabatan IS NULL OR sub_jabatan = '' THEN jabatan WHEN jabatan IN ('Ketua', 'Sekretaris', 'Bendahara') THEN sub_jabatan ELSE jabatan || ' (' || sub_jabatan || ')' END) as jabatan, kamar, photo_url, status FROM ustadz WHERE (jabatan LIKE ? OR jabatan_tambahan LIKE ?) AND status = 'Aktif' ORDER BY name ASC"
       ).bind(membersPattern, membersPattern).all();
       members = results || [];
     }
