@@ -25,18 +25,39 @@ async function isAuthorized() {
   } catch (e) { return false; }
 }
 
+function getSectionFromRole(role: string): string | null {
+  const r = role.toUpperCase();
+  if (r.includes("KEAMANAN")) return "KEAMANAN";
+  if (r.includes("PENDIDIKAN")) return "PENDIDIKAN";
+  if (r.includes("WAJAR")) return "WAJAR";
+  if (r.includes("JAMIYYAH") || r.includes("JAMI'YYAH") || r.includes("JAM'IYYAH")) return "JAMIYYAH";
+  if (r.includes("PLP")) return "PLP";
+  if (r.includes("KBR") || r.includes("KEBERSIHAN")) return "KBR";
+  if (r.includes("PEMBANGUNAN")) return "PEMBANGUNAN";
+  if (r.includes("MEDIA")) return "MEDIA";
+  if (r.includes("TAKMIR")) return "TAKMIR";
+  if (r.includes("FASILITAS")) return "FASILITAS";
+  if (r.includes("LOGISTIK") || r.includes("HUMASY")) return "LOGISTIK";
+  if (r.includes("KESEHATAN") || r.includes("KLINIK")) return "KESEHATAN";
+  if (r.includes("BUMP")) return "BUMP";
+  if (r.includes("BENDAHARA") || r.includes("KEUANGAN")) return "KEUANGAN";
+  return null;
+}
+
 // GET /api/admin/users - List all users
 export async function GET() {
   try {
-    if (!await isAuthorized()) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("sim_ppds_session")?.value;
-    let isDev = false;
-    if (sessionCookie) {
-      const session = JSON.parse(sessionCookie);
-      isDev = (session.role || "").toUpperCase() === "DEVELOPER" || (session.username || "").toLowerCase() === "developer";
-    }
+    if (!sessionCookie) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const session = JSON.parse(sessionCookie);
+    const role = (session.role || "").toUpperCase();
+    const level = session.role_level || "";
+
+    const isRoot = level === "ROOT" || role === "DEVELOPER" || role.includes("SUPER");
+    const isSekretariat = level === "SEKRETARIAT" || role.includes("SEKRETARIS") || role.includes("SEKRETARIAT");
+    const isDev = role === "DEVELOPER" || (session.username || "").toLowerCase() === "developer";
 
     const { env } = getRequestContext() as unknown as { env: CloudflareEnv };
     
@@ -48,7 +69,19 @@ export async function GET() {
 
     const { results } = await env.DB.prepare(query).all();
 
-    return NextResponse.json({ success: true, data: results });
+    let filteredResults = results;
+    if (!isRoot && !isSekretariat) {
+      const loggedInSection = getSectionFromRole(session.role || "");
+      if (!loggedInSection) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      filteredResults = results.filter((u: any) => {
+        const userSection = getSectionFromRole(u.role || "");
+        return userSection === loggedInSection;
+      });
+    }
+
+    return NextResponse.json({ success: true, data: filteredResults });
   } catch (error) {
     console.error("User List Error:", error);
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });

@@ -22,7 +22,10 @@ INSERT INTO users (username, password, full_name, role, jabatan_id, is_active) V
 ('media', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Media', 'Media', 7, 1),
 ('takmir', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Takmir Masjid', 'Takmir', 8, 1),
 ('jamiyyah', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Jam''iyyah', 'Jam''iyyah', 9, 1),
-('pembangunan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Pembangunan', 'Pembangunan', 10, 1);
+('pembangunan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Pembangunan', 'Pembangunan', 10, 1),
+('anggota_keamanan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Ahmad Keamanan (Anggota)', 'Anggota Keamanan', 11, 1),
+('anggota_plp', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Zainal PLP (Anggota)', 'Anggota PLP', 12, 1),
+('anggota_kbr', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Fahmi Kebersihan (Anggota)', 'Anggota Kebersihan (KBR)', 13, 1);
 
 -- ==========================================
 -- SEED DATA: USTADZ (INITIAL)

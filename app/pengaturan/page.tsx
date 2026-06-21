@@ -112,6 +112,40 @@ export default function PengaturanPage() {
     (session.role || "").toUpperCase().includes("SEKRETARIAT")
   );
 
+  const isSeksiAdmin = session && (
+    (session.role || "").toUpperCase().includes("KEAMANAN") ||
+    (session.role || "").toUpperCase().includes("PENDIDIKAN") ||
+    (session.role || "").toUpperCase().includes("WAJAR") ||
+    (session.role || "").toUpperCase().includes("JAMIYYAH") ||
+    (session.role || "").toUpperCase().includes("JAMI'YYAH") ||
+    (session.role || "").toUpperCase().includes("JAM'IYYAH") ||
+    (session.role || "").toUpperCase().includes("PLP") ||
+    (session.role || "").toUpperCase().includes("KBR") ||
+    (session.role || "").toUpperCase().includes("KEBERSIHAN") ||
+    (session.role || "").toUpperCase().includes("PEMBANGUNAN") ||
+    (session.role || "").toUpperCase().includes("MEDIA") ||
+    (session.role || "").toUpperCase().includes("TAKMIR") ||
+    (session.role || "").toUpperCase().includes("FASILITAS") ||
+    (session.role || "").toUpperCase().includes("LOGISTIK") ||
+    (session.role || "").toUpperCase().includes("HUMASY") ||
+    (session.role || "").toUpperCase().includes("KESEHATAN") ||
+    (session.role || "").toUpperCase().includes("KLINIK") ||
+    (session.role || "").toUpperCase().includes("BUMP") ||
+    (session.role || "").toUpperCase().includes("BENDAHARA") ||
+    (session.role || "").toUpperCase().includes("KEUANGAN")
+  );
+
+  const isUserOnline = (lastLogin: string | null) => {
+    if (!lastLogin) return false;
+    try {
+      const loginTime = new Date(lastLogin).getTime();
+      const now = new Date().getTime();
+      return (now - loginTime) < 15 * 60 * 1000;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const canManageSpp = session && (
     (session.role || "").toUpperCase() === "BENDAHARA" ||
     (session.role || "").toUpperCase() === "KEUANGAN" ||
@@ -495,17 +529,20 @@ export default function PengaturanPage() {
               >
                 Aplikasi & Notifikasi
               </button>
-              <button
-                onClick={() => setActiveTab("user_management")}
-                className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                  activeTab === "user_management"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
-                }`}
-              >
-                Akun Pengguna
-              </button>
             </>
+          )}
+
+          {(isAdmin || isSeksiAdmin) && (
+            <button
+              onClick={() => setActiveTab("user_management")}
+              className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                activeTab === "user_management"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              Akun Pengguna
+            </button>
           )}
 
           <button
@@ -733,7 +770,7 @@ export default function PengaturanPage() {
         )}
 
         {/* Tab Content: Akun Pengguna */}
-        {activeTab === "user_management" && isAdmin && (
+        {activeTab === "user_management" && (isAdmin || isSeksiAdmin) && (
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm w-full animate-in slide-in-from-bottom-2 duration-300">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
@@ -741,7 +778,10 @@ export default function PengaturanPage() {
                   <Users className="w-4 h-4 text-indigo-500" /> Manajemen Akun & Hak Akses
                 </h3>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
-                  Pantau status login pengurus dan lakukan reset kata sandi jika diperlukan
+                  {isAdmin 
+                    ? "Pantau status login pengurus dan lakukan reset kata sandi jika diperlukan"
+                    : "Pantau status login dan aktifitas anggota seksi Anda"
+                  }
                 </p>
               </div>
             </div>
@@ -760,7 +800,7 @@ export default function PengaturanPage() {
                       <th className="px-6 py-4">Jabatan/Peran</th>
                       <th className="px-6 py-4">Login Terakhir</th>
                       <th className="px-6 py-4 text-center">Status</th>
-                      <th className="px-6 py-4 text-center">Tindakan</th>
+                      {isAdmin && <th className="px-6 py-4 text-center">Tindakan</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 text-slate-700">
@@ -791,32 +831,47 @@ export default function PengaturanPage() {
                           }) : "-"}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                            user.is_active === 1 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                          }`}>
-                            {user.is_active === 1 ? "Aktif" : "Nonaktif"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleToggleUserStatus(user.id, user.is_active)}
-                              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
-                                user.is_active === 1 
-                                ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' 
-                                : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                              }`}
-                            >
-                              {user.is_active === 1 ? "Nonaktifkan" : "Aktifkan"}
-                            </button>
-                            <button
-                              onClick={() => handleResetPassword(user.id, user.name)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-[9px] font-black uppercase transition-all"
-                            >
-                              Reset Sandi
-                            </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            {user.is_active === 1 && isUserOnline(user.last_login) && (
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                              user.is_active === 1 
+                                ? (isUserOnline(user.last_login) ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-500') 
+                                : 'bg-rose-50 text-rose-600'
+                            }`}>
+                              {user.is_active === 1 
+                                ? (isUserOnline(user.last_login) ? "Sedang Aktif" : "Aktif") 
+                                : "Nonaktif"
+                              }
+                            </span>
                           </div>
                         </td>
+                        {isAdmin && (
+                          <td className="px-6 py-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleToggleUserStatus(user.id, user.is_active)}
+                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${
+                                  user.is_active === 1 
+                                  ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' 
+                                  : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                                }`}
+                              >
+                                {user.is_active === 1 ? "Nonaktifkan" : "Aktifkan"}
+                              </button>
+                              <button
+                                onClick={() => handleResetPassword(user.id, user.name)}
+                                className="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-[9px] font-black uppercase transition-all"
+                              >
+                                Reset Sandi
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
