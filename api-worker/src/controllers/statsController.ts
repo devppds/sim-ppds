@@ -28,6 +28,16 @@ export const getDashboardStats = async (c: Context<{ Bindings: Env }>) => {
       "SELECT * FROM santri ORDER BY created_at DESC LIMIT 5"
     ).all() as any
 
+    const incompleteQuery = `
+      FROM santri 
+      WHERE status NOT IN ('Alumni', 'Keluar') 
+        AND (nik IS NULL OR nik = '' OR birth_date IS NULL OR birth_place IS NULL OR birth_place = '' OR wali_name IS NULL OR wali_name = '' OR wali_phone IS NULL OR wali_phone = '')
+    `;
+    const incompleteSantriCount = await c.env.DB.prepare(`SELECT COUNT(*) as count ${incompleteQuery}`).first<number>("count") || 0;
+    const { results: incompleteSantriList } = await c.env.DB.prepare(`
+      SELECT id, name, kelas, asrama ${incompleteQuery} ORDER BY created_at DESC LIMIT 5
+    `).all() as any;
+
     const { results: activities } = await c.env.DB.prepare(`
       SELECT 'Santri Baru' as type, name as boldText, created_at as time, 'emerald' as color FROM santri
       UNION ALL
@@ -58,7 +68,11 @@ export const getDashboardStats = async (c: Context<{ Bindings: Env }>) => {
         },
         recent_santri: recentSantri,
         activities: activities,
-        chart_data: chartData
+        chart_data: chartData,
+        incomplete_santri: {
+          total: incompleteSantriCount,
+          list: incompleteSantriList
+        }
       }
     })
   } catch (error) {

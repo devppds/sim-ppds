@@ -19,16 +19,16 @@ export default function SplashScreen() {
     // Show splash if not seen
     setIsVisible(true);
 
-    // Start fading out at 14.2s
+    // Start fading out at 1.2s
     const fadeTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 14200);
+    }, 1200);
 
-    // Remove from DOM at 15s
+    // Remove from DOM at 1.5s
     const removeTimer = setTimeout(() => {
       setIsVisible(false);
       sessionStorage.setItem("splash_seen", "true");
-    }, 15000);
+    }, 1500);
 
     return () => {
       clearTimeout(fadeTimer);
