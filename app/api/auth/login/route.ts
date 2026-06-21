@@ -23,6 +23,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Username and password required" }, { status: 400 });
     }
 
+    const userAgent = request.headers.get("user-agent") || "";
+    const isMobile = /Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(userAgent);
+
+    if ((username === "sekretariat.ppds" || username.startsWith("admin.")) && isMobile) {
+      return NextResponse.json({ success: false, error: "Akses Ditolak: Akun Admin Seksi/Sekretariat hanya dapat dibuka di PC/Desktop Kantor." }, { status: 403 });
+    }
+
     // 1. DEVELOPMENT FALLBACK: If D1 is not available (common in 'next dev')
     if (username === "developer" && password === "developer123") {
        const mockUser = {
@@ -53,6 +60,81 @@ export async function POST(request: Request) {
              name: "Super Admin (Local Dev)",
              role: "Super Admin",
              role_level: "ROOT"
+          };
+          
+          const cookieStore = await cookies();
+          cookieStore.set("sim_ppds_session", JSON.stringify({ ...mockUser, timestamp: Date.now() }), {
+            httpOnly: true,
+            secure: false, // Local dev
+            sameSite: "strict",
+            maxAge: 60 * 60 * 24,
+          });
+
+          return NextResponse.json({ success: true, user: mockUser });
+       }
+       
+       if (username === "sekretariat.ppds" && password === "123456") {
+          const mockUser = {
+              id: 50,
+              username: "sekretariat.ppds",
+              name: "Sekretariat Pusat",
+              role: "Sekretaris",
+              role_level: "SEKRETARIAT"
+          };
+          const cookieStore = await cookies();
+          cookieStore.set("sim_ppds_session", JSON.stringify({ ...mockUser, timestamp: Date.now() }), {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            maxAge: 60 * 60 * 24,
+          });
+
+          return NextResponse.json({ success: true, user: mockUser });
+       }
+
+       if ((username.startsWith("ketua.") || username.startsWith("sekretaris.") || username.startsWith("bendahara.")) && password === "123456") {
+          const roleType = username.split(".")[0];
+          const mockUser = {
+              id: 50,
+              username: username,
+              name: `Pengurus ${roleType.charAt(0).toUpperCase() + roleType.slice(1)}`,
+              role: roleType.charAt(0).toUpperCase() + roleType.slice(1),
+              role_level: roleType === "ketua" ? "ROOT" : "SEKRETARIAT"
+          };
+          const cookieStore = await cookies();
+          cookieStore.set("sim_ppds_session", JSON.stringify({ ...mockUser, timestamp: Date.now() }), {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            maxAge: 60 * 60 * 24,
+          });
+
+          return NextResponse.json({ success: true, user: mockUser });
+       }
+
+       if (username.startsWith("admin.") && password === "admin1223") {
+          const seksi = username.split(".")[1];
+          const roleMap: Record<string, string> = {
+              'keamanan': 'Keamanan',
+              'plp': 'PLP',
+              'kbr': 'KBR',
+              'media': 'Media',
+              'takmir': 'Takmir',
+              'jamiyyah': "Jam'iyyah",
+              'pembangunan': 'Pembangunan',
+              'wajar': 'Wajar',
+              'pendidikan': 'Pendidikan',
+              'humasy': 'Humasy',
+              'kesehatan': 'Kesehatan',
+              'bump': 'BUMP',
+              'blok': 'Blok'
+          };
+          const mockUser = {
+              id: 10 + Object.keys(roleMap).indexOf(seksi),
+              username: username,
+              name: `Admin ${seksi.charAt(0).toUpperCase() + seksi.slice(1)}`,
+              role: roleMap[seksi] || 'Admin',
+              role_level: "STAFF"
           };
           
           const cookieStore = await cookies();
@@ -100,7 +182,7 @@ export async function POST(request: Request) {
        role: user.role,
        role_level: accessLevel, 
        name: user.name,
-       is_default_password: password === "123456",
+       is_default_password: password === "123456" || password === "admin1223",
        timestamp: Date.now() 
     };
     

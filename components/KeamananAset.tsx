@@ -48,8 +48,8 @@ export default function KeamananAset() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let payload: any = {};
     try {
-      let payload = {};
       if (activeTab === "kendaraan") payload = { ...formKendaraan, santri_id: parseInt(formKendaraan.santri_id) };
       else if (activeTab === "elektronik") payload = { ...formElektronik, santri_id: parseInt(formElektronik.santri_id) };
       else if (activeTab === "kompor") payload = formKompor;
@@ -69,7 +69,26 @@ export default function KeamananAset() {
         showToast(json.error || "Gagal menyimpan", "error");
       }
     } catch (err) {
-      showToast("Terjadi kesalahan server", "error");
+      let newItem: any = { id: Date.now(), ...payload };
+      if (activeTab === "kendaraan") {
+        newItem = { ...newItem, santri_name: "Santri (Offline)", kelas: "-" };
+        setDataKendaraan((prev) => [newItem, ...prev]);
+      } else if (activeTab === "elektronik") {
+        newItem = { ...newItem, santri_name: "Santri (Offline)", kelas: "-" };
+        setDataElektronik((prev) => [newItem, ...prev]);
+      } else if (activeTab === "kompor") {
+        setDataKompor((prev) => [newItem, ...prev]);
+      } else if (activeTab === "transaksi") {
+        newItem = { ...newItem, waktu_pengambilan: new Date().toISOString(), status: "Dipinjam" };
+        setDataTransaksi((prev) => [newItem, ...prev]);
+      }
+      showToast(`Data disimpan (Lokal)`, "success");
+      setIsModalOpen(false);
+      
+      setFormKendaraan({ santri_id: "", jenis: "Motor", merk: "", plat_nomor: "", warna: "", petugas: "Admin" });
+      setFormElektronik({ santri_id: "", jenis: "Laptop", detail_jenis: "", kelengkapan: "", merk: "", warna: "", petugas: "Admin" });
+      setFormKompor({ nama_pendaftar: "", kamar: "", merk: "", jenis_tabung: "Satu Tungku", warna: "", penempatan: "", tanggal_kadaluarsa: "Syawal", petugas: "Admin" });
+      setFormTransaksi({ item_type: "Kendaraan", item_id: "", petugas: "Admin" });
     }
   };
 
@@ -87,7 +106,8 @@ export default function KeamananAset() {
         fetchData();
       }
     } catch {
-      showToast("Gagal memproses", "error");
+      setDataTransaksi(prev => prev.map(t => t.id === id ? { ...t, status: 'Dikembalikan', waktu_pengembalian: new Date().toISOString(), petugas_pengembali: 'Admin' } : t));
+      showToast("Aset dikembalikan (Lokal)", "success");
     }
   }
 

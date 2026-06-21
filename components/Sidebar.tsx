@@ -179,6 +179,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       label: "Data Santri",
       badge: <Badge count={stats?.santri ?? null} color="bg-emerald-500/20 text-emerald-400" animate />
     });
+    menuUtamaItems.push({
+      href: "/ebudgeting",
+      icon: Receipt,
+      label: "E-Budgeting",
+      customBadge: <span className="text-[9px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-black">NEW</span>
+    });
+    menuUtamaItems.push({
+      href: "/jadwal-jaga",
+      icon: Calendar,
+      label: "Jadwal & Jaga",
+      dot: true
+    });
   }
 
   if (canAccess('SEKRETARIAT')) {

@@ -1,4 +1,4 @@
-﻿-- ============================================
+-- ============================================
 -- SEED: Rekonstruksi Jabatan + User Pengurus
 -- ============================================
 DELETE FROM users WHERE username NOT IN ('admin','developer','mudir');
@@ -27,6 +27,7 @@ INSERT INTO jabatan (id,nama,akses_level,deskripsi) VALUES
 -- HASH 123456: 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
 INSERT INTO users (username,password,full_name,role,sub_role,is_active,jabatan_id) VALUES
 -- DEWAN HARIAN
+('sekretariat.ppds','8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92','Sekretariat Pusat','Sekretaris','Sekretaris Umum',1,2),
 ('ketua.khoirul','8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92','M. Khoirul Amini Hasby','Ketua','Ketua Umum',1,1),
 ('ketua.said','8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92','Nur M. Said Nawawi','Ketua','Ketua I',1,1),
 ('ketua.bisri','8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92','Bisri Mustofa','Ketua','Ketua II',1,1),

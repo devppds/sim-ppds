@@ -18,6 +18,20 @@ interface Santri {
   nisn: string;
   kelas: string;
   asrama: string;
+  madrasah?: string;
+  sekolah_formal?: string;
+}
+
+interface AbsensiMiu {
+  id: number;
+  santri_id: number;
+  santri_name?: string;
+  santri_kelas?: string;
+  sekolah_formal?: string;
+  tanggal: string;
+  scan_keluar_at?: string;
+  scan_kembali_at?: string;
+  status: "Belum Berangkat" | "Berangkat" | "Kembali";
 }
 
 interface Perizinan {
@@ -76,7 +90,7 @@ interface Pelanggaran {
 }
 
 export default function KeamananPage() {
-  const [activeTab, setActiveTab] = useState<"egate" | "skkb" | "assets" | "violations">("egate");
+  const [activeTab, setActiveTab] = useState<"egate" | "skkb" | "assets" | "violations" | "miu">("egate");
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -86,6 +100,7 @@ export default function KeamananPage() {
   const [skkbList, setSkkbList] = useState<SKKB[]>([]);
   const [assetList, setAssetList] = useState<SantriAsset[]>([]);
   const [pelanggaranList, setPelanggaranList] = useState<Pelanggaran[]>([]);
+  const [absensiMiuList, setAbsensiMiuList] = useState<AbsensiMiu[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -94,12 +109,14 @@ export default function KeamananPage() {
   const [isSkkbModalOpen, setIsSkkbModalOpen] = useState(false);
   const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
   const [isViolModalOpen, setIsViolModalOpen] = useState(false);
+  const [isSekolahMiuModalOpen, setIsSekolahMiuModalOpen] = useState(false);
   const [selectedSkkbPrint, setSelectedSkkbPrint] = useState<SKKB | null>(null);
 
   // Form states
   const [permitForm, setPermitForm] = useState({ santri_id: "", keperluan: "", tgl_mulai: "", tgl_kembali: "" });
   const [skkbForm, setSkkbForm] = useState({ santri_id: "", keperluan: "", catatan: "" });
   const [assetForm, setAssetForm] = useState({ santri_id: "", jenis_asset: "Laptop", merk_tipe: "", no_registrasi: "" });
+  const [sekolahMiuForm, setSekolahMiuForm] = useState({ santri_id: "", sekolah_formal: "" });
   const [violForm, setViolForm] = useState<{
     santri_id: string;
     jenis: "Ringan" | "Sedang" | "Berat" | "Bullying";
@@ -125,11 +142,11 @@ export default function KeamananPage() {
     } catch {
       // Fallback local mock data
       setSantriList([
-        { id: 1, name: "Ahmad Fauzi Rahman", nisn: "1122334455", kelas: "Ibtida' 1", asrama: "DS A 01" },
-        { id: 2, name: "Fatimah Az-Zahra", nisn: "2122334456", kelas: "Tsanawiyyah 2", asrama: "DS B 05" },
-        { id: 3, name: "Muhammad Rizki Pratama", nisn: "3122334457", kelas: "Ula 2", asrama: "DS A 03" },
-        { id: 4, name: "Siti Aminah", nisn: "4122334458", kelas: "Wustho 1", asrama: "DS C 10" },
-        { id: 5, name: "Zulfikar Ali", nisn: "5122334459", kelas: "Aliyyah 3", asrama: "DS A 15" }
+        { id: 1, name: "Ahmad Fauzi Rahman", nisn: "1122334455", kelas: "Ibtida' 1", asrama: "DS A 01", madrasah: "MHM" },
+        { id: 2, name: "Fatimah Az-Zahra", nisn: "2122334456", kelas: "Tsanawiyyah 2", asrama: "DS B 05", madrasah: "MHM" },
+        { id: 3, name: "Muhammad Rizki Pratama", nisn: "3122334457", kelas: "Ula 2", asrama: "DS A 03", madrasah: "MIU", sekolah_formal: "SMPN 1 Ponorogo" },
+        { id: 4, name: "Siti Aminah", nisn: "4122334458", kelas: "Wustho 1", asrama: "DS C 10", madrasah: "MIU", sekolah_formal: "SMK Darussalam" },
+        { id: 5, name: "Zulfikar Ali", nisn: "5122334459", kelas: "Aliyyah 3", asrama: "DS A 15", madrasah: "MIU" }
       ]);
     }
   }, []);
@@ -389,6 +406,48 @@ export default function KeamananPage() {
     }
   };
 
+  const handleUpdateSekolahFormal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sekolahMiuForm.santri_id || !sekolahMiuForm.sekolah_formal) {
+      showToast("Pilih santri dan ketik nama sekolah formal!", "warning");
+      return;
+    }
+    setSantriList(prev => prev.map(s => s.id === parseInt(sekolahMiuForm.santri_id) ? { ...s, sekolah_formal: sekolahMiuForm.sekolah_formal, madrasah: "MIU" } : s));
+    showToast("Sekolah formal berhasil diatur", "success");
+    setIsSekolahMiuModalOpen(false);
+    setSekolahMiuForm({ santri_id: "", sekolah_formal: "" });
+  };
+
+  const handleMiuCheckout = (santri: Santri) => {
+    const today = new Date().toISOString().split('T')[0];
+    const existing = absensiMiuList.find(a => a.santri_id === santri.id && a.tanggal === today);
+    if (existing) {
+      if (existing.status !== 'Belum Berangkat') {
+        showToast("Santri sudah berangkat hari ini", "warning");
+        return;
+      }
+      setAbsensiMiuList(prev => prev.map(a => a.id === existing.id ? { ...a, status: "Berangkat", scan_keluar_at: new Date().toLocaleTimeString() } : a));
+    } else {
+      const newItem: AbsensiMiu = {
+        id: Date.now(),
+        santri_id: santri.id,
+        santri_name: santri.name,
+        santri_kelas: santri.kelas,
+        sekolah_formal: santri.sekolah_formal,
+        tanggal: today,
+        status: "Berangkat",
+        scan_keluar_at: new Date().toLocaleTimeString()
+      };
+      setAbsensiMiuList(prev => [newItem, ...prev]);
+    }
+    showToast(`${santri.name} berangkat ke sekolah`, "success");
+  };
+
+  const handleMiuCheckin = (absensiId: number) => {
+    setAbsensiMiuList(prev => prev.map(a => a.id === absensiId ? { ...a, status: "Kembali", scan_kembali_at: new Date().toLocaleTimeString() } : a));
+    showToast("Santri telah kembali ke asrama", "success");
+  };
+
   const filteredPerizinanList = perizinanList.filter(p => 
     (p.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     (p.keperluan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -412,16 +471,25 @@ export default function KeamananPage() {
     (v.jenis || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredMiuList = absensiMiuList.filter(m => 
+    (m.santri_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m.sekolah_formal || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const getAddBtnConfig = () => {
     switch (activeTab) {
       case "egate":
-        return { label: "Ajukan Izin Keluar", action: () => setIsPermitModalOpen(true), bg: "bg-rose-600 hover:bg-rose-700 shadow-rose-500/20" };
+        return { label: "Ajukan Izin Keluar", action: () => setIsPermitModalOpen(true), bg: "bg-rose-600 hover:bg-rose-700 shadow-rose-500/20", show: true };
       case "skkb":
-        return { label: "Terbitkan SKKB Baru", action: () => setIsSkkbModalOpen(true), bg: "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20" };
+        return { label: "Terbitkan SKKB Baru", action: () => setIsSkkbModalOpen(true), bg: "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20", show: true };
       case "assets":
-        return { label: "Daftarkan Aset Baru", action: () => setIsAssetModalOpen(true), bg: "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20" };
+        return { label: "Daftarkan Aset Baru", action: () => setIsAssetModalOpen(true), bg: "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20", show: false };
       case "violations":
-        return { label: "Laporkan Pelanggaran", action: () => setIsViolModalOpen(true), bg: "bg-amber-600 hover:bg-amber-700 shadow-amber-500/20" };
+        return { label: "Laporkan Pelanggaran", action: () => setIsViolModalOpen(true), bg: "bg-amber-600 hover:bg-amber-700 shadow-amber-500/20", show: true };
+      case "miu":
+        return { label: "Atur Sekolah Formal", action: () => setIsSekolahMiuModalOpen(true), bg: "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20", show: true };
+      default:
+        return { label: "Tambah", action: () => {}, bg: "bg-slate-600", show: false };
     }
   };
 
@@ -453,6 +521,12 @@ export default function KeamananPage() {
           { title: "Kasus Aktif", value: pelanggaranList.filter(v => v.status === 'Penyelidikan').length, description: "Dalam Penyelidikan", icon: <Search className="w-6 h-6" />, colorTheme: "rose" },
           { title: "Selesai", value: pelanggaranList.filter(v => v.status === 'Selesai').length, description: "Sudah Ditangani", icon: <CheckCircle className="w-6 h-6" />, colorTheme: "emerald" },
         ];
+      case "miu":
+        return [
+          { title: "Total Santri MIU", value: santriList.filter(s => s.madrasah === 'MIU').length, description: "Berstatus MIU", icon: <Tag className="w-6 h-6" />, colorTheme: "indigo" },
+          { title: "Sedang di Sekolah", value: absensiMiuList.filter(a => a.status === "Berangkat" && a.tanggal === new Date().toISOString().split('T')[0]).length, description: "Hari ini", icon: <Loader2 className="w-6 h-6" />, colorTheme: "amber" },
+          { title: "Sudah Kembali", value: absensiMiuList.filter(a => a.status === "Kembali" && a.tanggal === new Date().toISOString().split('T')[0]).length, description: "Hari ini", icon: <CheckCircle className="w-6 h-6" />, colorTheme: "emerald" }
+        ];
       default:
         return [];
     }
@@ -482,13 +556,15 @@ export default function KeamananPage() {
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button 
-              onClick={addBtn.action} 
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
-            >
-              <Plus className="w-5 h-5" />
-              <span>{addBtn.label}</span>
-            </button>
+            {addBtn.show && (
+              <button 
+                onClick={addBtn.action} 
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-white font-semibold rounded-xl shadow-lg transition-all active:scale-95 ${addBtn.bg}`}
+              >
+                <Plus className="w-5 h-5" />
+                <span>{addBtn.label}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -533,6 +609,16 @@ export default function KeamananPage() {
             }`}
           >
             Pelanggaran & Bullying
+          </button>
+          <button
+            onClick={() => setActiveTab("miu")}
+            className={`whitespace-nowrap px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+              activeTab === "miu" 
+                ? "bg-white text-indigo-600 shadow-sm" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            Sekolah Formal (MIU)
           </button>
         </div>
 
@@ -768,6 +854,83 @@ export default function KeamananPage() {
                   </tbody>
                 </table>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "miu" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+              <h2 className="font-bold text-slate-800 text-lg">Log Absensi Sekolah Formal (MIU)</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Cari santri/sekolah..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr className="text-xs text-slate-500 font-bold uppercase text-left">
+                    <th className="px-6 py-4">Santri MIU</th>
+                    <th className="px-6 py-4">Sekolah Formal</th>
+                    <th className="px-6 py-4">Status Hari Ini</th>
+                    <th className="px-6 py-4">Waktu Check</th>
+                    <th className="px-6 py-4 text-center">Aksi (E-Gate)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {santriList.filter(s => s.madrasah === 'MIU' && ((s.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || (s.sekolah_formal || "").toLowerCase().includes(searchQuery.toLowerCase()))).map((santri) => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const absensi = absensiMiuList.find(a => a.santri_id === santri.id && a.tanggal === todayStr);
+                    const status = absensi ? absensi.status : "Belum Berangkat";
+                    return (
+                      <tr key={santri.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-slate-800">{santri.name}</div>
+                          <div className="text-xs text-slate-400 mt-1">{santri.kelas} | {santri.asrama}</div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-700 font-semibold">{santri.sekolah_formal || <span className="text-rose-500 text-xs">Belum diatur</span>}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase ${
+                            status === "Berangkat" ? "bg-amber-50 text-amber-600 animate-pulse" :
+                            status === "Kembali" ? "bg-emerald-50 text-emerald-600" :
+                            "bg-slate-100 text-slate-500"
+                          }`}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-slate-500">
+                          {status === "Berangkat" ? `Keluar: ${absensi?.scan_keluar_at}` : 
+                           status === "Kembali" ? `Kembali: ${absensi?.scan_kembali_at}` : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-center space-x-2">
+                          <button 
+                            disabled={status !== "Belum Berangkat"}
+                            onClick={() => handleMiuCheckout(santri)} 
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${status === "Belum Berangkat" ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+                          >
+                            Keluar
+                          </button>
+                          <button 
+                            disabled={status !== "Berangkat"}
+                            onClick={() => handleMiuCheckin(absensi!.id)} 
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${status === "Berangkat" ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+                          >
+                            Kembali
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -1080,6 +1243,44 @@ export default function KeamananPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Sekolah MIU Modal */}
+      {isSekolahMiuModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleUpdateSekolahFormal} className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 bg-indigo-600 text-white flex justify-between items-center">
+              <h3 className="font-bold text-lg">Atur Sekolah Formal (MIU)</h3>
+              <button type="button" onClick={() => setIsSekolahMiuModalOpen(false)} className="text-white hover:text-slate-100 font-bold">&times;</button>
+            </div>
+            <div className="p-6 space-y-4 text-sm text-slate-600">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Santri</label>
+                <SearchableSantriSelect
+                  santriList={santriList}
+                  selectedId={sekolahMiuForm.santri_id}
+                  onChange={(id) => setSekolahMiuForm(prev => ({ ...prev, santri_id: id }))}
+                  accentColor="indigo"
+                  placeholder="Cari & pilih santri..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Sekolah Formal</label>
+                <input 
+                  type="text" 
+                  value={sekolahMiuForm.sekolah_formal}
+                  onChange={(e) => setSekolahMiuForm(prev => ({ ...prev, sekolah_formal: e.target.value }))}
+                  placeholder="Contoh: SMPN 1 Ponorogo, SMK Darussalam"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-hidden focus:border-indigo-500"
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+              <button type="button" onClick={() => setIsSekolahMiuModalOpen(false)} className="px-4 py-2 border border-slate-200 text-slate-500 font-bold rounded-lg hover:bg-slate-100 text-xs">Batal</button>
+              <button type="submit" className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 text-xs">Simpan Data</button>
+            </div>
+          </form>
         </div>
       )}
     </>

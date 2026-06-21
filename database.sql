@@ -6,7 +6,54 @@
 -- ALTER TABLE ustadz ADD COLUMN sub_jabatan TEXT;
 -- ALTER TABLE santri ADD COLUMN jabatan TEXT;
 
+-- ==========================================
+-- E-BUDGETING SCHEMA
+-- ==========================================
+CREATE TABLE IF NOT EXISTS e_budgeting (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    seksi_pengaju TEXT,
+    judul TEXT,
+    total_anggaran INTEGER,
+    status TEXT DEFAULT 'Draft',
+    catatan TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE IF NOT EXISTS e_budgeting_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    budget_id INTEGER,
+    nama_item TEXT,
+    qty INTEGER,
+    satuan TEXT,
+    harga_satuan INTEGER,
+    total_harga INTEGER,
+    keterangan TEXT,
+    FOREIGN KEY(budget_id) REFERENCES e_budgeting(id) ON DELETE CASCADE
+);
+
+-- ==========================================
+-- JADWAL JAGA & ABSENSI SCHEMA
+-- ==========================================
+CREATE TABLE IF NOT EXISTS jadwal_jaga (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    seksi TEXT,
+    petugas_username TEXT,
+    hari TEXT,
+    jam_mulai TEXT,
+    jam_selesai TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS absensi_jaga (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    jadwal_id INTEGER,
+    petugas_username TEXT,
+    waktu_absen TEXT,
+    status_kehadiran TEXT,
+    keterangan TEXT,
+    FOREIGN KEY(jadwal_id) REFERENCES jadwal_jaga(id) ON DELETE CASCADE
+);
 -- ==========================================
 -- SEED DATA: USERS
 -- ==========================================
@@ -14,15 +61,19 @@ DELETE FROM users;
 
 INSERT INTO users (username, password, full_name, role, jabatan_id, is_active) VALUES
 ('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'Super Admin / Mudir', 'Mudir', 1, 1),
-('sekretaris', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Sekretariat', 'Sekretaris', 2, 1),
-('bendahara', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Keuangan', 'Bendahara', 3, 1),
-('keamanan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Keamanan', 'Keamanan', 4, 1),
-('plp', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin PLP', 'PLP', 5, 1),
-('kbr', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Kebersihan', 'KBR', 6, 1),
-('media', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Media', 'Media', 7, 1),
-('takmir', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Takmir Masjid', 'Takmir', 8, 1),
-('jamiyyah', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Jam''iyyah', 'Jam''iyyah', 9, 1),
-('pembangunan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Pembangunan', 'Pembangunan', 10, 1),
+('admin.keamanan', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Keamanan', 'Keamanan', 4, 1),
+('admin.plp', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin PLP', 'PLP', 5, 1),
+('admin.kbr', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Kebersihan', 'KBR', 6, 1),
+('admin.media', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Media', 'Media', 7, 1),
+('admin.takmir', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Takmir Masjid', 'Takmir', 8, 1),
+('admin.jamiyyah', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Jam''iyyah', 'Jam''iyyah', 9, 1),
+('admin.pembangunan', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Pembangunan', 'Pembangunan', 10, 1),
+('admin.wajar', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Wajar & Murottil', 'Wajar', 11, 1),
+('admin.pendidikan', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Pendidikan', 'Pendidikan', 12, 1),
+('admin.humasy', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Humasi & Logistik', 'Humasy', 13, 1),
+('admin.kesehatan', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Kesehatan', 'Kesehatan', 14, 1),
+('admin.bump', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin BUMP', 'BUMP', 15, 1),
+('admin.blok', 'dc83ea52e7419acddd8547ab002d8b86ee3aee45960ba848af432b9be36abb6f', 'Admin Blok', 'Blok', 16, 1),
 ('anggota_keamanan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Ahmad Keamanan (Anggota)', 'Anggota Keamanan', 11, 1),
 ('anggota_plp', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Zainal PLP (Anggota)', 'Anggota PLP', 12, 1),
 ('anggota_kbr', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Fahmi Kebersihan (Anggota)', 'Anggota Kebersihan (KBR)', 13, 1);
