@@ -61,18 +61,6 @@ export default function ImportSantriModal({ isOpen, onClose, onSuccess }: Import
   ];
 
   const downloadSample = () => {
-    const sampleData = [
-      {
-        NIS: "12345",
-        NISN: "0012345001",
-        NIK: "3501010101010001",
-        Nama: "Ahmad Santri Contoh",
-        "Madrasah (1=MHM, 2=MIU) / Formal (Manual)": 1,
-        "Kelas (Isi Angka / Manual)": 4,
-        "Asrama (Isi Angka / Manual)": 1,
-        Asal: "Surabaya",
-        "Wali WA": "081234567890",
-        "Nama Wali": "Bpk. Abdullah"
     // Generate simple sample template using XLSX
     const ws = XLSX.utils.json_to_sheet([
       {
