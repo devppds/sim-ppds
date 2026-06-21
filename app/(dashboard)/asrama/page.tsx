@@ -111,12 +111,15 @@ export default function AsramaPage() {
 
   const roomStats = useMemo(() => {
     return ROOM_LIST.map(roomName => {
+      const normalize = (str: string) => (str || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      const normRoom = normalize(roomName);
+      
       const roomSantri = data.santri
-        .filter(s => s.asrama === roomName)
+        .filter(s => normalize(s.asrama) === normRoom)
         .map(s => ({ ...s, type: 'santri' } as Resident));
       
       const roomPengurus = data.pengurus
-        .filter(p => p.kamar === roomName)
+        .filter(p => normalize(p.kamar) === normRoom)
         .map(p => ({ ...p, type: 'pengurus' } as Resident));
 
       return {
