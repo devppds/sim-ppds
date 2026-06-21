@@ -8,7 +8,7 @@ export const getAsramaData = async (c: Context<{ Bindings: Env }>) => {
     ).all();
 
     const { results: pengurusResults } = await c.env.DB.prepare(
-      "SELECT name, kamar, (CASE WHEN sub_jabatan IS NULL OR sub_jabatan = '' THEN jabatan WHEN jabatan IN ('Ketua', 'Sekretaris', 'Bendahara') THEN sub_jabatan ELSE jabatan || ' (' || sub_jabatan || ')' END) as jabatan, photo_url FROM ustadz WHERE kamar IS NOT NULL"
+      "SELECT name, kamar, (CASE WHEN bidang IS NULL OR bidang = '' THEN jabatan WHEN jabatan IN ('Ketua', 'Sekretaris', 'Bendahara') THEN bidang ELSE jabatan || ' (' || bidang || ')' END) as jabatan, photo_url FROM ustadz WHERE kamar IS NOT NULL"
     ).all();
 
     c.header('Cache-Control', 'public, max-age=15, s-maxage=15')

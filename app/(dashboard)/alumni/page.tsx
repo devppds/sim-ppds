@@ -272,7 +272,7 @@ export default function AlumniPage() {
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${colors[i % colors.length]} flex items-center justify-center text-white text-[11px] font-bold shadow-sm transition-transform group-hover:scale-105 overflow-hidden shrink-0`}>
+                          <div className={`w-9 h-9 rounded-xl bg-linear-to-br ${colors[i % colors.length]} flex items-center justify-center text-white text-[11px] font-bold shadow-sm transition-transform group-hover:scale-105 overflow-hidden shrink-0`}>
                             {item.photo_url ? (
                               <img src={item.photo_url} alt={item.name} className="w-full h-full object-cover" />
                             ) : getInitials(item.name)}
