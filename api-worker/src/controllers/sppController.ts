@@ -27,9 +27,9 @@ export const paySPP = async (c: Context<{ Bindings: Env }>) => {
       
       // Insert ke laporan transaksi keuangan (Pemasukan)
       c.env.DB.prepare(`
-        INSERT INTO transactions (type, category, amount, description, date)
-        VALUES ('Pemasukan', 'SPP', ?, ?, ?)
-      `).bind(amount, description, dateStr)
+        INSERT INTO transactions (type, category, amount, description, date, santri_id)
+        VALUES ('Pemasukan', 'SPP', ?, ?, ?, ?)
+      `).bind(amount, description, dateStr, santri_id)
     ])
 
     return c.json({ success: true, message: "Pembayaran berhasil dicatat & masuk laporan keuangan!" })

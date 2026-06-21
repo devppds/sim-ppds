@@ -91,19 +91,42 @@ export const deleteTransaction = async (c: Context<{ Bindings: Env }>) => {
 
     if (!id) return c.json({ success: false, error: "ID wajib ada" }, 400);
 
+    const tx = await c.env.DB.prepare("SELECT * FROM transactions WHERE id = ?").bind(id).first() as any;
+    if (!tx) return c.json({ success: false, error: "Transaksi tidak ditemukan" }, 404);
+
     if (permanent) {
-      // Select old proof URL to delete from Cloudinary
-      const tx = await c.env.DB.prepare("SELECT proof_url FROM transactions WHERE id = ?").bind(id).first() as any;
-      if (tx && tx.proof_url) {
+      if (tx.proof_url) {
         await triggerCloudinaryDelete(c, tx.proof_url);
       }
-
       await c.env.DB.prepare("DELETE FROM transactions WHERE id = ?").bind(id).run();
-      return c.json({ success: true, message: "Transaksi dihapus permanen" });
     } else {
       await c.env.DB.prepare("UPDATE transactions SET deleted_at = datetime('now') WHERE id = ?").bind(id).run();
-      return c.json({ success: true, message: "Transaksi dipindah ke Recycle Bin" });
     }
+
+    // Auto Cancel SPP if this transaction is an SPP payment
+    if (tx.category === 'SPP') {
+      const santriId = tx.santri_id;
+      let period = null;
+      let academicYear = null;
+      
+      // Try to parse period and academic year from description
+      // Format: Syahriah {period} {academic_year} - {santriName}
+      const match = tx.description?.match(/Syahriah (.+?) (\d{4}\/\d{4}) -/);
+      if (match) {
+        period = match[1];
+        academicYear = match[2];
+      }
+
+      if (santriId && period && academicYear) {
+        if (permanent) {
+          await c.env.DB.prepare("DELETE FROM spp_payments WHERE santri_id = ? AND period = ? AND academic_year = ?").bind(santriId, period, academicYear).run();
+        } else {
+           await c.env.DB.prepare("UPDATE spp_payments SET status = 'Tunggakan' WHERE santri_id = ? AND period = ? AND academic_year = ?").bind(santriId, period, academicYear).run();
+        }
+      }
+    }
+
+    return c.json({ success: true, message: permanent ? "Transaksi dihapus permanen" : "Transaksi dipindah ke Recycle Bin" });
   } catch (error) {
     console.error("Finance DELETE Error:", error);
     return c.json({ success: false, error: "Internal Server Error" }, 500);

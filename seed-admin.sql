@@ -1,0 +1,15 @@
+INSERT OR IGNORE INTO users (username, password, full_name, role, jabatan_id, is_active) VALUES
+('sekretariat.ppds', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Sekretariat PPDS', 'Sekretaris', 2, 1),
+('admin.keamanan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Keamanan', 'Keamanan', 6, 1),
+('admin.plp', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin PLP', 'PLP', 9, 1),
+('admin.kbr', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Kebersihan', 'KBR', 11, 1),
+('admin.media', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Media', 'Media', 14, 1),
+('admin.takmir', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Takmir Masjid', 'Takmir', 15, 1),
+('admin.jamiyyah', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Jam''iyyah', 'Jam''iyyah', 7, 1),
+('admin.pembangunan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Pembangunan', 'Pembangunan', 13, 1),
+('admin.wajar', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Wajar & Murottil', 'Wajar', 5, 1),
+('admin.pendidikan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Pendidikan', 'Pendidikan', 4, 1),
+('admin.humasy', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Humasy & Logistik', 'Humasy', 10, 1),
+('admin.kesehatan', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Kesehatan', 'Kesehatan', 17, 1),
+('admin.bump', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin BUMP', 'BUMP', 18, 1),
+('admin.blok', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Admin Blok', 'Blok', 12, 1);

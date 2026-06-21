@@ -19,7 +19,7 @@ export default function JadwalJagaPage() {
   useEffect(() => {
     fetch("/api/auth/session")
       .then(res => res.json())
-      .then(data => {
+      .then((data: any) => {
         if (!data.success || !data.session) router.push("/login");
         else setSession(data.session);
       });

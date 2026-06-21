@@ -99,21 +99,21 @@ export const updateSantri = async (c: Context<{ Bindings: Env }>) => {
     if (!id) return c.json({ success: false, error: "ID wajib ada" }, 400)
 
     const body = await c.req.json()
-    const {
-      nisn, nis, nik, name, birth_date, birth_place, gender,
-      asal, madrasah, kelas, asrama, photo_url, status,
-      street, rt_rw, province, city, district, village, postal_code,
-      wali_name, wali_wa, wali_phone, tahun_masuk, tahun_lulus
-    } = body
+    const { photo_url } = body
 
-    if (!name || !kelas) {
-      return c.json({ success: false, error: "Nama dan Kelas wajib diisi" }, 400)
+    // Cek santri yang ada
+    const oldSantri = await c.env.DB.prepare("SELECT * FROM santri WHERE id = ?").bind(id).first() as any;
+    if (!oldSantri) return c.json({ success: false, error: "Santri tidak ditemukan" }, 404);
+
+    if (photo_url && oldSantri.photo_url && oldSantri.photo_url !== photo_url) {
+      await triggerCloudinaryDelete(c, oldSantri.photo_url);
     }
 
-    // Get old photo url to delete if a new one was uploaded
-    const oldSantri = await c.env.DB.prepare("SELECT photo_url FROM santri WHERE id = ?").bind(id).first() as any;
-    if (oldSantri && oldSantri.photo_url && photo_url && oldSantri.photo_url !== photo_url) {
-      await triggerCloudinaryDelete(c, oldSantri.photo_url);
+    // Merge old data with new data
+    const updatedData = { ...oldSantri, ...body };
+
+    if (!updatedData.name || !updatedData.kelas) {
+      return c.json({ success: false, error: "Nama dan Kelas wajib diisi" }, 400)
     }
 
     await c.env.DB.prepare(`
@@ -125,10 +125,10 @@ export const updateSantri = async (c: Context<{ Bindings: Env }>) => {
         updated_at = datetime('now')
       WHERE id = ?
     `).bind(
-      nisn || null, nis || null, nik || null, name, birth_date || null, birth_place || null, gender || 'L',
-      asal || null, madrasah || null, kelas, asrama || null, photo_url || null, status || 'Biasa',
-      street || null, rt_rw || null, province || null, city || null, district || null, village || null, postal_code || null,
-      wali_name || null, wali_wa || null, wali_phone || null, tahun_masuk || null, tahun_lulus || null,
+      updatedData.nisn || null, updatedData.nis || null, updatedData.nik || null, updatedData.name, updatedData.birth_date || null, updatedData.birth_place || null, updatedData.gender || 'L',
+      updatedData.asal || null, updatedData.madrasah || null, updatedData.kelas, updatedData.asrama || null, updatedData.photo_url || null, updatedData.status || 'Biasa',
+      updatedData.street || null, updatedData.rt_rw || null, updatedData.province || null, updatedData.city || null, updatedData.district || null, updatedData.village || null, updatedData.postal_code || null,
+      updatedData.wali_name || null, updatedData.wali_wa || null, updatedData.wali_phone || null, updatedData.tahun_masuk || null, updatedData.tahun_lulus || null,
       id
     ).run()
 
@@ -153,8 +153,21 @@ export const deleteSantri = async (c: Context<{ Bindings: Env }>) => {
       await triggerCloudinaryDelete(c, santri.photo_url)
     }
 
-    await c.env.DB.prepare("DELETE FROM santri WHERE id = ?").bind(id).run()
-    return c.json({ success: true, message: "Santri berhasil dihapus permanen" })
+    // Cascade deletes manually to prevent orphan data
+    await c.env.DB.batch([
+      c.env.DB.prepare("DELETE FROM spp_payments WHERE santri_id = ?").bind(id),
+      c.env.DB.prepare("DELETE FROM keamanan_kendaraan WHERE santri_id = ?").bind(id),
+      c.env.DB.prepare("DELETE FROM keamanan_elektronik WHERE santri_id = ?").bind(id),
+      c.env.DB.prepare("DELETE FROM clearance_boyong WHERE santri_id = ?").bind(id),
+      c.env.DB.prepare("DELETE FROM perizinan WHERE santri_id = ?").bind(id),
+      c.env.DB.prepare("DELETE FROM pelanggaran WHERE santri_id = ?").bind(id),
+      c.env.DB.prepare("DELETE FROM skkb WHERE santri_id = ?").bind(id),
+      c.env.DB.prepare("DELETE FROM santri_assets WHERE santri_id = ?").bind(id),
+      // Finally, delete the santri
+      c.env.DB.prepare("DELETE FROM santri WHERE id = ?").bind(id)
+    ])
+    
+    return c.json({ success: true, message: "Santri dan data terkait berhasil dihapus permanen" })
   } catch (error) {
     console.error("Error deleting santri:", error)
     return c.json({ success: false, error: "Gagal menghapus santri" }, 500)

@@ -80,30 +80,69 @@ export function middleware(request: NextRequest) {
       const isSekretariat = level === 'SEKRETARIAT' || role.includes('SEKRETARIS') || role.includes('SEKRETARIAT');
       const isKeuangan = level === 'KEUANGAN' || role.includes('BENDAHARA') || role.includes('KEUANGAN') || level === 'RESTRICTED_SPP' || role === 'SEKSI KEUANGAN';
       const isRoot = level === 'ROOT' || role === 'DEVELOPER' || role === 'MUDIR' || role.includes('SUPER');
+      const isViewAll = level === 'VIEW_ALL';
+      const isSuper = isRoot || isViewAll || isSekretariat;
 
       // 1. Pusat Kontrol: ROOT and SEKRETARIAT
       if (pathname.startsWith("/pusat-kontrol") && !(isRoot || isSekretariat)) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // 2. Pengaturan: All authenticated users can access settings page
-      // No restriction here because page content will be customized based on role.
-
-      // 3. Seksi Keuangan: Limited access to /spp and /pengaturan only
+      // 2. Seksi Keuangan: Limited access to /spp and /pengaturan only
       if (level === 'RESTRICTED_SPP' || sessionData.role === 'Seksi Keuangan') {
          if (!pathname.startsWith("/spp") && !pathname.startsWith("/pengaturan")) {
             return NextResponse.redirect(new URL("/spp", request.url));
          }
       }
 
-      // 4. Eksekutif: ROOT, VIEW_ALL, SEKRETARIAT, KEUANGAN
-      if (pathname.startsWith("/eksekutif") && !(isRoot || level === 'VIEW_ALL' || isSekretariat || isKeuangan)) {
+      // 3. Keuangan & SPP: Only Keuangan, Root, ViewAll
+      if ((pathname.startsWith("/keuangan") || pathname.startsWith("/spp") || pathname.startsWith("/ebudgeting")) && !(isSuper || isKeuangan || role.includes("KETUA") || role.includes("MUDIR"))) {
+         // Everyone can access ebudgeting, wait. "Semua Role Punya Dashboard" in Sidebar includes ebudgeting!
+         if (!pathname.startsWith("/ebudgeting")) {
+            return NextResponse.redirect(new URL("/dashboard", request.url));
+         }
+      }
+
+      // 4. Eksekutif & Clearance: ROOT, VIEW_ALL, SEKRETARIAT
+      if ((pathname.startsWith("/eksekutif") || pathname.startsWith("/clearance")) && !(isRoot || isViewAll || isSekretariat || isKeuangan)) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // 5. Clearance: ROOT, VIEW_ALL, SEKRETARIAT
-      if (pathname.startsWith("/clearance") && !(isRoot || level === 'VIEW_ALL' || isSekretariat)) {
+      // 5. Sekretariat (Pengurus, Alumni, Asrama, Arsip)
+      const isSekretariatPath = pathname.startsWith("/pengurus") || pathname.startsWith("/alumni") || pathname.startsWith("/asrama") || pathname.startsWith("/arsip");
+      if (isSekretariatPath && !isSuper) {
          return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      // 6. Operasional / Seksi Spesifik
+      const opMap: Record<string, string> = {
+         "/keamanan": "KEAMANAN",
+         "/pendidikan": "PENDIDIKAN",
+         "/wajar": "WAJAR",
+         "/jamiyyah": "JAMIYYAH",
+         "/plp": "PLP",
+         "/kebersihan": "KBR",
+         "/pembangunan": "PEMBANGUNAN",
+         "/media": "MEDIA",
+         "/takmir": "TAKMIR",
+         "/fasilitas": "FASILITAS",
+         "/logistik": "LOGISTIK",
+         "/klinik": "KESEHATAN",
+         "/bump": "BUMP"
+      };
+
+      for (const [path, reqRole] of Object.entries(opMap)) {
+         if (pathname.startsWith(path)) {
+            // Is it allowed? Super allowed, or specific role matching.
+            const allowed = isSuper || role.includes(reqRole) || 
+                            (reqRole === 'KBR' && role.includes('KEBERSIHAN')) || 
+                            (reqRole === 'LOGISTIK' && role.includes('HUMASY')) ||
+                            (reqRole === 'KESEHATAN' && role.includes('KLINIK')) ||
+                            (reqRole === 'JAMIYYAH' && role.includes('JAMI'));
+            if (!allowed) {
+               return NextResponse.redirect(new URL("/dashboard", request.url));
+            }
+         }
       }
      
      return NextResponse.next();
